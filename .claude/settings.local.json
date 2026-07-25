@@ -9,7 +9,12 @@
       "PowerShell(Get-ChildItem *)",
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\" -Depth 1 | Select-Object Name, @{Name=\"Type\"; Expression={if \\($_.PSIsContainer\\) {\"DIR\"} else {\"FILE\"}}} | Sort-Object Type, Name)",
       "PowerShell(Write-Host \"=== COMPONENTS ===\" ; \\(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\\\\src\\\\components\" -Name\\); Write-Host \"=== PAGES ===\" ; \\(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\\\\src\\\\pages\" -Name\\); Write-Host \"=== HOOKS ===\" ; \\(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\\\\src\\\\hooks\" -Name\\); Write-Host \"=== MODELS ===\" ; \\(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\\\\src\\\\models\" -Name\\))",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\\\\public\\\\logos\")",
+      "Bash(Out-Null)",
+      "Bash(Copy-Item \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\FlyZIP\\\\logos\\\\fly-logo.png\" -Destination \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\\\\public\\\\logos\\\\fly-logo.png\" -Force)",
+      "Bash(Write-Output \"Logo copiado OK\")",
+      "PowerShell(New-Item *)"
     ]
   }
 }
