@@ -3,7 +3,13 @@
     "allow": [
       "Bash(dir /s /b \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\")",
       "Bash(sed \"s/'//g\")",
-      "PowerShell(Rename-Item *)"
+      "PowerShell(Rename-Item *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\" -Force | Select-Object Name, @{Name=\"Type\"; Expression={if \\($_.PSIsContainer\\) {\"DIR\"} else {\"FILE\"}}} | Format-Table -AutoSize)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\" -Force | Select-Object Name, @{Name=\"Type\"; Expression={if \\($_.PSIsContainer\\) {\"DIR\"} else {\"FILE\"}}} | Sort-Object Type, Name)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\" -Depth 1 | Select-Object Name, @{Name=\"Type\"; Expression={if \\($_.PSIsContainer\\) {\"DIR\"} else {\"FILE\"}}} | Sort-Object Type, Name)",
+      "PowerShell(Write-Host \"=== COMPONENTS ===\" ; \\(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\\\\src\\\\components\" -Name\\); Write-Host \"=== PAGES ===\" ; \\(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\\\\src\\\\pages\" -Name\\); Write-Host \"=== HOOKS ===\" ; \\(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\\\\src\\\\hooks\" -Name\\); Write-Host \"=== MODELS ===\" ; \\(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\\\\src\\\\models\" -Name\\))",
+      "Bash(npm install *)"
     ]
   }
 }
