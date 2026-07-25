@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /s /b \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\")",
+      "Bash(sed \"s/'//g\")",
+      "PowerShell(Rename-Item *)"
+    ]
+  }
+}
