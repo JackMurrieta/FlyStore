@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './navbar.css'
 
 interface NavbarProps {
@@ -9,7 +10,6 @@ interface NavbarProps {
   activeSection?: string
   onNavigate?: (section: string) => void
   onCartClick?: () => void
-  onProfileClick?: () => void
 }
 
 export function Navbar({
@@ -20,9 +20,9 @@ export function Navbar({
   activeSection = 'home',
   onNavigate,
   onCartClick,
-  onProfileClick,
 }: NavbarProps) {
-  const closeRef = useRef<HTMLButtonElement>(null)
+  const closeRef  = useRef<HTMLButtonElement>(null)
+  const navigate  = useNavigate()
 
   useEffect(() => {
     if (!isOpen) return
@@ -42,7 +42,11 @@ export function Navbar({
 
   const go = (id: string) => {
     onClose()
-    onNavigate?.(id)
+    if (id === 'profile') {
+      navigate('/login')
+    } else {
+      onNavigate?.(id)
+    }
   }
 
   const active = (id: string) => activeSection === id ? ' active' : ''
@@ -261,7 +265,7 @@ export function Navbar({
 
           <button
             className={`nb-bn${active('profile')}`}
-            onClick={onProfileClick}
+            onClick={() => { navigate('/login') }}
             aria-label="Mi cuenta"
             type="button"
           >
