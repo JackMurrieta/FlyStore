@@ -14,7 +14,25 @@
       "Bash(Out-Null)",
       "Bash(Copy-Item \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\FlyZIP\\\\logos\\\\fly-logo.png\" -Destination \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\\\\public\\\\logos\\\\fly-logo.png\" -Force)",
       "Bash(Write-Output \"Logo copiado OK\")",
-      "PowerShell(New-Item *)"
+      "PowerShell(New-Item *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\" -Force)",
+      "Bash(Select-Object Name, PSIsContainer)",
+      "Bash(Format-Table)",
+      "PowerShell(Head *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\\\\src\" -Recurse | Where-Object {$_.PSIsContainer} | ForEach-Object {$_.FullName} | Sort-Object)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\" -Recurse -Force -File | Where-Object {$_.Name -match \"\\\\.\\(json|env|config|md|txt\\)$\" -and $_.DirectoryName -notmatch \"node_modules\"} | ForEach-Object {$_.FullName} | Sort-Object)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\FlyStore\\\\FlyStore\\\\src\" -Recurse -File | Where-Object {$_.Length -eq 0} | ForEach-Object {$_.FullName})",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\GitHub\\\\alzaid-superadmin\\\\src\\\\app\\\\layout\" -Recurse -Force)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(ConvertTo-Json)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\FlyZIP\" -Recurse -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object FullName)",
+      "PowerShell(head *)",
+      "Bash(npx tsc *)",
+      "Bash(Select-Object -Property Name, PSIsContainer)",
+      "Bash(Sort-Object Name)",
+      "Bash(npm run *)",
+      "WebFetch(domain:developers.cloudflare.com)"
     ]
   }
 }
