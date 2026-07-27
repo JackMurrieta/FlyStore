@@ -14,6 +14,16 @@ dist
 dist-ssr
 *.local
 
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Markdown files
+*.md
+*.MD
+*.mdx
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
