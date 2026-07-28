@@ -23,6 +23,15 @@
   align-items: center;
   justify-content: center;
   touch-action: pan-y;
+  animation: rack-swipe-hint 1.1s cubic-bezier(.16,1,.3,1) 1.8s 1 both;
+}
+
+@keyframes rack-swipe-hint {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(-18px); }
+  55%  { transform: translateX(9px); }
+  78%  { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
 }
 
 .tag {
@@ -168,6 +177,7 @@
   font-family: var(--fb);
 }
 .jchip.active { background: #fff; color: #000; border-color: #fff; font-weight: 700; }
+.jchip:focus-visible { outline: 1.5px solid var(--gold); outline-offset: 2px; }
 
 /* ── Flip animation "FLY" ── */
 .flip-letter {
