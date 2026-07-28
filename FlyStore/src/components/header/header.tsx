@@ -37,7 +37,7 @@ export function Header({ cartCount = 0, onMenuClick, onProfileClick, onCartClick
           tabIndex={0}
           onKeyDown={(e) => e.key === 'Enter' && onLogoClick?.()}
         >
-          <img src="/logos/fly-logo.png" alt="FLY" className="logo-spin" />
+          <img src="/logos/fly-logo.png" alt="FLY Store" className="logo-spin" />
         </div>
       </div>
 

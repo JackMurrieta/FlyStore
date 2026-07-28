@@ -32,7 +32,13 @@
       "Bash(Select-Object -Property Name, PSIsContainer)",
       "Bash(Sort-Object Name)",
       "Bash(npm run *)",
-      "WebFetch(domain:developers.cloudflare.com)"
+      "WebFetch(domain:developers.cloudflare.com)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\FlyZIP\" -Recurse -Force)",
+      "Bash(Select-Object -Property FullName)",
+      "Bash(Sort-Object -Property FullName)",
+      "Bash(Format-Table -AutoSize -Wrap)",
+      "Bash(grep -v \"^\\\\s*/\\\\|css\\\\|style\\\\|animation\\\\|font\\\\|border\\\\|padding\\\\|margin\\\\|display\\\\|flex\\\\|color\\\\|background\\\\|width\\\\|height\\\\|opacity\\\\|transform\\\\|transition\\\\|letter\\\\|text\\\\|min-\\\\|max-\\\\|position\\\\|z-index\\\\|overflow\\\\|content\\\\|cursor\\\\|gap\\\\|box\\\\|filter\\\\|calc\\\\|hover\\\\|active\\\\|nth\\\\|from\\\\|to\\\\|\\\\\\\\.cat\\\\|#cat\\\\|@\")",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\Usuario\\\\Desktop\\\\FlyZIP\" -Recurse | Where-Object { $_.Name -match \"logo|brand|fly\" -and $_.Extension -match \"png|svg|jpg\" } | Select-Object FullName)"
     ]
   }
 }
