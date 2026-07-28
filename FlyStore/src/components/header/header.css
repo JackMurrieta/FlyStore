@@ -7,32 +7,88 @@
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 0 18px;
+  gap: 12px;
   background: rgba(10, 10, 10, .72);
   backdrop-filter: blur(24px) saturate(140%);
   -webkit-backdrop-filter: blur(24px) saturate(140%);
   border-bottom: 1px solid rgba(255, 255, 255, .1);
 }
 
+/* ── LEFT ── */
 .nav-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
+/* ── CENTER ── */
 .nav-center {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
 }
 
+/* Logo mobile — oculto en desktop */
+.logo-mobile-wrap {
+  display: none;
+  width: 52px;
+  height: 40px;
+  perspective: 600px;
+  cursor: pointer;
+}
+
+/* Buscador desktop */
+.nav-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, .055);
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 10px;
+  padding: 0 14px;
+  height: 38px;
+  width: 100%;
+  max-width: 340px;
+  cursor: text;
+  transition: border-color .2s;
+}
+
+.nav-search:focus-within {
+  border-color: rgba(255, 255, 255, .22);
+}
+
+.nav-search-input {
+  background: none;
+  border: none;
+  outline: none;
+  color: rgba(255, 255, 255, .8);
+  font-family: var(--fb);
+  font-size: 11px;
+  letter-spacing: .4px;
+  width: 100%;
+}
+
+.nav-search-input::placeholder {
+  color: rgba(255, 255, 255, .28);
+}
+
+/* Quita el ícono nativo del input search en WebKit */
+.nav-search-input::-webkit-search-decoration,
+.nav-search-input::-webkit-search-cancel-button { display: none; }
+
+/* ── RIGHT ── */
 .nav-right {
   display: flex;
   align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
+/* ── BOTONES ── */
 .nav-btn {
   width: 40px;
   height: 40px;
@@ -52,6 +108,7 @@
   border-color: rgba(255, 255, 255, .28);
 }
 
+/* ── LOGO ── */
 .logo-spin-wrap {
   width: 52px;
   height: 40px;
@@ -78,6 +135,7 @@
   .logo-spin { animation: none; }
 }
 
+/* ── BADGE CARRITO ── */
 .cart-badge {
   position: absolute;
   top: -3px;
@@ -95,14 +153,18 @@
   pointer-events: none;
 }
 
+/* ── MOBILE ── */
 @media (max-width: 767px) {
   .nav-left,
   .nav-right {
-    visibility: hidden;
-    width: 0;
-    overflow: hidden;
+    display: none;
   }
-  .fly-header {
-    justify-content: center;
+
+  .logo-mobile-wrap {
+    display: block;
+  }
+
+  .nav-search {
+    display: none;
   }
 }
