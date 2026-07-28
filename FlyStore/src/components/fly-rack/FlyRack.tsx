@@ -1,10 +1,12 @@
 import { useState, useRef } from 'react'
 import './FlyRack.css'
 
+/* ── Datos de categorías ── */
 const CATS = [
   {
     key: 'caps', num: '01', name: 'FlyCaps', badge: 'Más vendido',
     sub: 'Barbas · Dandy · ThirtyOne · New Era',
+    logo: '/logos/flycaps-logo.png',
     motif: (
       <svg viewBox="0 0 60 50" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
         <path d="M8 36C8 32 10 20 14 15C18 10 24 8 30 8s12 2 16 7c4 5 6 17 6 21"/>
@@ -17,6 +19,7 @@ const CATS = [
   {
     key: 'clothes', num: '02', name: 'FlyClothes', badge: null,
     sub: 'Calidad Turca · Fútbol Jugador',
+    logo: '/logos/flyclothes-logo.png',
     motif: (
       <svg viewBox="0 0 60 58" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
         <path d="M13 17L2 30l13 5v19h30V35l13-5L47 17Q40 23 30 23Q20 23 13 17Z"/>
@@ -26,6 +29,7 @@ const CATS = [
   {
     key: 'essence', num: '03', name: 'FlyEssence', badge: null,
     sub: 'Perfumes Árabes Originales · Decants',
+    logo: '/logos/flyessence-logo.png',
     motif: (
       <svg viewBox="0 0 56 72" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
         <rect x="22" y="4" width="12" height="6" rx="3"/>
@@ -37,6 +41,7 @@ const CATS = [
   {
     key: 'shoes', num: '04', name: 'FlyShoes', badge: 'Nuevo',
     sub: 'Tenis Urbanos · Próximamente',
+    logo: null,
     motif: (
       <svg viewBox="0 0 60 40" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
         <path d="M2 30h56v6H2z"/>
@@ -46,111 +51,122 @@ const CATS = [
   },
 ]
 
-function getPos(i: number, active: number): string {
-  if (i === active)     return 'active'
-  if (i === active - 1) return 'prev'
-  if (i === active + 1) return 'next'
+export type RackCat = typeof CATS[number]
+
+function getPos(i: number, active: number) {
+  if (i === active)      return 'active'
+  if (i === active - 1)  return 'prev'
+  if (i === active + 1)  return 'next'
   return 'hidden'
 }
 
-export function FlyRack() {
+/* ── Hook compartido ── */
+export interface RackState {
+  cats:     RackCat[]
+  active:   number
+  go:       (i: number) => void
+  activeEl: React.RefObject<HTMLDivElement | null>
+  rackHandlers: React.HTMLAttributes<HTMLDivElement>
+}
+
+export function useFlyRack(): RackState {
   const [active, setActive] = useState(0)
-  const dragRef  = useRef({ dragging: false, startX: 0, dx: 0 })
+  const drag    = useRef({ on: false, startX: 0, dx: 0 })
   const activeEl = useRef<HTMLDivElement | null>(null)
 
-  const go = (next: number) => {
-    setActive(Math.max(0, Math.min(CATS.length - 1, next)))
-  }
+  const go = (i: number) =>
+    setActive(Math.max(0, Math.min(CATS.length - 1, i)))
 
-  /* ── Drag handlers ── */
-  const onDragStart = (x: number) => {
-    dragRef.current = { dragging: true, startX: x, dx: 0 }
+  const onStart = (x: number) => {
+    drag.current = { on: true, startX: x, dx: 0 }
   }
-
-  const onDragMove = (x: number) => {
-    const d = dragRef.current
-    if (!d.dragging) return
-    d.dx = x - d.startX
-    if (activeEl.current) {
+  const onMove = (x: number) => {
+    if (!drag.current.on) return
+    drag.current.dx = x - drag.current.startX
+    if (activeEl.current)
       activeEl.current.style.transform =
-        `translateX(${d.dx}px) rotate(${d.dx / 22}deg)`
-    }
+        `translateX(${drag.current.dx}px) rotate(${drag.current.dx / 22}deg)`
   }
-
-  const onDragEnd = () => {
-    const d = dragRef.current
-    if (!d.dragging) return
-    d.dragging = false
+  const onEnd = () => {
+    if (!drag.current.on) return
+    drag.current.on = false
     if (activeEl.current) activeEl.current.style.transform = ''
-    if (d.dx < -55 && active < CATS.length - 1) go(active + 1)
-    else if (d.dx > 55 && active > 0)            go(active - 1)
-    d.dx = 0
+    if (drag.current.dx < -55 && active < CATS.length - 1) go(active + 1)
+    else if (drag.current.dx > 55 && active > 0)            go(active - 1)
+    drag.current.dx = 0
   }
 
-  const handleCardClick = (pos: string) => {
-    if (pos === 'prev') go(active - 1)
-    if (pos === 'next') go(active + 1)
+  const rackHandlers: React.HTMLAttributes<HTMLDivElement> = {
+    onMouseDown:  e => { if (!(e.target as HTMLElement).closest('.tag-cta')) onStart(e.clientX) },
+    onMouseMove:  e => onMove(e.clientX),
+    onMouseUp:    onEnd,
+    onMouseLeave: onEnd,
+    onTouchStart: e => onStart(e.touches[0].clientX),
+    onTouchMove:  e => onMove(e.touches[0].clientX),
+    onTouchEnd:   onEnd,
   }
 
+  return { cats: CATS, active, go, activeEl, rackHandlers }
+}
+
+/* ── Sub-componente: tarjetas ── */
+export function FlyRackCards({ cats, active, go, activeEl, rackHandlers }: RackState) {
   return (
-    <div className="cat-list">
-      {/* Rack */}
-      <div
-        className="rack-wrap"
-        onMouseDown={e => { if (!(e.target as HTMLElement).closest('.tag-cta')) onDragStart(e.clientX) }}
-        onMouseMove={e => onDragMove(e.clientX)}
-        onMouseUp={onDragEnd}
-        onMouseLeave={onDragEnd}
-        onTouchStart={e => onDragStart(e.touches[0].clientX)}
-        onTouchMove={e => onDragMove(e.touches[0].clientX)}
-        onTouchEnd={onDragEnd}
-      >
-        {CATS.map((cat, i) => {
-          const pos = getPos(i, active)
-          return (
-            <div
-              key={cat.key}
-              className="tag glass"
-              data-pos={pos}
-              ref={pos === 'active' ? activeEl : null}
-              onClick={() => handleCardClick(pos)}
-            >
-              {/* Motif de fondo */}
-              <div className="tag-motif" aria-hidden="true">{cat.motif}</div>
-
-              {/* Contenido */}
-              <div className="tag-inner">
-                <div>
-                  <div className="tag-crest" aria-hidden="true">{cat.motif}</div>
-                  <div className="tag-eyebrow">
-                    COLECCIÓN N.{cat.num}{cat.badge ? ` · ${cat.badge}` : ''}
-                  </div>
-                  <div className="tag-name">{cat.name}</div>
-                  <div className="tag-desc">{cat.sub}</div>
+    <div className="rack-wrap" {...rackHandlers}>
+      {cats.map((cat, i) => {
+        const pos = getPos(i, active)
+        return (
+          <div
+            key={cat.key}
+            className="tag glass"
+            data-pos={pos}
+            ref={pos === 'active' ? activeEl : null}
+            onClick={() => {
+              if (pos === 'prev') go(active - 1)
+              if (pos === 'next') go(active + 1)
+            }}
+          >
+            <div className="tag-motif" aria-hidden="true">{cat.motif}</div>
+            <div className="tag-inner">
+              <div>
+                <div className="tag-crest" aria-hidden="true">
+                  {cat.logo
+                    ? <img src={cat.logo} alt={cat.name} loading="lazy" />
+                    : cat.motif}
                 </div>
-                <button
-                  className="tag-cta"
-                  type="button"
-                  onClick={e => { e.stopPropagation() }}
-                >
-                  Ver {cat.name} →
-                </button>
+                <div className="tag-eyebrow">
+                  COLECCIÓN N.{cat.num}{cat.badge ? ` · ${cat.badge}` : ''}
+                </div>
+                <div className="tag-name">{cat.name}</div>
+                <div className="tag-desc">{cat.sub}</div>
               </div>
+              <button
+                className="tag-cta"
+                type="button"
+                onClick={e => e.stopPropagation()}
+              >
+                Ver {cat.name} →
+              </button>
             </div>
-          )
-        })}
-      </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
-      {/* Dots */}
+/* ── Sub-componente: controles (dots + chips) ── */
+export function FlyRackControls({ cats, active, go }: Pick<RackState, 'cats' | 'active' | 'go'>) {
+  return (
+    <>
       <div className="rack-dots" aria-hidden="true">
-        {CATS.map((_, i) => (
+        {cats.map((_, i) => (
           <div key={i} className={`rdot${i === active ? ' active' : ''}`} />
         ))}
       </div>
 
-      {/* Jump chips */}
       <div className="jump-chips" role="tablist" aria-label="Categorías">
-        {CATS.map((cat, i) => (
+        {cats.map((cat, i) => (
           <div
             key={cat.key}
             className={`jchip${i === active ? ' active' : ''}`}
@@ -164,6 +180,6 @@ export function FlyRack() {
           </div>
         ))}
       </div>
-    </div>
+    </>
   )
 }

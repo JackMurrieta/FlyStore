@@ -6,7 +6,7 @@ export interface CategoryCardProps {
   namePrefix: string
   desc: string
   accent: string
-  icon: React.ReactNode
+  icon: string | React.ReactNode
 }
 
 export function CategoryCard({ id, namePrefix, name, desc, accent, icon }: CategoryCardProps) {

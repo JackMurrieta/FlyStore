@@ -14,28 +14,41 @@
   flex: 1;
   display: flex;
   flex-direction: row;
-  align-items: center;
-  gap: 0;
+  align-items: stretch;
   min-height: calc(100svh - 60px);
   background-image:
-    radial-gradient(ellipse 55% 60% at 12% 50%, rgba(212, 175, 55, .04) 0%, transparent 60%);
+    radial-gradient(ellipse 55% 60% at 12% 50%, rgba(212, 175, 55, .045) 0%, transparent 60%);
 }
 
 /* ========================
-   LEFT — hero (CSS igual al FlyZIP)
+   LEFT — columna
 ========================= */
 .home-left {
-  flex: 0 0 auto;
-  width: min(420px, 46%);
+  flex: 0 0 44%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--border);
+  animation: home-left-in .6s cubic-bezier(.16,1,.3,1) both;
+}
+
+/* Wrapper interno — controla el espacio real del contenido */
+.home-left-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 56px 48px 56px 52px;
+  width: 100%;
+  max-width: 440px;
+  gap: 2.3rem;
 }
 
 /* CSS exacto de .home-hero del FlyZIP */
 .home-hero {
   padding: 22px 20px 6px;
   text-align: center;
+  max-width: 100%;
+
 }
 
 .home-hero .tiny {
@@ -49,10 +62,10 @@
 .home-hero h1 {
   font-family: var(--fd);
   font-weight: 400;
-  font-size: clamp(40px, 5.5vw, 58px);
-  line-height: .95;
-  letter-spacing: 1px;
-  margin: 10px 0 8px;
+  font-size: clamp(2rem, 3.2vw, 3.6rem);
+  line-height: 1.05;
+  letter-spacing: .04em;
+  margin: .75rem 0 .6rem;
   color: #fff;
 }
 
@@ -64,18 +77,9 @@
 .home-hero p {
   font-size: 11.5px;
   color: rgba(255,255,255,.45);
+  margin-top: 4px;
 }
 
-/* Línea dorada bajo el h1 (igual que FlyZIP hero-tagline-row::after) */
-.home-hero h1::after {
-  content: '';
-  display: block;
-  width: 46px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent);
-  margin: 10px auto 0;
-  opacity: .85;
-}
 
 /* ========================
    ACCIONES
@@ -85,12 +89,10 @@
   gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
-  margin-top: 24px;
-  padding: 0 20px;
 }
 
 .home-btn-primary {
-  padding: 14px 28px;
+  padding: 15px 32px;
   background: #fff;
   color: #000;
   border: none;
@@ -110,21 +112,53 @@
   background: var(--accent2);
   transform: translateY(-1px);
 }
+.home-btn-primary:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
 
 /* ========================
-   RIGHT — carrusel
+   RIGHT — columna
 ========================= */
 .home-right {
+  padding-top: 1.5rem;
   flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: home-right-in .6s cubic-bezier(.16,1,.3,1) .15s both;
 }
 
-/* cat-list llena el espacio */
-.home-right .cat-list {
+/* Wrapper interno — organiza tarjetas y controles */
+.home-right-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
+  padding: 48px 32px 40px;
+  gap: 2.7rem;
+}
+
+/* Sección tarjetas — ocupa el espacio de la rack-wrap */
+.home-right-cards {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-right-cards .rack-wrap {
+  width: 100%;
+}
+
+/* Sección controles — dots + chips separados */
+.home-right-controls {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 4px;
 }
 
 /* ========================
@@ -169,17 +203,31 @@
 /* ========================
    MOBILE — columna
 ========================= */
-@media (max-width: 700px) {
+@media (max-width: 720px) {
   .home-split {
     flex-direction: column;
-    align-items: center;
-    padding: 32px 0 16px;
+    align-items: stretch;
     min-height: auto;
-    gap: 24px;
   }
 
   .home-left {
-    width: 100%;
+    flex: none;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .home-left-wrapper {
+    padding: 40px 24px 32px;
+    max-width: 100%;
+  }
+
+  /* En mobile el h1 puede ser más grande al tener todo el ancho */
+  .home-hero h1 {
+    font-size: clamp(2.4rem, 9vw, 3.4rem);
+  }
+
+  .home-right-wrapper {
+    padding: 32px 16px 24px;
   }
 }
 
@@ -194,9 +242,6 @@
   from { opacity: 0; transform: translateX(20px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-
-.home-left  { animation: home-left-in  .6s cubic-bezier(.16,1,.3,1) both; }
-.home-right { animation: home-right-in .6s cubic-bezier(.16,1,.3,1) .15s both; }
 
 @media (prefers-reduced-motion: reduce) {
   .home-left, .home-right { animation: none; }

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { FlyRack } from '../../components/fly-rack/FlyRack'
+import { useFlyRack, FlyRackCards, FlyRackControls } from '../../components/fly-rack/FlyRack'
 import './home.css'
 
 function FlipFly() {
@@ -15,32 +15,50 @@ function FlipFly() {
 }
 
 export function HomePage() {
+  const rack = useFlyRack()
+
   return (
     <main className="home-root">
 
       <section className="home-split" aria-label="FLY Store">
 
-        {/* ── Izquierda: hero ── */}
+        {/* ── Izquierda ── */}
         <div className="home-left">
-          <div className="home-hero">
-            <div className="tiny">Ciudad Obregón · Sonora · México</div>
-            <h1>
-              Donde más<br />
-              si no es en <em><FlipFly /></em>
-            </h1>
-            <p>Moda, fragancias y estilo de vida premium.</p>
-          </div>
+          <div className="home-left-wrapper">
 
-          <div className="home-actions">
-            <Link to="/login" className="home-btn-primary">
-              Explorar tienda
-            </Link>
+            <div className="home-hero">
+              <div className="tiny">Ciudad Obregón · Sonora · México</div>
+              <h1>
+                Donde más<br />
+                si no es en <em><FlipFly /></em>
+              </h1>
+              <p>Moda, fragancias y estilo de vida premium.</p>
+            </div>
+
+            <div className="home-actions">
+              <Link to="/login" className="home-btn-primary">
+                Explorar tienda
+              </Link>
+            </div>
+
           </div>
         </div>
 
-        {/* ── Derecha: carrusel ── */}
+        {/* ── Derecha ── */}
         <div className="home-right">
-          <FlyRack />
+          <div className="home-right-wrapper">
+
+            {/* Tarjetas */}
+            <div className="home-right-cards">
+              <FlyRackCards {...rack} />
+            </div>
+
+            {/* Dots + chips */}
+            <div className="home-right-controls">
+              <FlyRackControls {...rack} />
+            </div>
+
+          </div>
         </div>
 
       </section>

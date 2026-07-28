@@ -20,4 +20,15 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { margin: 0; background: var(--bg); color: var(--white); font-family: var(--fb); }
-#root { width: 100%; min-height: 100svh; }
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+#root { width: 100%; min-height: 100svh; position: relative; z-index: 1; }
