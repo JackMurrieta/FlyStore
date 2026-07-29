@@ -6,7 +6,7 @@
 }
 
 /* ========================
-   WRAPPER — controla márgenes y padding
+   WRAPPER
 ========================= */
 .proceso-wrapper {
   max-width: 1100px;
@@ -43,7 +43,7 @@
 }
 
 /* ========================
-   GRID DE PASOS
+   DESKTOP — grid 4 col
 ========================= */
 .proceso-steps-wrap {
   display: grid;
@@ -51,7 +51,6 @@
   position: relative;
 }
 
-/* Línea conectora horizontal */
 .proceso-steps-wrap::before {
   content: '';
   position: absolute;
@@ -70,9 +69,6 @@
   pointer-events: none;
 }
 
-/* ========================
-   PASO INDIVIDUAL
-========================= */
 .proceso-step {
   display: flex;
   flex-direction: column;
@@ -83,17 +79,16 @@
   opacity: 0;
   transform: translateY(22px);
   transition:
-    opacity  .5s ease                        var(--step-delay, 0s),
+    opacity   .5s ease                       var(--step-delay, 0s),
     transform .6s cubic-bezier(.16,1,.3,1)  var(--step-delay, 0s);
 }
-
 .proceso-step.visible {
   opacity: 1;
   transform: translateY(0);
 }
 
 /* ========================
-   ÍCONO
+   ÍCONO — compartido
 ========================= */
 .proceso-step-icon-wrap {
   position: relative;
@@ -126,15 +121,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255,255,255,.65);
+  color: rgba(255,255,255,.55);
   transition: border-color .25s, background .25s, color .25s, box-shadow .25s;
 }
-
 .proceso-step-icon svg {
   width: 28px;
   height: 28px;
 }
-
 .proceso-step:hover .proceso-step-icon {
   border-color: rgba(212,175,55,.38);
   background: rgba(212,175,55,.06);
@@ -143,12 +136,13 @@
 }
 
 /* ========================
-   TEXTO
+   TEXTO DESKTOP
 ========================= */
 .proceso-step-body {
   display: flex;
   flex-direction: column;
   gap: .45rem;
+  text-align: center;
 }
 
 .proceso-step-title {
@@ -164,34 +158,129 @@
   font-size: 11px;
   line-height: 1.7;
   color: rgba(255,255,255,.38);
+}
+
+.proceso-step-body .proceso-step-desc {
   max-width: 176px;
   margin: 0 auto;
 }
 
 /* ========================
-   MOBILE
+   MOBILE — oculto en desktop
 ========================= */
-@media (max-width: 720px) {
+.proceso-mobile { display: none; }
+
+/* ========================
+   BREAKPOINT ≤900px
+========================= */
+@media (max-width: 900px) {
   .proceso-wrapper {
     padding: 40px 24px 36px;
-    gap: 2.4rem;
+    gap: 2rem;
   }
 
-  .proceso-steps-wrap {
-    grid-template-columns: 1fr 1fr;
-    gap: 2.4rem 1rem;
+  .proceso-steps-wrap { display: none; }
+
+  /* Contenedor: position relative para anclar el panel flotante */
+  .proceso-mobile {
+    display: block;
+    position: relative;
+    /* Altura mínima = 4 botones × 92px + 8px de padding wrapper */
+    min-height: calc(4 * 92px + 8px);
   }
 
-  .proceso-steps-wrap::before {
-    display: none;
+  /* ── Columna de íconos — apilados verticalmente ── */
+  .proceso-mobile-icons {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 72px;
+    padding: 4px 0;
   }
 
-  .proceso-step {
-    padding: 0 8px;
+  /* Línea conectora vertical entre íconos */
+  .proceso-mobile-icons::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 56px;
+    bottom: 56px;
+    width: 1px;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      rgba(212,175,55,.25) 30%,
+      rgba(212,175,55,.25) 70%,
+      transparent
+    );
+    pointer-events: none;
   }
 
-  .proceso-step-desc {
+  .proceso-mobile-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    /* Altura fija para que el cálculo de top sea predecible */
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .proceso-mobile-icon-btn:focus-visible .proceso-step-icon {
+    outline: 1.5px solid var(--gold);
+    outline-offset: 3px;
+  }
+
+  /* Ícono activo */
+  .proceso-mobile-icon-btn.active .proceso-step-icon {
+    border-color: rgba(212,175,55,.42);
+    background: rgba(212,175,55,.07);
+    color: #fff;
+    box-shadow: 0 0 26px rgba(212,175,55,.18);
+  }
+
+  /* ── Panel de contenido — flotante, top calculado por JS ── */
+  .proceso-mobile-content {
+    position: absolute;
+    left: calc(72px + 20px);  /* ancho íconos + separación */
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    /* Transición de posición vertical + fade */
+    transition:
+      top .3s cubic-bezier(.16,1,.3,1),
+      opacity .18s ease,
+      transform .18s ease;
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Estado de fade-out */
+  .proceso-mobile-content.fading {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+
+  .proceso-mobile-step-label {
+    font-family: var(--fb);
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: .8;
+  }
+
+  .proceso-mobile-content .proceso-step-title {
+    text-align: left;
+  }
+  .proceso-mobile-content .proceso-step-desc {
+    text-align: left;
     max-width: 100%;
+    color: rgba(255,255,255,.42);
   }
 }
 
@@ -199,9 +288,6 @@
    MOTION
 ========================= */
 @media (prefers-reduced-motion: reduce) {
-  .proceso-step {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
+  .proceso-step             { opacity: 1; transform: none; transition: none; }
+  .proceso-mobile-content   { transition: none; }
 }
