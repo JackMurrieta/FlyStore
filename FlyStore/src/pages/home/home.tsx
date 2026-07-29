@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useFlyRack, FlyRackCards, FlyRackControls } from '../../components/fly-rack/FlyRack'
 import { Anuncios } from '../../components/anuncios/Anuncios'
+import { Proceso } from '../../components/proceso/Proceso'
 import './home.css'
 
 function FlipFly() {
@@ -66,6 +67,9 @@ export function HomePage() {
 
       {/* ── Anuncios ── */}
       <Anuncios />
+
+      {/* ── Proceso de compra ── */}
+      <Proceso />
 
       {/* ── Footer ── */}
       <footer className="home-footer">

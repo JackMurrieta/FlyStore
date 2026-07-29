@@ -1,0 +1,207 @@
+/* ========================
+   ROOT
+========================= */
+.proceso-root {
+  border-top: 1px solid var(--border);
+}
+
+/* ========================
+   WRAPPER — controla márgenes y padding
+========================= */
+.proceso-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 56px 48px 52px;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+/* ========================
+   ENCABEZADO
+========================= */
+.proceso-header-wrap {
+  text-align: center;
+}
+
+.proceso-eyebrow {
+  font-family: var(--fb);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,.22);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.proceso-title {
+  font-family: var(--fd);
+  font-weight: 300;
+  font-size: clamp(1.5rem, 2.5vw, 2.2rem);
+  letter-spacing: .06em;
+  color: rgba(255,255,255,.8);
+}
+
+/* ========================
+   GRID DE PASOS
+========================= */
+.proceso-steps-wrap {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  position: relative;
+}
+
+/* Línea conectora horizontal */
+.proceso-steps-wrap::before {
+  content: '';
+  position: absolute;
+  top: 36px;
+  left: 18%;
+  right: 18%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.08) 15%,
+    rgba(212,175,55,.28) 50%,
+    rgba(255,255,255,.08) 85%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* ========================
+   PASO INDIVIDUAL
+========================= */
+.proceso-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 20px;
+  gap: 1rem;
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity  .5s ease                        var(--step-delay, 0s),
+    transform .6s cubic-bezier(.16,1,.3,1)  var(--step-delay, 0s);
+}
+
+.proceso-step.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ========================
+   ÍCONO
+========================= */
+.proceso-step-icon-wrap {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+}
+
+.proceso-step-num {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-family: var(--fb);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--gold);
+  line-height: 1;
+  z-index: 2;
+}
+
+.proceso-step-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.04);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,.65);
+  transition: border-color .25s, background .25s, color .25s, box-shadow .25s;
+}
+
+.proceso-step-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.proceso-step:hover .proceso-step-icon {
+  border-color: rgba(212,175,55,.38);
+  background: rgba(212,175,55,.06);
+  color: #fff;
+  box-shadow: 0 0 28px rgba(212,175,55,.14);
+}
+
+/* ========================
+   TEXTO
+========================= */
+.proceso-step-body {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+}
+
+.proceso-step-title {
+  font-family: var(--fb);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.88);
+}
+
+.proceso-step-desc {
+  font-size: 11px;
+  line-height: 1.7;
+  color: rgba(255,255,255,.38);
+  max-width: 176px;
+  margin: 0 auto;
+}
+
+/* ========================
+   MOBILE
+========================= */
+@media (max-width: 720px) {
+  .proceso-wrapper {
+    padding: 40px 24px 36px;
+    gap: 2.4rem;
+  }
+
+  .proceso-steps-wrap {
+    grid-template-columns: 1fr 1fr;
+    gap: 2.4rem 1rem;
+  }
+
+  .proceso-steps-wrap::before {
+    display: none;
+  }
+
+  .proceso-step {
+    padding: 0 8px;
+  }
+
+  .proceso-step-desc {
+    max-width: 100%;
+  }
+}
+
+/* ========================
+   MOTION
+========================= */
+@media (prefers-reduced-motion: reduce) {
+  .proceso-step {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
