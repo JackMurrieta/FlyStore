@@ -1,0 +1,36 @@
+.content-header {
+    padding: 20px 14px;
+    border-bottom: none;
+}
+
+.content-header__top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.content-header__breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.content-header__description {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.btn-back {
+    cursor: pointer;
+}
+
+.dist-pill-bar {
+    margin-top: 16px;
+}
+
+.dist-pill__icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
