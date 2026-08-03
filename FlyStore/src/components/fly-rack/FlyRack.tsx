@@ -5,6 +5,7 @@ import "./FlyRack.css";
 import flycapsLogo from "../../assets/logos/flycaps-logo.png";
 import flyclothesLogo from "../../assets/logos/flyclothes-logo.png";
 import flyessenceLogo from "../../assets/logos/flyessence-logo.png";
+import flyShoes from "../../assets/logos/flyshoes-logo.png";
 
 /* ── Datos de categorías ── */
 const CATS = [
@@ -77,7 +78,7 @@ const CATS = [
     name: "FlyShoes",
     badge: "Nuevo",
     sub: "Tenis Urbanos · Próximamente",
-    logo: null,
+    logo: flyShoes,
     motif: (
       <svg
         viewBox="0 0 60 40"
@@ -183,7 +184,12 @@ export function FlyRackCards({
               <div>
                 <div className="tag-crest" aria-hidden="true">
                   {cat.logo ? (
-                    <img src={cat.logo} alt={cat.name} loading="lazy" />
+                    <img
+                      src={cat.logo}
+                      alt={cat.name}
+                      loading="lazy"
+                      className={`tag-logo tag-logo--${cat.key}`}
+                    />
                   ) : (
                     cat.motif
                   )}

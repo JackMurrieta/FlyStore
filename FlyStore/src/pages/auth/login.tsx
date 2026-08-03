@@ -3,6 +3,8 @@ import { useAuth } from '../../hooks/auth/useAuth'
 import type { LoginDto } from '../../models/DTO/LoginDto'
 import type { RegisterDto } from '../../models/DTO/RegisterDto'
 import './login.css'
+import flyLogo from "../../assets/logos/fly-logo.png"; // Ajusta el path según tu estructura
+
 
 type Mode = 'login' | 'register'
 
@@ -51,7 +53,7 @@ export function LoginPage() {
     return (
       <div className="lp-root">
         <div className="lp-card">
-          <img src="/logos/fly-logo.png" alt="FLY Store" className="lp-logo" />
+          <img src= {flyLogo} alt="FLY Store" className="lp-logo" />
           <div className="lp-confirm-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
               strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
@@ -78,7 +80,7 @@ export function LoginPage() {
       <div className="lp-card" role="main">
 
         {/* Logo */}
-        <img src="/logos/fly-logo.png" alt="FLY Store" className="lp-logo" />
+        <img src={flyLogo} alt="FLY Store" className="lp-logo" />
 
         {/* Avatar — solo en registro, muestra iniciales al escribir nombre */}
         {isRegister && (

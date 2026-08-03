@@ -46,7 +46,7 @@ export function Header({ cartCount = 0, onMenuClick, onProfileClick, onCartClick
           onKeyDown={(e) => e.key === 'Enter' && onLogoClick?.()}
           aria-label="FLY Store"
         >
-          <img src="/logos/fly-logo.png" alt="FLY Store" className="logo-spin" />
+          <img src={logoFly} alt="FLY Store" className="logo-spin" />
         </div>
         <label className="nav-search" aria-label="Buscar productos">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"

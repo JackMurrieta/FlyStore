@@ -1,14 +1,116 @@
 /* ========================
+   ICONOS
+========================= */
+
+.nb-ico {
+  width: 3rem;
+  height: 3rem;
+
+  min-width: 3rem;
+  min-height: 3rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 0.8rem;
+
+  background: rgba(255, 255, 255, 0.035);
+
+  transition:
+    background 0.25s,
+    transform 0.25s;
+}
+
+.nb-item:hover .nb-ico {
+  background: rgba(255, 255, 255, 0.08);
+  transform: scale(1.06);
+}
+
+.nb-item.active .nb-ico {
+  background: rgba(212, 175, 55, 0.13);
+}
+
+/* SVG */
+
+.nb-ico svg {
+  width: 70%;
+  height: 70%;
+}
+
+/* PNG */
+
+.nb-ico img {
+  width: 72%;
+  height: 72%;
+
+  object-fit: contain;
+
+  filter: brightness(0) invert(1);
+}
+
+/* Sólo FlyShoes */
+
+.img-flyshoes {
+  width: 165% !important;
+  height: 165% !important;
+}
+
+.nb-item:hover .nb-ico {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+
+.nb-item.active .nb-ico {
+  background: rgba(212, 175, 55, 0.12);
+}
+
+.nb-ico img {
+  filter: brightness(0) invert(1);
+}
+
+/* ========================
+   LINKS RESET
+========================= */
+
+.nb-item,
+.nb-bn {
+  text-decoration: none;
+}
+
+.nb-item:link,
+.nb-item:visited,
+.nb-item:hover,
+.nb-item:active,
+.nb-bn:link,
+.nb-bn:visited,
+.nb-bn:hover,
+.nb-bn:active {
+  text-decoration: none;
+}
+
+.nb-bottom a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.nb-bottom a:hover {
+  text-decoration: none;
+}
+
+/* ========================
    OVERLAY
 ========================= */
 .nb-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, .75);
+  background: rgba(0, 0, 0, 0.75);
   z-index: 8999;
   opacity: 0;
   pointer-events: none;
-  transition: opacity .35s ease;
+  transition: opacity 0.35s ease;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
@@ -31,22 +133,26 @@
   border-right: 1px solid var(--border);
   z-index: 9000;
   transform: translateX(-100%);
-  transition: transform .4s cubic-bezier(.4, 0, .2, 1);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, .1) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
 .nb-drawer.open {
   transform: translateX(0);
 }
 
-.nb-drawer::-webkit-scrollbar { width: 3px; }
-.nb-drawer::-webkit-scrollbar-track { background: transparent; }
+.nb-drawer::-webkit-scrollbar {
+  width: 3px;
+}
+.nb-drawer::-webkit-scrollbar-track {
+  background: transparent;
+}
 .nb-drawer::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, .15);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 2px;
 }
 
@@ -65,7 +171,7 @@
 .nb-logo {
   height: 30px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 6px rgba(255, 255, 255, .06));
+  filter: drop-shadow(0 2px 6px rgba(255, 255, 255, 0.06));
 }
 
 .nb-close {
@@ -74,19 +180,22 @@
   border-radius: 50%;
   border: 1px solid var(--border);
   background: transparent;
-  color: rgba(255, 255, 255, .55);
+  color: rgba(255, 255, 255, 0.55);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: border-color .2s, color .2s, background .2s;
+  transition:
+    border-color 0.2s,
+    color 0.2s,
+    background 0.2s;
   flex-shrink: 0;
 }
 
 .nb-close:hover {
   border-color: var(--border-a);
   color: #fff;
-  background: rgba(255, 255, 255, .05);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .nb-close:focus-visible {
@@ -115,7 +224,7 @@
   font-weight: 700;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, .28);
+  color: rgba(255, 255, 255, 0.28);
 }
 
 /* ========================
@@ -126,18 +235,18 @@
   padding: 13px 24px;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, .8);
+  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 14px;
   text-align: left;
-  transition: background .18s;
+  transition: background 0.18s;
   position: relative;
 }
 
 .nb-item::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 18%;
@@ -145,20 +254,23 @@
   width: 2px;
   border-radius: 0 2px 2px 0;
   background: transparent;
-  transition: background .18s, box-shadow .18s;
+  transition:
+    background 0.18s,
+    box-shadow 0.18s;
 }
 
 .nb-item:hover {
-  background: rgba(255, 255, 255, .04);
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(10px);
 }
 
 .nb-item:hover::before {
-  background: rgba(255, 255, 255, .22);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .nb-item:focus-visible {
   outline: none;
-  background: rgba(255, 255, 255, .05);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .nb-item:focus-visible::before {
@@ -166,13 +278,16 @@
 }
 
 .nb-item.active {
-  background: var(--gold-dim);
-  color: #fff;
+  background: linear-gradient(
+    90deg,
+    rgba(212, 175, 55, 0.16),
+    rgba(212, 175, 55, 0.04)
+  );
 }
 
 .nb-item.active::before {
   background: var(--gold);
-  box-shadow: 0 0 10px rgba(212, 175, 55, .45);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.45);
 }
 
 /* WhatsApp item */
@@ -185,41 +300,14 @@
 }
 
 .nb-item--wa:hover {
-  background: rgba(37, 211, 102, .06);
+  background: rgba(37, 211, 102, 0.06);
   color: var(--wa);
 }
 
 .nb-item--wa::before,
 .nb-item--wa:hover::before {
   background: var(--wa) !important;
-  box-shadow: 0 0 8px rgba(37, 211, 102, .4);
-}
-
-/* ========================
-   ITEM ICON
-========================= */
-.nb-ico {
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: rgba(255, 255, 255, .4);
-  transition: color .18s;
-}
-
-.nb-ico svg {
-  width: 18px;
-  height: 18px;
-}
-
-.nb-item:hover .nb-ico {
-  color: rgba(255, 255, 255, .8);
-}
-
-.nb-item.active .nb-ico {
-  color: var(--gold);
+  box-shadow: 0 0 8px rgba(37, 211, 102, 0.4);
 }
 
 /* ========================
@@ -241,12 +329,12 @@
 .nb-sub {
   font-family: var(--fb);
   font-size: 10px;
-  color: rgba(255, 255, 255, .3);
+  color: rgba(255, 255, 255, 0.3);
   line-height: 1.3;
 }
 
 .nb-item.active .nb-sub {
-  color: rgba(212, 175, 55, .6);
+  color: rgba(212, 175, 55, 0.6);
 }
 
 /* ========================
@@ -258,7 +346,7 @@
   font-size: 9px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, .18);
+  color: rgba(255, 255, 255, 0.18);
   border-top: 1px solid var(--border);
   flex-shrink: 0;
   margin-top: auto;
@@ -274,7 +362,7 @@
   right: 0;
   bottom: 0;
   z-index: 700;
-  background: rgba(5, 5, 5, .95);
+  background: rgba(5, 5, 5, 0.95);
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
   border-top: 1px solid var(--border);
@@ -295,7 +383,7 @@
   padding: 8px 4px;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, .38);
+  color: rgba(255, 255, 255, 0.38);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -304,9 +392,9 @@
   font-family: var(--fb);
   font-size: 8px;
   font-weight: 700;
-  letter-spacing: .5px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
-  transition: color .2s;
+  transition: color 0.2s;
   position: relative;
 }
 
@@ -316,7 +404,7 @@
 }
 
 .nb-bn:hover {
-  color: rgba(255, 255, 255, .7);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .nb-bn.active {

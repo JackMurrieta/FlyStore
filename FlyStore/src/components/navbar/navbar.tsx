@@ -2,6 +2,13 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "../../routes/routes"; // Ajusta el path según tu estructura
 import "./navbar.css";
+import flyLogo from "../../assets/logos/fly-logo.png"; // Ajusta el path según tu estructura
+//icons de logo flyStore
+
+import flyCaps from "../../assets/logos/flycaps-logo.png";
+import flyClothes from "../../assets/logos/flyclothes-logo.png";
+import flyEssence from "../../assets/logos/flyessence-logo.png";
+import flyShoes from "../../assets/logos/flyshoes-logo.png";
 
 interface NavbarProps {
   isOpen: boolean;
@@ -69,7 +76,7 @@ export function Navbar({
       >
         {/* Head */}
         <div className="nb-head">
-          <img src="/logos/fly-logo.png" alt="FLY Store" className="nb-logo" />
+          <img src={flyLogo} alt="FLY Store" className="nb-logo" />
           <button
             ref={closeRef}
             className="nb-close"
@@ -102,7 +109,14 @@ export function Navbar({
             onClick={onClose}
           >
             <span className="nb-ico">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M3 10.5L12 3l9 7.5" />
                 <path d="M5 9.5V21h14V9.5" />
               </svg>
@@ -119,10 +133,7 @@ export function Navbar({
             onClick={onClose}
           >
             <span className="nb-ico">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2L7.5 12a5 5 0 0 0 9 0L12 2z" />
-                <path d="M9.5 14.5A2.5 2.5 0 0 0 12 17" />
-              </svg>
+              <img src={flyEssence} alt="FLY Essence" />
             </span>
             <span className="nb-body">
               <span className="nb-name">FLY Essence</span>
@@ -136,11 +147,7 @@ export function Navbar({
             onClick={onClose}
           >
             <span className="nb-ico">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 3L3 10h18L12 3z" />
-                <path d="M3 10v2h18v-2" />
-                <path d="M5 12v5a7 7 0 0 0 14 0v-5" />
-              </svg>
+              <img src={flyCaps} alt="FLY Caps" />
             </span>
             <span className="nb-body">
               <span className="nb-name">FLY Caps</span>
@@ -154,9 +161,7 @@ export function Navbar({
             onClick={onClose}
           >
             <span className="nb-ico">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z" />
-              </svg>
+              <img src={flyClothes} alt="FLY Clothes" />
             </span>
             <span className="nb-body">
               <span className="nb-name">FLY Clothes</span>
@@ -170,10 +175,7 @@ export function Navbar({
             onClick={onClose}
           >
             <span className="nb-ico">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 17h9l8-4.5V9l-5 1.5H3V17z" />
-                <path d="M7 17v-4" />
-              </svg>
+              <img className="img-flyshoes" src={flyShoes} alt="FLY Shoes" />
             </span>
             <span className="nb-body">
               <span className="nb-name">FLY Shoes</span>
@@ -192,7 +194,13 @@ export function Navbar({
             onClick={onClose}
           >
             <span className="nb-ico">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+              >
                 <circle cx="12" cy="8" r="4" />
                 <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
               </svg>
@@ -209,7 +217,14 @@ export function Navbar({
             onClick={onClose}
           >
             <span className="nb-ico">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
             </span>
@@ -225,7 +240,14 @@ export function Navbar({
             onClick={onClose}
           >
             <span className="nb-ico">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                 <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
                 <line x1="12" y1="22.08" x2="12" y2="12" />
@@ -270,7 +292,14 @@ export function Navbar({
             className={`nb-bn${active("home")}`}
             aria-label="Inicio"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M3 10.5L12 3l9 7.5" />
               <path d="M5 9.5V21h14V9.5" />
             </svg>
@@ -284,7 +313,13 @@ export function Navbar({
             aria-expanded={isOpen}
             type="button"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+            >
               <path d="M4 6h16M4 12h16M4 18h10" />
             </svg>
             <span>Menú</span>
@@ -301,7 +336,14 @@ export function Navbar({
                 {cartCount}
               </span>
             )}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
               <line x1="3" y1="6" x2="21" y2="6" />
               <path d="M16 10a4 4 0 0 1-8 0" />
@@ -314,7 +356,13 @@ export function Navbar({
             className={`nb-bn${active("profile")}`}
             aria-label="Mi cuenta"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+            >
               <circle cx="12" cy="8" r="4" />
               <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
             </svg>
