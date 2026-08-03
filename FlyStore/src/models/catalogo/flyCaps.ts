@@ -9,16 +9,12 @@ import innedit from "@/assets/marcas/flycaps/innedit_marca.svg"
 import rudeAwakenings from "@/assets/marcas/flycaps/RA_marca.svg"
 import dandyHats from "@/assets/marcas/flycaps/dandyhats_marca.svg"
 import baez from "@/assets/marcas/flycaps/BZ_marca.svg"
+import type { Marca } from "./types";
+import type { CatalogoInfo } from "./types";
 
-export interface Marca {
-    id: string;
-    nombre: string;
-    slug: string;
-    icon: string;
-}
+const descripcionFlyCaps: string = "Descubre nuestra colección de gorras premium con diseños exclusivos, materiales de alta calidad y las marcas más reconocidas del streetwear nacional e internacional."
+const mainText: string = "EXPLORA FLYCAPS"
 
-export const descripcionFlyCaps: string = "Descubre nuestra colección de gorras premium con diseños exclusivos, materiales de alta calidad y las marcas más reconocidas del streetwear nacional e internacional."
-export const mainText: string = "EXPLORA FLYCAPS"
 
 export const marcasFlyCaps: Marca[] = [
     {
@@ -76,3 +72,11 @@ export const marcasFlyCaps: Marca[] = [
         icon: baez,
     },
 ];
+
+export const flyCapsCatalog: CatalogoInfo = {
+    slug: "flycaps",
+    nombre: "FLY CAPS",
+    descripcion: descripcionFlyCaps,
+    mainText: mainText,
+    marcas: marcasFlyCaps
+};
