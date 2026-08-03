@@ -1,48 +1,78 @@
-//Arreglo con informacion de nombre. icon lista horizontal
+// importar svg
+//cambiar imports por assets 
+import newEra from "@/assets/marcas/flycaps/newera_logo.svg"
+import bigBoss from "@/assets/marcas/flycaps/bigboss_marca.svg"
+import thirtyOne from "@/assets/marcas/flycaps/thirtyOne_marca.svg"
+import fino from "@/assets/marcas/flycaps/fino_marca.svg"
+import barbas from "@/assets/marcas/flycaps/barbas_marca.svg"
+import innedit from "@/assets/marcas/flycaps/innedit_marca.svg"
+import rudeAwakenings from "@/assets/marcas/flycaps/RA_marca.svg"
+import dandyHats from "@/assets/marcas/flycaps/dandyhats_marca.svg"
+import baez from "@/assets/marcas/flycaps/BZ_marca.svg"
 
-type Marca = {
+export interface Marca {
+    id: string;
     nombre: string;
+    slug: string;
     icon: string;
 }
 
-//Arreglo hardcodeado de la lista de marcas flyCaps
+export const descripcionFlyCaps: string = "Descubre nuestra colección de gorras premium con diseños exclusivos, materiales de alta calidad y las marcas más reconocidas del streetwear nacional e internacional."
+export const mainText: string = "EXPLORA FLYCAPS"
 
-export const Marcas: Marca[] = [
+export const marcasFlyCaps: Marca[] = [
     {
+        id: "new-era",
         nombre: "New Era",
-        icon: "FlyStore\public\marcas\flycaps\newera_logo.svg"
+        slug: "new-era",
+        icon: newEra,
     },
     {
+        id: "big-boss",
         nombre: "Big Boss",
-        icon: "FlyStore\public\marcas\flycaps\bigboss_marca.svg"
+        slug: "big-boss",
+        icon: bigBoss,
     },
     {
+        id: "thirtyone-hats",
         nombre: "ThirtyOne Hats",
-        icon: "FlyStore\public\marcas\flycaps\thirtyone_hats.svg"
+        slug: "thirtyone-hats",
+        icon: thirtyOne,
     },
     {
+        id: "gallo-fino",
         nombre: "Gallo Fino",
-        icon: "FlyStore\public\marcas\flycaps\fino_marca.svg"
+        slug: "gallo-fino",
+        icon: fino,
     },
     {
+        id: "barbas-hats",
         nombre: "Barbas Hats",
-        icon: "FlyStore\public\marcas\flycaps\barbas_marca.svg"
+        slug: "barbas-hats",
+        icon: barbas,
     },
     {
+        id: "innedit",
         nombre: "INNEDIT",
-        icon: "FlyStore\public\marcas\flycaps\innedit_marca.svg"
-    }
-    ,
+        slug: "innedit",
+        icon: innedit,
+    },
     {
+        id: "rude-awakenings",
         nombre: "Rude Awakenings",
-        icon: "FlyStore\public\marcas\flycaps\RA_marca.svg"
+        slug: "rude-awakenings",
+        icon: rudeAwakenings,
     },
     {
+        id: "dandy-hats",
         nombre: "Dandy Hats",
-        icon: "FlyStore\public\marcas\flycaps\dandyhats_marca.svg"
+        slug: "dandy-hats",
+        icon: dandyHats,
     },
     {
+        id: "baez",
         nombre: "Báez",
-        icon: "FlyStore\public\marcas\flycaps\BZ_marca.svg"
-    }
+        slug: "baez",
+        icon: baez,
+    },
 ];

@@ -1,0 +1,48 @@
+/* src/pages/tienda/store.css */
+
+.store-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 6rem 1.5rem 4rem;
+}
+
+.store-hero {
+  margin-bottom: 3rem;
+}
+
+.store-tag {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #777;
+}
+
+.store-hero h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+}
+
+.store-hero p {
+  margin-top: 1rem;
+  max-width: 640px;
+  color: #666;
+  line-height: 1.7;
+}
+
+.store-placeholder {
+  border: 1px dashed #d6d6d6;
+  border-radius: 16px;
+  padding: 3rem;
+  text-align: center;
+}
+
+.store-placeholder h2 {
+  margin-bottom: 1rem;
+}
+
+.store-placeholder p {
+  color: #666;
+}

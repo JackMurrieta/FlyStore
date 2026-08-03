@@ -1,8 +1,4 @@
-export interface HorizontalItem {
-  id: string | number;
-  title: string;
-  image?: string;
-}
+import type { HorizontalItem } from "./HorizontalList";
 
 export interface ContentHeaderProps {
   nombreCatalogo: string;

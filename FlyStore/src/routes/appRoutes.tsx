@@ -1,28 +1,73 @@
-import { createBrowserRouter } from 'react-router-dom'
-import App from '../App'
-import { LoginPage } from '../pages/auth/login'
-import { PrivacidadPage } from '../pages/legal/privacidad'
-import { TerminosPage } from '../pages/legal/terminos'
-import { HomePage } from '../pages/home/home'
+import { createBrowserRouter } from "react-router-dom";
+import App from "../App";
+
+import { HomePage } from "../pages/home/home";
+import { LoginPage } from "../pages/auth/login";
+
+import { FlyCapsPage } from "../pages/tienda/caps";
+import { FlyClothesPage } from "../pages/tienda/clothes";
+import { FlyEssencePage } from "../pages/tienda/essence";
+import { FlyShoesPage } from "../pages/tienda/shoes";
+
+import { PrivacidadPage } from "../pages/legal/privacidad";
+import { TerminosPage } from "../pages/legal/terminos";
+
+import { ROUTES } from "./routes";
+import { ProtectedRoute } from "../context/ProtectedRoute";
 
 export const router = createBrowserRouter([
   {
-    path: '/',
+    path: ROUTES.HOME,
     element: <App />,
     children: [
-      { index: true, element: <HomePage /> },
+      {
+        index: true,
+        element: <HomePage />,
+      },
+      {
+        path: "tienda",
+        children: [
+          {
+            path: "caps",
+            element: <FlyCapsPage />,
+          },
+          {
+            path: "clothes",
+            element: <FlyClothesPage />,
+          },
+          {
+            path: "essence",
+            element: <FlyEssencePage />,
+          },
+          {
+            path: "shoes",
+            element: <FlyShoesPage />,
+          },
+        ],
+      },
+      {
+        path: "cuenta",
+        element: <ProtectedRoute />,
+        // Aquí podrías anidar ProfilePage, FavoritesPage y OrdersPage en el futuro
+        //children: [
+        //{
+        //index: true,
+        //element: <CuentaPage />,
+        //},
+        //],
+      },
     ],
   },
   {
-    path: '/login',
+    path: ROUTES.LOGIN,
     element: <LoginPage />,
   },
   {
-    path: '/privacidad',
+    path: ROUTES.PRIVACY,
     element: <PrivacidadPage />,
   },
   {
-    path: '/terminos',
+    path: ROUTES.TERMS,
     element: <TerminosPage />,
   },
-])
+]);

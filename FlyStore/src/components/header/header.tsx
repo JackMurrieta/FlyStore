@@ -1,4 +1,5 @@
 import './header.css'
+import logoFly from '../../assets/logos/fly-logo.png'
 
 interface HeaderProps {
   cartCount?: number
@@ -30,7 +31,8 @@ export function Header({ cartCount = 0, onMenuClick, onProfileClick, onCartClick
           onKeyDown={(e) => e.key === 'Enter' && onLogoClick?.()}
           aria-label="FLY Store"
         >
-          <img src="/logos/fly-logo.png" alt="FLY Store" className="logo-spin" />
+          {/* Logo */}
+          <img src={logoFly} alt="FLY Store" className="logo-spin" />
         </div>
       </div>
 

@@ -1,9 +1,9 @@
 import React from "react";
-import HorizontalList from "../head/horizontalList";
-import BackButton from "../head/backButton";
+import HorizontalList from "./HorizontalList";
+import BackButton from "./BackButton";
 import FlyLogo from "../head/FlyLogo";
 
-import { ContentHeaderProps } from "../head/types";
+import type { ContentHeaderProps } from "./types";
 
 import "./ContentHeader.css";
 

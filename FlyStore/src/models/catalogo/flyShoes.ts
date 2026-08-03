@@ -1,0 +1,1 @@
+export const descripcionFlyShoes: string = "Colección de sneakers y calzado urbano para complementar cualquier estilo, desde modelos clásicos hasta ediciones especiales y limitadas.";

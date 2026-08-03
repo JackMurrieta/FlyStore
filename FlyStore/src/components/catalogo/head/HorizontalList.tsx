@@ -1,4 +1,5 @@
 import React from "react";
+import "./HorizontalList.css"; // Asegúrate de importar el archivo de estilos
 
 export interface HorizontalItem {
   id: string | number;
@@ -6,7 +7,7 @@ export interface HorizontalItem {
   icon?: string;
 }
 
-interface HorizontalListProps {
+export interface HorizontalListProps {
   data: HorizontalItem[];
 }
 
