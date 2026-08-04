@@ -1,0 +1,58 @@
+/* ==========================
+   BACK BUTTON
+========================== */
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  cursor: pointer;
+
+  font-family: var(--fb);
+  font-size: 0.9rem;
+  font-weight: 500;
+
+  color: rgba(255, 255, 255, 0.68);
+
+  transition:
+    color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.btn-back svg {
+  width: 22px;
+  height: 22px;
+
+  color: inherit;
+
+  transition:
+    transform 0.25s ease,
+    color 0.25s ease;
+}
+
+.btn-back:hover {
+  color: #fff;
+}
+
+.btn-back:hover svg {
+  transform: translateX(-3px);
+}
+
+.btn-back:active {
+  transform: translateX(-1px);
+}
+
+.btn-back:focus-visible {
+  outline: none;
+  color: var(--gold);
+}
+
+.btn-back:focus-visible svg {
+  color: var(--gold);
+}

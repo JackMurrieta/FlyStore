@@ -4,6 +4,8 @@ import { Breadcrumb } from "./BreadCrumb";
 import BackButton from "../../BackButton";
 import { useBreadcrumb } from "../../../../hooks/useBreadCrumb";
 
+import "./HeaderNavigation.css";
+
 interface HeaderNavigationProps {
   onBackClick?: () => void;
 }
