@@ -1,13 +1,13 @@
 export const NAVIGATION = {
   HOME: 'home',
 
-  CAPS: 'caps',
+  CAPS: 'flycaps',
 
-  CLOTHES: 'clothes',
+  CLOTHES: 'flyclothes',
 
-  ESSENCE: 'essence',
+  ESSENCE: 'flyessence',
 
-  SHOES: 'shoes',
+  SHOES: 'flyshoes',
 
   PROFILE: 'profile',
 

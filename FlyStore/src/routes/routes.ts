@@ -1,12 +1,12 @@
 export const ROUTES = {
   HOME: '/',
 
-  STORE: '/tienda',
+  //STORE: '/tienda',
 
-  CAPS: '/tienda/caps',
-  CLOTHES: '/tienda/clothes',
-  ESSENCE: '/tienda/essence',
-  SHOES: '/tienda/shoes',
+  CAPS: '/flycaps',
+  CLOTHES: '/flyclothes',
+  ESSENCE: '/flyessence',
+  SHOES: '/flyshoes',
 
   ACCOUNT: '/cuenta',
   //PROFILE: '/cuenta/perfil',

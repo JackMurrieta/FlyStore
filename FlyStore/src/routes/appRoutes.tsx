@@ -4,16 +4,12 @@ import App from "../App";
 import { HomePage } from "../pages/home/home";
 import { LoginPage } from "../pages/auth/login";
 
-import { FlyCapsPage } from "../pages/tienda/caps";
-import { FlyClothesPage } from "../pages/tienda/clothes";
-import { FlyEssencePage } from "../pages/tienda/essence";
-import { FlyShoesPage } from "../pages/tienda/shoes";
-
 import { PrivacidadPage } from "../pages/legal/privacidad";
 import { TerminosPage } from "../pages/legal/terminos";
 
 import { ROUTES } from "./routes";
 import { ProtectedRoute } from "../context/ProtectedRoute";
+import { CatalogPage } from "../pages/tienda/CatalogPage";
 
 export const router = createBrowserRouter([
   {
@@ -24,27 +20,24 @@ export const router = createBrowserRouter([
         index: true,
         element: <HomePage />,
       },
+
       {
-        path: "tienda",
-        children: [
-          {
-            path: "caps",
-            element: <FlyCapsPage />,
-          },
-          {
-            path: "clothes",
-            element: <FlyClothesPage />,
-          },
-          {
-            path: "essence",
-            element: <FlyEssencePage />,
-          },
-          {
-            path: "shoes",
-            element: <FlyShoesPage />,
-          },
-        ],
+        path: "flycaps",
+        element: <CatalogPage />,
       },
+      {
+        path: "flyclothes",
+        element: <CatalogPage />,
+      },
+      {
+        path: "flyessence",
+        element: <CatalogPage />,
+      },
+      {
+        path: "flyshoes",
+        element: <CatalogPage />,
+      },
+
       {
         path: "cuenta",
         element: <ProtectedRoute />,

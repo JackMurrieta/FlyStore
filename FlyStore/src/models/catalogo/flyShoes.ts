@@ -1,7 +1,7 @@
 
 import type { Marca } from "./types";
 import type { CatalogoInfo } from "./types";
-import newEra from "../../assets/images/marcas/new-era.png";
+import newEra from "@/assets/marcas/flycaps/newera_logo.svg";
 
 export const descripcionFlyShoes: string = "Colección de sneakers y calzado urbano para complementar cualquier estilo, desde modelos clásicos hasta ediciones especiales y limitadas.";
 

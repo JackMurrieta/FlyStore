@@ -1,6 +1,6 @@
 import type { Marca } from "./types";
 import type { CatalogoInfo } from "./types";
-import newEra from "../../assets/images/marcas/new-era.png";
+import newEra from "@/assets/marcas/flycaps/newera_logo.svg";
 
 
 const descripcionFlyClothes : string = "Explora prendas diseñadas para quienes buscan estilo, comodidad y calidad. Ropa premium, deportiva y streetwear seleccionada para destacar en la calle.";
