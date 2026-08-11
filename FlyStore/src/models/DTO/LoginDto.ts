@@ -1,5 +1,5 @@
 export interface LoginDto{
     correo:string;
-    pin:string;
+    password:string;
 }
 //o iniciar con google y ya

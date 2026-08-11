@@ -3,6 +3,6 @@ export interface RegisterDto{
     telefono:string;
     direccion:string;
     correo:string;
-    pin:string;
+    password:string;
 }
 //o registrar con google
