@@ -13,18 +13,18 @@ export type RegisterResult = 'ok' | 'confirm_email'
    Email / pin
 ════════════════════════════════ */
 
-export async function login({ correo, pin }: LoginDto): Promise<void> {
+export async function login({ correo, password }: LoginDto): Promise<void> {
   const { error } = await supabase.auth.signInWithPassword({
     email: correo,
-    password: pin,
+    password: password,
   })
   if (error) throw new Error(mapError(error))
 }
 
-export async function register({ nombre, telefono, direccion, correo, pin }: RegisterDto): Promise<RegisterResult> {
+export async function register({ nombre, telefono, direccion, correo, password }: RegisterDto): Promise<RegisterResult> {
   const { data, error } = await supabase.auth.signUp({
     email: correo,
-    password: pin,
+    password: password,
     options: {
       data: { nombre, telefono, direccion },
     },
@@ -78,26 +78,26 @@ function mapError(error: AuthError): string {
   const code = (error as AuthError & { code?: string }).code
 
   switch (code) {
-    case 'invalid_credentials': return 'Correo o pin incorrectos.'
+    case 'invalid_credentials': return 'Correo o contraseña incorrectos.'
     case 'email_not_confirmed': return 'Confirma tu correo antes de iniciar sesión.'
     case 'user_already_exists': return 'Este correo ya está registrado.'
-    case 'weak_password': return 'El pin debe tener al menos 6 caracteres.'
+    case 'weak_password': return 'La contraseña no cumple con los requisitos de seguridad.'
     case 'email_address_not_authorized': return 'Este correo no está autorizado.'
     case 'over_email_send_rate_limit': return 'Demasiados correos enviados. Intenta más tarde.'
     case 'over_request_rate_limit': return 'Demasiados intentos. Espera unos segundos.'
     case 'provider_disabled': return 'El inicio de sesión con Google no está habilitado.'
     case 'session_not_found': return 'La sesión expiró. Inicia sesión nuevamente.'
     case 'user_not_found': return 'No existe una cuenta con este correo.'
-    case 'same_password': return 'El pin nuevo debe ser diferente al actual.'
+    case 'same_password': return 'La contraseña nueva debe ser diferente a la actual.'
     case 'flow_state_expired': return 'El enlace expiró. Solicita uno nuevo.'
   }
 
   const msg = error.message
-  if (msg.includes('Invalid login credentials')) return 'Correo o pin incorrectos.'
+  if (msg.includes('Invalid login credentials')) return 'Correo o contraseña incorrectos.'
   if (msg.includes('Email not confirmed')) return 'Confirma tu correo antes de iniciar sesión.'
   if (msg.includes('User already registered')) return 'Este correo ya está registrado.'
-  if (msg.includes('Password should be')) return 'El pin debe tener al menos 6 caracteres.'
-  if (msg.includes('Signup requires a valid password')) return 'El pin es requerido.'
+  if (msg.includes('Password should be')) return 'La contraseña no cumple con los requisitos de seguridad.'
+  if (msg.includes('Signup requires a valid password')) return 'La contraseña es requerida.'
   if (msg.includes('Unable to validate email')) return 'El formato del correo no es válido.'
   if (msg.includes('For security purposes')) return 'Demasiados intentos. Espera unos segundos.'
   if (msg.includes('Email rate limit exceeded')) return 'Demasiados intentos. Espera unos minutos.'

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useAuth } from '../../hooks/auth/useAuth'
 import type { LoginDto } from '../../models/DTO/LoginDto'
 import type { RegisterDto } from '../../models/DTO/RegisterDto'
+import { PasswordStrengthIndicator } from '../../components/auth/PasswordStrengthIndicator'
+import { validatePassword } from '../../utils/passwordValidation'
 import './login.css'
 import flyLogo from "../../assets/logos/fly-logo.png"; // Ajusta el path según tu estructura
 
@@ -26,24 +28,34 @@ export function LoginPage() {
   const [telefono, setTelefono]   = useState('')
   const [direccion, setDireccion] = useState('')
   const [correo, setCorreo]       = useState('')
-  const [pin, setPin]             = useState('')
+  const [password, setPassword]   = useState('')
+  const [showPasswordStrength, setShowPasswordStrength] = useState(false)
 
   const isRegister = mode === 'register'
   const initials   = getInitials(nombre)
 
   const switchMode = (next: Mode) => {
     setMode(next)
-    setPin('')
+    setPassword('')
+    setShowPasswordStrength(false)
     clearError()
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
+    // Validar contraseña en modo registro
     if (isRegister) {
-      const dto: RegisterDto = { nombre: nombre.trim(), telefono, direccion, correo: correo.trim(), pin }
+      const validation = validatePassword(password)
+      if (!validation.isValid) {
+        clearError()
+        // El error se mostrará a través del indicador de seguridad
+        return
+      }
+      const dto: RegisterDto = { nombre: nombre.trim(), telefono, direccion, correo: correo.trim(), password }
       await register(dto)
     } else {
-      const dto: LoginDto = { correo: correo.trim(), pin }
+      const dto: LoginDto = { correo: correo.trim(), password }
       await login(dto)
     }
   }
@@ -179,13 +191,26 @@ export function LoginPage() {
           <input
             className="lp-input"
             type="password"
-            placeholder={isRegister ? 'Pin (mín. 6 caracteres)' : 'Pin'}
-            aria-label="Pin de acceso"
+            placeholder={isRegister ? 'Contraseña' : 'Contraseña'}
+            aria-label="Contraseña"
             autoComplete={isRegister ? 'new-password' : 'current-password'}
-            value={pin}
-            onChange={e => { setPin(e.target.value); clearError() }}
+            value={password}
+            onChange={e => {
+              setPassword(e.target.value)
+              if (isRegister) setShowPasswordStrength(true)
+              clearError()
+            }}
+            onFocus={() => {
+              if (isRegister) setShowPasswordStrength(true)
+            }}
             required
-            minLength={6}
+            minLength={isRegister ? 8 : 1}
+          />
+
+          {/* Indicador de seguridad de contraseña */}
+          <PasswordStrengthIndicator
+            password={password}
+            show={isRegister && showPasswordStrength}
           />
 
           {error && (
