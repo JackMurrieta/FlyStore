@@ -189,7 +189,7 @@ export function Navbar({
           <span className="nb-section-label">Mi cuenta</span>
 
           <Link
-            to={ROUTES.LOGIN}
+            to={ROUTES.ACCOUNT}
             className={`nb-item${active("profile")}`}
             onClick={onClose}
           >
@@ -352,7 +352,7 @@ export function Navbar({
           </button>
 
           <Link
-            to={ROUTES.LOGIN}
+            to={ROUTES.ACCOUNT}
             className={`nb-bn${active("profile")}`}
             aria-label="Mi cuenta"
           >

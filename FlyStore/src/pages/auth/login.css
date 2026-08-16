@@ -158,6 +158,44 @@
 }
 
 /* ========================
+   PASSWORD WRAPPER
+========================= */
+.lp-password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.lp-password-wrapper .lp-input {
+  padding-right: 48px;
+}
+
+.lp-toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, .4);
+  transition: color .2s;
+  border-radius: 6px;
+}
+
+.lp-toggle-password:hover {
+  color: rgba(255, 255, 255, .7);
+}
+
+.lp-toggle-password:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* ========================
    ERROR
 ========================= */
 .lp-error {

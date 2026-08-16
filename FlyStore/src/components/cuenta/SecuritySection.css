@@ -1,0 +1,200 @@
+/* ========================
+   SECURITY SECTION
+========================= */
+.security-section {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r3);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.security-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.security-label {
+  font-family: var(--fd);
+  font-size: 12px;
+  font-weight: 300;
+  letter-spacing: 2px;
+  color: var(--gold);
+  margin: 0 0 16px;
+}
+
+/* Security buttons (default view) */
+.security-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.security-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-family: var(--fb);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.security-btn svg {
+  flex-shrink: 0;
+}
+
+.security-btn-password {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border: 1px solid var(--border);
+}
+
+.security-btn-password:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.security-btn-logout {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.security-btn-logout:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Password change form */
+.password-change-form {
+  width: 100%;
+}
+
+.security-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  color: #ef4444;
+  font-family: var(--fb);
+  font-size: 12px;
+  text-align: center;
+}
+
+.security-field {
+  margin-bottom: 16px;
+}
+
+.security-field-label {
+  display: block;
+  font-family: var(--fb);
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+
+.security-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #fff;
+  font-family: var(--fb);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.security-input:focus {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Password wrapper with toggle */
+.security-password-wrapper {
+  position: relative;
+}
+
+.security-password-wrapper .security-input {
+  padding-right: 44px;
+}
+
+.security-toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.4);
+  transition: color 0.2s;
+  border-radius: 6px;
+}
+
+.security-toggle-password:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.security-toggle-password:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* Actions */
+.security-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.security-btn-save {
+  background: var(--gold);
+  color: #000;
+  flex: 1;
+}
+
+.security-btn-save:hover {
+  background: #c9a030;
+}
+
+.security-btn-cancel {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted2);
+  flex: 1;
+  border: 1px solid var(--border);
+}
+
+.security-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* ========================
+   RESPONSIVE
+========================= */
+@media (max-width: 640px) {
+  .security-section {
+    padding: 20px;
+  }
+
+  .security-btn {
+    padding: 12px 16px;
+    font-size: 12px;
+  }
+}

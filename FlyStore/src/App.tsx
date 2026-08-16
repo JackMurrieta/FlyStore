@@ -5,24 +5,34 @@ import { Header } from "./components/header/header";
 import { Navbar } from "./components/navbar/navbar";
 
 import { useActiveSection } from "./hooks/useActiveSection";
+import { useAuth } from "./hooks/auth/useAuth";
 import { ROUTES } from "./routes/routes";
 
 function App() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const [cartCount, setCartCount] = useState(0);
   const [navOpen, setNavOpen] = useState(false);
 
   const activeSection = useActiveSection();
 
+  const handleCartClick = () => {
+    if (!isAuthenticated) {
+      navigate(ROUTES.LOGIN);
+      return;
+    }
+    setCartCount((c) => c + 1);
+  };
+
   return (
     <>
       <Header
         cartCount={cartCount}
         onMenuClick={() => setNavOpen(true)}
-        onProfileClick={() => navigate(ROUTES.LOGIN)}
+        onProfileClick={() => navigate(isAuthenticated ? ROUTES.ACCOUNT : ROUTES.LOGIN)}
         onLogoClick={() => navigate(ROUTES.HOME)}
-        onCartClick={() => setCartCount((c) => c + 1)}
+        onCartClick={handleCartClick}
       />
 
       <Navbar
@@ -31,7 +41,7 @@ function App() {
         onOpen={() => setNavOpen(true)}
         cartCount={cartCount}
         activeSection={activeSection}
-        onCartClick={() => setCartCount((c) => c + 1)}
+        onCartClick={handleCartClick}
       />
 
       <Outlet />

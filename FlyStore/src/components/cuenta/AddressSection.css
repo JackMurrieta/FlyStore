@@ -1,0 +1,227 @@
+/* ========================
+   ADDRESS SECTION
+========================= */
+.address-section {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r3);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.address-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.address-label {
+  font-family: var(--fd);
+  font-size: 12px;
+  font-weight: 300;
+  letter-spacing: 2px;
+  color: var(--gold);
+  margin: 0;
+}
+
+/* Display mode */
+.address-display {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.address-text {
+  font-family: var(--fb);
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.address-phone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--fb);
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.address-phone svg {
+  flex-shrink: 0;
+  color: var(--gold);
+}
+
+.address-btn-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--muted2);
+  font-family: var(--fb);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+  align-self: flex-start;
+}
+
+.address-btn-edit:hover {
+  color: var(--gold);
+}
+
+.address-btn-edit svg {
+  flex-shrink: 0;
+}
+
+/* Edit mode */
+.address-edit {
+  width: 100%;
+}
+
+.address-info-text {
+  font-family: var(--fb);
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 16px 0;
+  font-style: italic;
+}
+
+.address-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.address-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.address-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.address-form-group-wide {
+  flex: 1;
+}
+
+.address-form-group-narrow {
+  max-width: 140px;
+}
+
+.address-form-group-small {
+  max-width: 200px;
+}
+
+.address-form-label {
+  font-family: var(--fb);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+}
+
+.address-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #fff;
+  font-family: var(--fb);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.address-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 13px;
+}
+
+.address-input:focus {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.address-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.address-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: var(--fb);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.address-btn-save {
+  background: var(--gold);
+  color: #000;
+  flex: 1;
+}
+
+.address-btn-save:hover {
+  background: #c9a030;
+}
+
+.address-btn-cancel {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted2);
+  flex: 1;
+}
+
+.address-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* ========================
+   RESPONSIVE
+========================= */
+@media (max-width: 640px) {
+  .address-section {
+    padding: 20px;
+  }
+
+  .address-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .address-form-group-narrow,
+  .address-form-group-small {
+    max-width: 100%;
+  }
+
+  .address-display {
+    padding: 14px;
+  }
+
+  .address-text {
+    font-size: 13px;
+  }
+}

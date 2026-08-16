@@ -15,8 +15,8 @@ import {
   type RegisterResult,
 } from "../services/authService";
 
-import type { LoginDto } from "../models/DTO/LoginDto";
-import type { RegisterDto } from "../models/DTO/RegisterDto";
+import type { LoginDto } from "../models/DTO/auth/LoginDto";
+import type { RegisterDto } from "../models/DTO/auth/RegisterDto";
 
 export interface AuthUser {
   id: string;

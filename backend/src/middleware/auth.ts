@@ -1,25 +1,31 @@
-// backend/src/middleware/auth.ts
-import { createClient } from '@supabase/supabase-js'
 import type { Context, Next } from 'hono'
-import type { Env } from '../services/supabase.ts'
+import type { Env } from '../services/supabase'
+import { getSupabaseAdmin } from '../services/supabase'
+import { getSessionFromCookie } from '../utils/cookies'
 
-export async function requireAuth(c: Context<{ Bindings: Env }>, next: Next) {
-    const authHeader = c.req.header('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-        return c.json({ error: 'No autenticado' }, 401)
+/**
+ * Middleware de autenticación basado en cookies HTTP-only
+ * Extrae el JWT de la cookie y valida con Supabase
+ * Adjunta userId al contexto para usarlo en las rutas
+ */
+export async function requireAuth(c: Context<{ Bindings: Env; Variables: { userId: string } }>, next: Next) {
+    const cookieHeader = c.req.header('Cookie')
+    const session = getSessionFromCookie(cookieHeader)
+
+    if (!session) {
+        return c.json({ error: 'No autenticado. Inicia sesión.' }, 401)
     }
 
-    const token = authHeader.replace('Bearer ', '')
+    const supabase = getSupabaseAdmin(c.env)
 
-    // Cliente con la anon key, solo para VALIDAR el token del usuario.
-    // No es el mismo cliente que hace las escrituras con service_role.
-    const supabaseAuth = createClient(c.env.SUPABASE_URL, c.env.SUPABASE_ANON_KEY)
-    const { data: { user }, error } = await supabaseAuth.auth.getUser(token)
+    // Validar el access token con Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(session.accessToken)
 
     if (error || !user) {
-        return c.json({ error: 'Token invalido' }, 401)
+        return c.json({ error: 'Sesión inválida o expirada' }, 401)
     }
 
-    c.set('userId', user.id) // disponible en las rutas siguientes
+    // Adjuntar userId al contexto para las rutas protegidas
+    c.set('userId', user.id)
     await next()
 }

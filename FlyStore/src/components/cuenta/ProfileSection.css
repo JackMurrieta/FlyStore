@@ -1,0 +1,149 @@
+/* ========================
+   PROFILE SECTION
+========================= */
+.profile-section {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r3);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+/* Avatar */
+.profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fd);
+  font-size: 32px;
+  font-weight: 600;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Info */
+.profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name {
+  font-family: var(--fb);
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 8px;
+  letter-spacing: 0.5px;
+}
+
+.profile-btn-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--muted2);
+  font-family: var(--fb);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.profile-btn-edit:hover {
+  color: var(--gold);
+}
+
+.profile-btn-edit svg {
+  flex-shrink: 0;
+}
+
+/* Edit mode */
+.profile-edit {
+  width: 100%;
+}
+
+.profile-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #fff;
+  font-family: var(--fb);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  margin-bottom: 12px;
+}
+
+.profile-input:focus {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.profile-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.profile-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: var(--fb);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.profile-btn-save {
+  background: var(--gold);
+  color: #000;
+  flex: 1;
+}
+
+.profile-btn-save:hover {
+  background: #c9a030;
+}
+
+.profile-btn-cancel {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted2);
+  flex: 1;
+}
+
+.profile-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* ========================
+   RESPONSIVE
+========================= */
+@media (max-width: 640px) {
+  .profile-section {
+    padding: 20px;
+  }
+
+  .profile-avatar {
+    width: 60px;
+    height: 60px;
+    font-size: 26px;
+  }
+
+  .profile-name {
+    font-size: 16px;
+  }
+}

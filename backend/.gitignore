@@ -1,0 +1,26 @@
+# Environment variables
+.env
+.env.local
+.dev.vars
+
+# Dependencies
+node_modules/
+
+# Cloudflare Workers
+.wrangler/
+dist/
+worker/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

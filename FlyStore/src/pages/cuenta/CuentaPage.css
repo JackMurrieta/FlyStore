@@ -1,0 +1,35 @@
+/* ========================
+   CUENTA PAGE
+========================= */
+.cuenta-page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 80px 16px 100px;
+}
+
+.cuenta-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.cuenta-header {
+  font-family: var(--fd);
+  font-size: 24px;
+  font-weight: 300;
+  letter-spacing: 3px;
+  color: #fff;
+  text-align: center;
+  margin: 0 0 32px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ========================
+   RESPONSIVE
+========================= */
+@media (max-width: 640px) {
+  .cuenta-header {
+    font-size: 20px;
+    letter-spacing: 2px;
+  }
+}

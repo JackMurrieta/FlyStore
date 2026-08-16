@@ -3,6 +3,7 @@ import App from "../App";
 
 import { HomePage } from "../pages/home/home";
 import { LoginPage } from "../pages/auth/login";
+import { CuentaPage } from "../pages/cuenta/CuentaPage";
 
 import { PrivacidadPage } from "../pages/legal/privacidad";
 import { TerminosPage } from "../pages/legal/terminos";
@@ -41,13 +42,20 @@ export const router = createBrowserRouter([
       {
         path: "cuenta",
         element: <ProtectedRoute />,
-        // Aquí podrías anidar ProfilePage, FavoritesPage y OrdersPage en el futuro
-        //children: [
-        //{
-        //index: true,
-        //element: <CuentaPage />,
-        //},
-        //],
+        children: [
+          {
+            index: true,
+            element: <CuentaPage />,
+          },
+        ],
+      },
+      {
+        path: "cuenta/favoritos",
+        element: <ProtectedRoute />,
+      },
+      {
+        path: "cuenta/pedidos",
+        element: <ProtectedRoute />,
       },
     ],
   },
