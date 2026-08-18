@@ -3,31 +3,13 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 import type { ReactNode } from "react";
-import type { User } from "@supabase/supabase-js";
 
-import { supabase } from "../services/supabase";
+import { api } from "../services/apiClient";
 
-import {
-  login as loginService,
-  register as registerService,
-  loginWithGoogle as loginWithGoogleService,
-  logout as logoutService,
-  type RegisterResult,
-} from "../services/authService";
-
-import type { LoginDto } from "../models/DTO/auth/LoginDto";
-import type { RegisterDto } from "../models/DTO/auth/RegisterDto";
-
-export interface AuthUser {
-  id: string;
-  correo: string;
-  nombre: string;
-  telefono: string;
-  direccion: string;
-}
+import type { LoginDto, RegisterDto, User, RegisterResult } from "../types";
 
 interface AuthContextType {
-  user: AuthUser | null;
+  user: User | null;
 
   isAuthenticated: boolean;
 
@@ -57,7 +39,7 @@ interface Props {
 }
 
 export function AuthProvider({ children }: Props) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   const [loading, setLoading] = useState(true);
 
@@ -70,19 +52,16 @@ export function AuthProvider({ children }: Props) {
   );
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ? fromSupabase(data.session.user) : null);
-
-      setLoading(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ? fromSupabase(session.user) : null);
-    });
-
-    return () => subscription.unsubscribe();
+    // Verificar sesión actual en el backend
+    api.auth.getSession()
+      .then(data => {
+        setUser(data.user);
+        setLoading(false);
+      })
+      .catch(() => {
+        setUser(null);
+        setLoading(false);
+      });
   }, []);
 
   async function login(dto: LoginDto) {
@@ -90,7 +69,8 @@ export function AuthProvider({ children }: Props) {
     setSubmitting(true);
 
     try {
-      await loginService(dto);
+      const response = await api.auth.login(dto);
+      setUser(response.user);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al iniciar sesión.");
     } finally {
@@ -104,9 +84,14 @@ export function AuthProvider({ children }: Props) {
     setSubmitting(true);
 
     try {
-      const result = await registerService(dto);
-
+      const result = await api.auth.register(dto);
       setRegisterResult(result);
+
+      // Si no requiere confirmación, obtener el usuario
+      if (result === 'ok') {
+        const session = await api.auth.getSession();
+        setUser(session.user);
+      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Error al crear la cuenta.",
@@ -121,10 +106,10 @@ export function AuthProvider({ children }: Props) {
     setSubmitting(true);
 
     try {
-      await loginWithGoogleService();
+      await api.auth.loginWithGoogle();
+      // La redirección a Google OAuth ocurre automáticamente
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error con Google.");
-
       setSubmitting(false);
     }
   }
@@ -134,7 +119,8 @@ export function AuthProvider({ children }: Props) {
     setSubmitting(true);
 
     try {
-      await logoutService();
+      await api.auth.logout();
+      setUser(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al cerrar sesión.");
     } finally {
@@ -180,18 +166,4 @@ export function useAuthContext() {
   }
 
   return context;
-}
-
-function fromSupabase(user: User): AuthUser {
-  return {
-    id: user.id,
-
-    correo: user.email ?? "",
-
-    nombre: user.user_metadata?.nombre ?? "",
-
-    telefono: user.user_metadata?.telefono ?? "",
-
-    direccion: user.user_metadata?.direccion ?? "",
-  };
 }

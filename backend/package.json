@@ -1,15 +1,19 @@
 {
-  "name": "backend",
+  "name": "flystore-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Backend del e-commerce FlyStore con Hono + Cloudflare Workers + Supabase",
+  "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "secret:service-role": "wrangler secret put SUPABASE_SERVICE_ROLE_KEY"
   },
-  "keywords": [],
+  "keywords": ["ecommerce", "backend", "hono", "cloudflare-workers", "supabase"],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
+    "@hono/zod-validator": "^0.9.0",
     "@supabase/supabase-js": "^2.109.0",
     "hono": "^4.13.1",
     "zod": "^4.4.3"

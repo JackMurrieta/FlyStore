@@ -1,5 +1,5 @@
-import type { Marca } from "./types";
-import type { CatalogoInfo } from "./types";
+import type { Marca } from "../../types";
+import type { CatalogoInfo } from "../../types";
 import newEra from "@/assets/marcas/flycaps/newera_logo.svg";
 
 

@@ -1,7 +1,20 @@
-import type { DireccionDetallada } from '../models/DTO/usuario/UpdateUsuarioDto';
+import type {
+  LoginDto,
+  RegisterDto,
+  User,
+  LoginResponse,
+  SessionResponse,
+  RefreshResponse,
+  RegisterResult,
+  DireccionDetallada,
+} from '../types';
+import { serializeDireccion } from '../types';
 
 // URL de tu backend (configúrala en .env.local)
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787';
+
+// Re-exportar para retrocompatibilidad
+export type { RegisterResult };
 
 /**
  * Opciones de configuración para las peticiones HTTP
@@ -68,6 +81,111 @@ export async function apiRequest<T = any>(
  */
 export const api = {
   // ============================================
+  // AUTENTICACIÓN
+  // ============================================
+  auth: {
+    /**
+     * Iniciar sesión con email y contraseña
+     */
+    login: async (dto: LoginDto): Promise<LoginResponse> => {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(dto)
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al iniciar sesión');
+      }
+
+      return response.json();
+    },
+
+    /**
+     * Registrar nuevo usuario
+     */
+    register: async (dto: RegisterDto): Promise<RegisterResult> => {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(dto)
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al registrarse');
+      }
+
+      const data = await response.json();
+      return data.requiresEmailConfirmation ? 'confirm_email' : 'ok';
+    },
+
+    /**
+     * Iniciar sesión con Google
+     */
+    loginWithGoogle: async (): Promise<void> => {
+      const response = await fetch(`${API_URL}/api/auth/google`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error con Google');
+      }
+
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url; // Redirige a Google OAuth
+      }
+    },
+
+    /**
+     * Obtener sesión actual
+     */
+    getSession: async (): Promise<SessionResponse> => {
+      const response = await fetch(`${API_URL}/api/auth/session`, {
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        return { user: null };
+      }
+
+      return response.json();
+    },
+
+    /**
+     * Refrescar token de sesión
+     */
+    refresh: async (): Promise<RefreshResponse> => {
+      const response = await fetch(`${API_URL}/api/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al refrescar sesión');
+      }
+
+      return response.json();
+    },
+
+    /**
+     * Cerrar sesión
+     */
+    logout: async (): Promise<void> => {
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+    },
+  },
+  // ============================================
   // USUARIO - Gestión de perfil
   // ============================================
   usuario: {
@@ -93,33 +211,7 @@ export const api = {
      * Actualizar dirección completa del usuario (objeto detallado)
      */
     updateDireccionDetallada: (direccion: DireccionDetallada) => {
-      // Convertir objeto a string formateado
-      const parts = [];
-
-      if (direccion.calle && direccion.numero) {
-        parts.push(`${direccion.calle} ${direccion.numero}`);
-      }
-
-      if (direccion.entreCalle1 || direccion.entreCalle2) {
-        const entreCalle = [direccion.entreCalle1, direccion.entreCalle2]
-          .filter(Boolean)
-          .join(' y ');
-        if (entreCalle) parts.push(`Entre ${entreCalle}`);
-      }
-
-      if (direccion.colonia) {
-        parts.push(direccion.colonia);
-      }
-
-      if (direccion.ciudad && direccion.estado) {
-        parts.push(`${direccion.ciudad}, ${direccion.estado}`);
-      }
-
-      if (direccion.codigoPostal) {
-        parts.push(`CP. ${direccion.codigoPostal}`);
-      }
-
-      const direccionString = parts.join(', ');
+      const direccionString = serializeDireccion(direccion);
 
       return apiRequest('/api/usuario/direccion', {
         method: 'PUT',

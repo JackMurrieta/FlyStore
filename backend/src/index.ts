@@ -11,13 +11,30 @@ const app = new Hono<{ Bindings: Env }>()
 // ============================================
 app.use('/*', cors({
   origin: (origin) => {
-    // Permitir localhost en desarrollo y tu dominio en producción
+    // Permitir localhost en desarrollo y dominios de producción
     const allowedOrigins = [
       'http://localhost:5173',
       'http://localhost:3000',
-      'https://tu-dominio.com' // Cambia esto por tu dominio real
+      'http://localhost:5174',
+      'http://127.0.0.1:5173',
+      // Agrega aquí tu dominio de frontend en producción cuando lo despliegues
+      // Ejemplo: 'https://flystore.vercel.app'
+      // Ejemplo: 'https://flystore.netlify.app'
+      // Ejemplo: 'https://www.flystore.com'
     ]
-    return allowedOrigins.includes(origin) ? origin : allowedOrigins[0]
+
+    // Si el origen está en la lista, permitirlo
+    if (origin && allowedOrigins.includes(origin)) {
+      return origin
+    }
+
+    // En desarrollo, permitir cualquier origen localhost
+    if (origin && origin.includes('localhost')) {
+      return origin
+    }
+
+    // Por defecto, retornar el primer origen permitido
+    return allowedOrigins[0]
   },
   credentials: true, // IMPORTANTE: Permite envío de cookies
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

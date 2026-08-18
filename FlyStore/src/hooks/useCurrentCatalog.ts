@@ -1,6 +1,6 @@
 import { useLocation } from "react-router-dom";
 import { catalogos } from "../data/catalogos";
-import type { CatalogoInfo } from "../models/catalogo/types";
+import type { CatalogoInfo } from "../types";
 
 export function useCurrentCatalog(): CatalogoInfo | null {
 
