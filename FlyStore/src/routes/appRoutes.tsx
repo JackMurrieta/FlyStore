@@ -4,6 +4,7 @@ import App from "../App";
 import { HomePage } from "../pages/home/home";
 import { LoginPage } from "../pages/auth/login";
 import { CuentaPage } from "../pages/cuenta/CuentaPage";
+import { GoogleCallback } from "../pages/GoogleCallback";
 
 import { PrivacidadPage } from "../pages/legal/privacidad";
 import { TerminosPage } from "../pages/legal/terminos";
@@ -62,6 +63,10 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.LOGIN,
     element: <LoginPage />,
+  },
+  {
+    path: ROUTES.GOOGLE_CALLBACK,
+    element: <GoogleCallback />,
   },
   {
     path: ROUTES.PRIVACY,

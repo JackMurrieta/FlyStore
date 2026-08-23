@@ -14,6 +14,7 @@ export const ROUTES = {
   ORDERS: '/cuenta/pedidos',
 
   LOGIN: '/login',
+  GOOGLE_CALLBACK: '/auth/google/callback',
 
   PRIVACY: '/legal/privacidad',
   TERMS: '/legal/terminos',

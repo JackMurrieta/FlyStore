@@ -1,23 +1,12 @@
 import { useState } from "react";
-import type { AuthUser } from "../../context/AuthProvider";
+import type { User, DireccionDetallada } from "../../types";
 import { api, handleApiError } from "../../services/apiClient";
 import "./AddressSection.css";
 
 interface AddressSectionProps {
-  user: AuthUser;
+  user: User;
 }
 
-interface DireccionDetallada {
-  calle: string;
-  entreCalle1: string;
-  entreCalle2: string;
-  numero: string;
-  colonia: string;
-  ciudad: string;
-  estado: string;
-  codigoPostal: string;
-  celular: string;
-}
 
 export function AddressSection({ user }: AddressSectionProps) {
   const [isEditingAddress, setIsEditingAddress] = useState(false);

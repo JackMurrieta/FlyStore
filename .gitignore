@@ -38,4 +38,4 @@ dist-ssr
 *.sqlite
 *.sqlite-*
 
-
+.toml

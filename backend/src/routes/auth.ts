@@ -47,6 +47,10 @@ auth.post('/login', zValidator('json', loginSchema), async (c) => {
   return c.json(
     {
       ok: true,
+      session: {
+        expiresAt: data.session.expires_at,
+        expiresIn: data.session.expires_in
+      },
       user: {
         id: data.user.id,
         email: data.user.email,
@@ -75,7 +79,8 @@ auth.post('/register', zValidator('json', registerSchema), async (c) => {
     email: correo,
     password: password,
     options: {
-      data: { nombre, telefono, direccion }
+      data: { nombre, telefono, direccion },
+      emailRedirectTo: `${c.req.header('Origin') || 'http://localhost:5173'}/auth/callback`
     }
   })
 
@@ -104,6 +109,10 @@ auth.post('/register', zValidator('json', registerSchema), async (c) => {
     {
       ok: true,
       requiresEmailConfirmation: false,
+      session: {
+        expiresAt: data.session.expires_at,
+        expiresIn: data.session.expires_in
+      },
       user: {
         id: data.user.id,
         email: data.user.email,
@@ -118,6 +127,132 @@ auth.post('/register', zValidator('json', registerSchema), async (c) => {
       }
     }
   )
+})
+
+// ============================================
+// GET /api/auth/confirm - Confirmar email (callback de Supabase)
+// ============================================
+auth.get('/confirm', async (c) => {
+  const tokenHash = c.req.query('token_hash')
+  const type = c.req.query('type')
+
+  if (!tokenHash || type !== 'email') {
+    return c.json({ error: 'Token de confirmación inválido' }, 400)
+  }
+
+  const supabase = getSupabaseAdmin(c.env)
+
+  // Verificar el token de confirmación
+  const { data, error } = await supabase.auth.verifyOtp({
+    token_hash: tokenHash,
+    type: 'email'
+  })
+
+  if (error || !data.session || !data.user) {
+    return c.json({ error: 'No se pudo confirmar el correo' }, 400)
+  }
+
+  // Crear cookie con la sesión
+  const cookie = createSessionCookie(data.session.access_token, data.session.refresh_token)
+
+  return c.json(
+    {
+      ok: true,
+      session: {
+        expiresAt: data.session.expires_at,
+        expiresIn: data.session.expires_in
+      },
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        nombre: data.user.user_metadata?.nombre || null,
+        telefono: data.user.user_metadata?.telefono || null,
+        direccion: data.user.user_metadata?.direccion || null
+      }
+    },
+    {
+      headers: {
+        'Set-Cookie': cookie
+      }
+    }
+  )
+})
+
+// ============================================
+// POST /api/auth/exchange-token - Intercambiar tokens de URL por cookie
+// ============================================
+const exchangeTokenSchema = z.object({
+  access_token: z.string(),
+  refresh_token: z.string()
+})
+
+auth.post('/exchange-token', zValidator('json', exchangeTokenSchema), async (c) => {
+  const { access_token, refresh_token } = c.req.valid('json')
+  const supabase = getSupabaseAdmin(c.env)
+
+  // Verificar que el access token sea válido
+  const { data: { user }, error } = await supabase.auth.getUser(access_token)
+
+  if (error || !user) {
+    return c.json({ error: 'Token inválido' }, 401)
+  }
+
+  // Crear cookie HTTP-only
+  const cookie = createSessionCookie(access_token, refresh_token)
+
+  // Obtener información de expiración
+  const tokenExpiration = getTokenExpiration(access_token)
+
+  return c.json(
+    {
+      ok: true,
+      session: tokenExpiration ? {
+        expiresAt: tokenExpiration.expiresAt,
+        expiresIn: tokenExpiration.expiresIn
+      } : null,
+      user: {
+        id: user.id,
+        email: user.email,
+        nombre: user.user_metadata?.nombre || null,
+        telefono: user.user_metadata?.telefono || null,
+        direccion: user.user_metadata?.direccion || null
+      }
+    },
+    {
+      headers: {
+        'Set-Cookie': cookie
+      }
+    }
+  )
+})
+
+// ============================================
+// POST /api/auth/resend-confirmation - Reenviar email de confirmación
+// ============================================
+const resendSchema = z.object({
+  correo: z.string().email('Email inválido')
+})
+
+auth.post('/resend-confirmation', zValidator('json', resendSchema), async (c) => {
+  const { correo } = c.req.valid('json')
+  const supabase = getSupabaseAdmin(c.env)
+
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email: correo,
+    options: {
+      emailRedirectTo: `${c.req.header('Origin') || 'http://localhost:5173'}/auth/callback`
+    }
+  })
+
+  if (error) {
+    return c.json({ error: mapAuthError(error.message) }, 400)
+  }
+
+  return c.json({
+    ok: true,
+    message: 'Email de confirmación reenviado. Revisa tu correo.'
+  })
 })
 
 // ============================================
@@ -181,6 +316,10 @@ auth.post('/refresh', async (c) => {
     return c.json(
       {
         ok: true,
+        session: {
+          expiresAt: data.session.expires_at,
+          expiresIn: data.session.expires_in
+        },
         user: {
           id: data.user.id,
           email: data.user.email,
@@ -257,7 +396,14 @@ auth.get('/session', async (c) => {
       return c.json({ user: null })
     }
 
+    // Obtener información de expiración del token
+    const tokenExpiration = getTokenExpiration(accessToken)
+
     return c.json({
+      session: tokenExpiration ? {
+        expiresAt: tokenExpiration.expiresAt,
+        expiresIn: tokenExpiration.expiresIn
+      } : null,
       user: {
         id: user.id,
         email: user.email,
@@ -270,6 +416,29 @@ auth.get('/session', async (c) => {
     return c.json({ user: null })
   }
 })
+
+// ============================================
+// Utilidades
+// ============================================
+
+/**
+ * Decodifica un JWT y extrae la fecha de expiración
+ */
+function getTokenExpiration(token: string): { expiresAt: number; expiresIn: number } | null {
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+
+    const payload = JSON.parse(atob(parts[1]))
+    const expiresAt = payload.exp
+    const now = Math.floor(Date.now() / 1000)
+    const expiresIn = expiresAt - now
+
+    return { expiresAt, expiresIn }
+  } catch {
+    return null
+  }
+}
 
 // ============================================
 // Mapeo de errores de Supabase

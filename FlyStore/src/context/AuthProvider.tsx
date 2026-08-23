@@ -1,12 +1,14 @@
 // src/context/AuthProvider.tsx
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import type { ReactNode } from "react";
 
 import { api } from "../services/apiClient";
 
 import type { LoginDto, RegisterDto, User, RegisterResult } from "../types";
+import { isProfileComplete } from "../types";
 
 interface AuthContextType {
   user: User | null;
@@ -51,6 +53,8 @@ export function AuthProvider({ children }: Props) {
     null,
   );
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     // Verificar sesión actual en el backend
     api.auth.getSession()
@@ -64,6 +68,21 @@ export function AuthProvider({ children }: Props) {
       });
   }, []);
 
+  /**
+   * Redirige al usuario según el estado de su perfil
+   * - Perfil incompleto → /cuenta
+   * - Perfil completo → / (inicio)
+   */
+  function redirectAfterLogin(user: User) {
+    if (!isProfileComplete(user)) {
+      // Perfil incompleto (probablemente login con Google)
+      navigate('/cuenta');
+    } else {
+      // Perfil completo
+      navigate('/');
+    }
+  }
+
   async function login(dto: LoginDto) {
     setError("");
     setSubmitting(true);
@@ -71,6 +90,9 @@ export function AuthProvider({ children }: Props) {
     try {
       const response = await api.auth.login(dto);
       setUser(response.user);
+
+      // Redirigir según el estado del perfil
+      redirectAfterLogin(response.user);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al iniciar sesión.");
     } finally {
@@ -90,7 +112,12 @@ export function AuthProvider({ children }: Props) {
       // Si no requiere confirmación, obtener el usuario
       if (result === 'ok') {
         const session = await api.auth.getSession();
-        setUser(session.user);
+        if (session.user) {
+          setUser(session.user);
+
+          // Redirigir según el estado del perfil
+          redirectAfterLogin(session.user);
+        }
       }
     } catch (err) {
       setError(
@@ -108,6 +135,7 @@ export function AuthProvider({ children }: Props) {
     try {
       await api.auth.loginWithGoogle();
       // La redirección a Google OAuth ocurre automáticamente
+      // Cuando regrese de Google, la sesión se verificará en el useEffect
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error con Google.");
       setSubmitting(false);
@@ -121,6 +149,7 @@ export function AuthProvider({ children }: Props) {
     try {
       await api.auth.logout();
       setUser(null);
+      navigate('/'); // Redirigir a la página de inicio
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al cerrar sesión.");
     } finally {

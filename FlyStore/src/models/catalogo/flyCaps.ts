@@ -10,7 +10,7 @@ import rudeAwakenings from "@/assets/marcas/flycaps/RA_marca.svg"
 import dandyHats from "@/assets/marcas/flycaps/dandyhats_marca.svg"
 import baez from "@/assets/marcas/flycaps/BZ_marca.svg"
 import type { Marca } from "../../types";
-import type { CatalogoInfo } from "../../types";
+import type { CatalogoInfo } from "../../types/catalogo.types";
 
 const descripcionFlyCaps: string = "Descubre nuestra colección de gorras premium con diseños exclusivos, materiales de alta calidad y las marcas más reconocidas del streetwear nacional e internacional."
 const mainText: string = "EXPLORA FLYCAPS"

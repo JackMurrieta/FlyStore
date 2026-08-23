@@ -1,9 +1,9 @@
 import { useState } from "react";
-import type { AuthUser } from "../../context/AuthProvider";
+import type { User } from "../../types";
 import "./ProfileSection.css";
 
 interface ProfileSectionProps {
-  user: AuthUser;
+  user: User;
 }
 
 // Función para generar color basado en la inicial

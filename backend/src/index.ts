@@ -17,10 +17,9 @@ app.use('/*', cors({
       'http://localhost:3000',
       'http://localhost:5174',
       'http://127.0.0.1:5173',
-      // Agrega aquí tu dominio de frontend en producción cuando lo despliegues
-      // Ejemplo: 'https://flystore.vercel.app'
-      // Ejemplo: 'https://flystore.netlify.app'
-      // Ejemplo: 'https://www.flystore.com'
+      // Dominios de producción
+      'https://flystore.mx',
+      'https://www.flystore.mx'
     ]
 
     // Si el origen está en la lista, permitirlo

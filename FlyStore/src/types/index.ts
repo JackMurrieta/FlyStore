@@ -27,3 +27,6 @@ export { serializeDireccion, parseDireccion } from './usuario.types';
 
 // Tipos de catálogo
 export type { Marca, CatalogoInfo } from './catalogo.types';
+
+// Funciones helper
+export { isProfileComplete, getMissingProfileFields } from './helpers';

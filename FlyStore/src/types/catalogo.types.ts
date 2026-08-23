@@ -21,5 +21,5 @@ export interface CatalogoInfo {
   descripcion: string;
   mainText: string;
   marcas: Marca[];
-  icon: string;
+  icon?: string;
 }
