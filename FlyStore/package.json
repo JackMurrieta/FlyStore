@@ -6,8 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:production": "NODE_ENV=production npm run build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build:production && wrangler deploy",
+    "deploy:staging": "npm run build && wrangler deploy --env staging",
+    "cf:login": "wrangler login",
+    "cf:whoami": "wrangler whoami",
+    "cf:tail": "wrangler tail"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.109.0",

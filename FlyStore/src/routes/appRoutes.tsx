@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "../App";
+import { AppWithProviders } from "../AppWithProviders";
 
 import { HomePage } from "../pages/home/home";
 import { LoginPage } from "../pages/auth/login";
@@ -13,11 +14,28 @@ import { ROUTES } from "./routes";
 import { ProtectedRoute } from "../context/ProtectedRoute";
 import { CatalogPage } from "../pages/tienda/CatalogPage";
 
+/**
+ * Estructura de rutas de la aplicación
+ *
+ * IMPORTANTE: La jerarquía es:
+ *
+ * RouterProvider (main.tsx)
+ *   └─ AppWithProviders (wrapper con AuthProvider)
+ *       ├─ App (layout con Header + Navbar)
+ *       │   └─ Rutas con layout (home, catálogos, cuenta)
+ *       └─ Rutas sin layout (login, términos, privacidad)
+ *
+ * AppWithProviders DEBE estar dentro del Router para poder usar useNavigate()
+ */
 export const router = createBrowserRouter([
   {
     path: ROUTES.HOME,
-    element: <App />,
+    element: <AppWithProviders />,
     children: [
+      {
+        path: ROUTES.HOME,
+        element: <App />,
+        children: [
       {
         index: true,
         element: <HomePage />,
@@ -58,22 +76,24 @@ export const router = createBrowserRouter([
         path: "cuenta/pedidos",
         element: <ProtectedRoute />,
       },
+        ],
+      },
+      {
+        path: ROUTES.LOGIN,
+        element: <LoginPage />,
+      },
+      {
+        path: ROUTES.GOOGLE_CALLBACK,
+        element: <GoogleCallback />,
+      },
+      {
+        path: ROUTES.PRIVACY,
+        element: <PrivacidadPage />,
+      },
+      {
+        path: ROUTES.TERMS,
+        element: <TerminosPage />,
+      },
     ],
-  },
-  {
-    path: ROUTES.LOGIN,
-    element: <LoginPage />,
-  },
-  {
-    path: ROUTES.GOOGLE_CALLBACK,
-    element: <GoogleCallback />,
-  },
-  {
-    path: ROUTES.PRIVACY,
-    element: <PrivacidadPage />,
-  },
-  {
-    path: ROUTES.TERMS,
-    element: <TerminosPage />,
   },
 ]);

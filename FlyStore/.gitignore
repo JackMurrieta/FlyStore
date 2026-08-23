@@ -1,4 +1,26 @@
-# Logs
+# ====================
+# DEPENDENCIES
+# ====================
+node_modules/
+.pnp
+.pnp.js
+
+# ====================
+# ENVIRONMENT VARIABLES
+# ====================
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+
+# Excepciones (archivos que SÍ se versionan)
+!.env.example
+!.env.production
+
+# ====================
+# LOGS
+# ====================
 logs
 *.log
 npm-debug.log*
@@ -7,32 +29,68 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-.claude/
-/.claude/
-dist
-dist-ssr
+# ====================
+# BUILD OUTPUTS (Vite/React)
+# ====================
+dist/
+dist-ssr/
+build/
+.vite/
 *.local
 
-# Environment variables
-.env
-.env.*
-!.env.example
+# ====================
+# CLOUDFLARE PAGES
+# ====================
+.wrangler/
+wrangler.toml.backup
+.dev.vars
 
-# Markdown files
+# ====================
+# MARKDOWN (Generados automáticamente)
+# ====================
 *.md
 *.MD
 *.mdx
 
-# Editor directories and files
+# Excepciones (archivos importantes)
+!README.md
+!CHANGELOG.md
+!LICENSE.md
+
+# ====================
+# EDITOR / IDE
+# ====================
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+!.vscode/settings.json
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
 
+# ====================
+# OS FILES
+# ====================
+.DS_Store
+.DS_Store?
+Thumbs.db
+Desktop.ini
 
+# ====================
+# TESTING
+# ====================
+coverage/
+.nyc_output/
+
+# ====================
+# MISC
+# ====================
+.vercel
+.netlify
+.turbo
+.parcel-cache
+.claude/

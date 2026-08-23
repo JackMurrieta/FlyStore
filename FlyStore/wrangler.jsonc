@@ -1,10 +1,25 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "flystore",
+  "name": "flystore-frontend",
   "compatibility_date": "2026-07-27",
+
+  // Configuración de assets para SPA
   "assets": {
     "directory": "dist",
     "not_found_handling": "single-page-application"
   },
-  "compatibility_flags": ["nodejs_compat"]
+
+  // Flags de compatibilidad
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Variables de entorno para producción
+  // NOTA: No pongas secretos aquí, usa variables de entorno o secretos de Cloudflare
+  "vars": {
+    "ENVIRONMENT": "production"
+  },
+
+  // Configuración de observabilidad
+  "observability": {
+    "enabled": true
+  }
 }
