@@ -13,23 +13,16 @@ export interface CookieOptions {
 
 /**
  * Crea una cookie HTTP-only segura
- * IMPORTANTE: No usa flag Secure en desarrollo local para permitir HTTP
+ * IMPORTANTE: Usa flag Secure: true para HTTPS (producción)
  */
 export function createSessionCookie(
   accessToken: string,
   refreshToken: string,
   options: CookieOptions = {}
 ): string {
-  // Detectar si estamos en desarrollo (localhost) o producción
-  // En desarrollo NO usar Secure (permite HTTP)
-  // En producción SÍ usar Secure (requiere HTTPS)
-  const isProduction = typeof process !== 'undefined'
-    ? process.env.NODE_ENV === 'production'
-    : true // Por defecto asumir producción si no hay process
-
   const {
     maxAge = COOKIE_MAX_AGE,
-    secure = false, // SIEMPRE false para permitir desarrollo local
+    secure = true, // true para producción (HTTPS requerido)
     sameSite = 'Lax'
   } = options
 
