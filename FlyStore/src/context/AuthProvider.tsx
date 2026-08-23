@@ -74,12 +74,18 @@ export function AuthProvider({ children }: Props) {
    * - Perfil completo → / (inicio)
    */
   function redirectAfterLogin(user: User) {
-    if (!isProfileComplete(user)) {
+    const profileComplete = isProfileComplete(user);
+    console.log('[AuthProvider] redirectAfterLogin - Perfil completo:', profileComplete);
+    console.log('[AuthProvider] redirectAfterLogin - Usuario:', user);
+
+    if (!profileComplete) {
       // Perfil incompleto (probablemente login con Google)
-      navigate('/cuenta');
+      console.log('[AuthProvider] Navegando a /cuenta');
+      navigate('/cuenta', { replace: true });
     } else {
       // Perfil completo
-      navigate('/');
+      console.log('[AuthProvider] Navegando a /');
+      navigate('/', { replace: true });
     }
   }
 
@@ -88,12 +94,16 @@ export function AuthProvider({ children }: Props) {
     setSubmitting(true);
 
     try {
+      console.log('[AuthProvider] Iniciando login...');
       const response = await api.auth.login(dto);
+      console.log('[AuthProvider] Login exitoso, usuario:', response.user.email);
       setUser(response.user);
 
       // Redirigir según el estado del perfil
+      console.log('[AuthProvider] Llamando redirectAfterLogin...');
       redirectAfterLogin(response.user);
     } catch (err) {
+      console.error('[AuthProvider] Error en login:', err);
       setError(err instanceof Error ? err.message : "Error al iniciar sesión.");
     } finally {
       setSubmitting(false);
@@ -106,20 +116,27 @@ export function AuthProvider({ children }: Props) {
     setSubmitting(true);
 
     try {
+      console.log('[AuthProvider] Iniciando registro...');
       const result = await api.auth.register(dto);
       setRegisterResult(result);
 
       // Si no requiere confirmación, obtener el usuario
       if (result === 'ok') {
+        console.log('[AuthProvider] Registro exitoso, obteniendo sesión...');
         const session = await api.auth.getSession();
         if (session.user) {
+          console.log('[AuthProvider] Sesión obtenida, usuario:', session.user.email);
           setUser(session.user);
 
           // Redirigir según el estado del perfil
+          console.log('[AuthProvider] Llamando redirectAfterLogin...');
           redirectAfterLogin(session.user);
         }
+      } else {
+        console.log('[AuthProvider] Registro requiere confirmación de email');
       }
     } catch (err) {
+      console.error('[AuthProvider] Error en registro:', err);
       setError(
         err instanceof Error ? err.message : "Error al crear la cuenta.",
       );
@@ -149,7 +166,7 @@ export function AuthProvider({ children }: Props) {
     try {
       await api.auth.logout();
       setUser(null);
-      navigate('/'); // Redirigir a la página de inicio
+      navigate('/', { replace: true }); // Redirigir a la página de inicio
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al cerrar sesión.");
     } finally {

@@ -33,15 +33,21 @@ export function GoogleCallback() {
         const session = await api.auth.getSession();
 
         if (session.user) {
+          console.log('[GoogleCallback] Sesión obtenida, usuario:', session.user.email);
+          console.log('[GoogleCallback] Perfil completo:', isProfileComplete(session.user));
+
           // Verificar si el perfil está completo
           if (!isProfileComplete(session.user)) {
             // Perfil incompleto → redirigir a /cuenta
+            console.log('[GoogleCallback] Redirigiendo a /cuenta (perfil incompleto)');
             navigate('/cuenta', { replace: true });
           } else {
             // Perfil completo → redirigir a inicio
+            console.log('[GoogleCallback] Redirigiendo a / (perfil completo)');
             navigate('/', { replace: true });
           }
         } else {
+          console.log('[GoogleCallback] No hay sesión, redirigiendo a login');
           // No hay sesión, redirigir a login
           navigate('/login', { replace: true });
         }

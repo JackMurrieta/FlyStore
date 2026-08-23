@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/auth/useAuth'
 import type { LoginDto, RegisterDto } from '../../types'
 import { PasswordStrengthIndicator } from '../../components/auth/PasswordStrengthIndicator'
@@ -20,7 +21,8 @@ function getInitials(nombre: string): string {
 }
 
 export function LoginPage() {
-  const { login, register, loginWithGoogle, submitting, error, registerResult, clearError } = useAuth()
+  const navigate = useNavigate()
+  const { user, isAuthenticated, login, register, loginWithGoogle, submitting, error, registerResult, clearError } = useAuth()
 
   const [mode, setMode]           = useState<Mode>('login')
   const [nombre, setNombre]       = useState('')
@@ -30,6 +32,13 @@ export function LoginPage() {
   const [password, setPassword]   = useState('')
   const [showPasswordStrength, setShowPasswordStrength] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+
+  // Redirigir si el usuario ya está autenticado
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate('/', { replace: true })
+    }
+  }, [isAuthenticated, user, navigate])
 
   const isRegister = mode === 'register'
   const initials   = getInitials(nombre)
