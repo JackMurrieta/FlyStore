@@ -260,12 +260,13 @@ auth.post('/resend-confirmation', zValidator('json', resendSchema), async (c) =>
 // ============================================
 auth.post('/google', async (c) => {
   const supabase = getSupabaseAdmin(c.env)
+  const origin = c.req.header('Origin') || 'http://localhost:5173'
 
   // Generar URL de OAuth
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${c.req.header('Origin') || 'http://localhost:5173'}/auth/callback`,
+      redirectTo: `${origin}/auth/google/callback`,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent'
@@ -278,6 +279,49 @@ auth.post('/google', async (c) => {
   }
 
   return c.json({ url: data.url })
+})
+
+// ============================================
+// GET /api/auth/callback - Callback de OAuth (Google, etc.)
+// ============================================
+auth.get('/callback', async (c) => {
+  const code = c.req.query('code')
+  const error = c.req.query('error')
+  const errorDescription = c.req.query('error_description')
+
+  // Si hay error en el OAuth
+  if (error) {
+    const origin = c.req.header('Referer') || 'http://localhost:5173'
+    return c.redirect(`${origin}/login?error=${encodeURIComponent(errorDescription || error)}`)
+  }
+
+  // Si no hay código, redirigir a login
+  if (!code) {
+    const origin = c.req.header('Referer') || 'http://localhost:5173'
+    return c.redirect(`${origin}/login?error=no_code`)
+  }
+
+  const supabase = getSupabaseAdmin(c.env)
+
+  // Intercambiar código por sesión
+  const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+
+  if (exchangeError || !data.session || !data.user) {
+    const origin = c.req.header('Referer') || 'http://localhost:5173'
+    return c.redirect(`${origin}/login?error=${encodeURIComponent(mapAuthError(exchangeError?.message || 'Error de autenticación'))}`)
+  }
+
+  // Crear cookie HTTP-only
+  const cookie = createSessionCookie(data.session.access_token, data.session.refresh_token)
+
+  // Construir URL de redirección con base en el Origin o Referer
+  const origin = c.req.header('Referer')?.split('/auth/')[0] || 'http://localhost:5173'
+  const redirectUrl = `${origin}/auth/google/callback`
+
+  // Redirigir al frontend con la cookie establecida
+  return c.redirect(redirectUrl, 302, {
+    'Set-Cookie': cookie
+  })
 })
 
 // ============================================
