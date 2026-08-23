@@ -1,7 +1,6 @@
 import type {
   LoginDto,
   RegisterDto,
-  User,
   LoginResponse,
   SessionResponse,
   RefreshResponse,

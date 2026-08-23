@@ -77,7 +77,7 @@ export function serializeDireccion(dir: DireccionDetallada): string {
  * Intenta parsear un string de dirección a DireccionDetallada
  * Si no puede parsearlo, retorna null
  */
-export function parseDireccion(direccionStr: string): DireccionDetallada | null {
+export function parseDireccion(_direccionStr: string): DireccionDetallada | null {
   // Esta función es opcional, para intentar reconstruir la dirección
   // desde el string almacenado en el backend
   // Por ahora retorna null ya que el formato puede variar

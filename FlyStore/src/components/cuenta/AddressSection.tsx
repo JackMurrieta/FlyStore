@@ -8,7 +8,7 @@ interface AddressSectionProps {
 }
 
 
-export function AddressSection({ user }: AddressSectionProps) {
+export function AddressSection({ }: AddressSectionProps) {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
 

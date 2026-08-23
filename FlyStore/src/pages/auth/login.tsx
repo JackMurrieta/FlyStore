@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '../../hooks/auth/useAuth'
-import type { LoginDto } from '../../models/DTO/auth/LoginDto'
-import type { RegisterDto } from '../../models/DTO/auth/RegisterDto'
+import type { LoginDto, RegisterDto } from '../../types'
 import { PasswordStrengthIndicator } from '../../components/auth/PasswordStrengthIndicator'
 import { validatePassword } from '../../utils/passwordValidation'
 import './login.css'
@@ -54,10 +53,10 @@ export function LoginPage() {
         // El error se mostrará a través del indicador de seguridad
         return
       }
-      const dto: RegisterDto = { nombre: nombre.trim(), telefono, direccion, correo: correo.trim(), password }
+      const dto: RegisterDto = { nombre: nombre.trim(), telefono, direccion, email: correo.trim(), password }
       await register(dto)
     } else {
-      const dto: LoginDto = { correo: correo.trim(), password }
+      const dto: LoginDto = { email: correo.trim(), password }
       await login(dto)
     }
   }
