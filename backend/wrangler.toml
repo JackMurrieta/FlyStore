@@ -1,12 +1,25 @@
 name = "flystore-backend"
 main = "src/index.ts"
 compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
 
-# Variables de entorno (desarrollo local)
-# Para producción, usar: wrangler secret put <NOMBRE_VARIABLE>
+# Variables públicas (no sensibles)
 [vars]
 SUPABASE_URL = "https://eydlcdaxqnmrbxsbwemm.supabase.co"
 SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5ZGxjZGF4cW5tcmJ4c2J3ZW1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5MjYyMTUsImV4cCI6MjEwMDUwMjIxNX0.7B6kw-CJ0x0FnUz76kOFo8VqP3JYGwRZJyrJA9ZxRXM"
-SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5ZGxjZGF4cW5tcmJ4c2J3ZW1tIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDkyNjIxNSwiZXhwIjoyMTAwNTAyMjE1fQ.6I4U46t3TNNPgvYGLWmCYkN6aMnhWVqraPZfaoovCA4"
+ENVIRONMENT = "production"
 
-# NOTA: En producción, usa wrangler secret put para SERVICE_ROLE_KEY
+# SECRETS (usar wrangler secret put):
+# - SUPABASE_SERVICE_ROLE_KEY
+#
+# Comandos:
+#   npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+
+# Entornos (staging/production)
+[env.staging]
+name = "flystore-backend-staging"
+vars = { ENVIRONMENT = "staging" }
+
+[env.production]
+name = "flystore-backend-production"
+vars = { ENVIRONMENT = "production" }
