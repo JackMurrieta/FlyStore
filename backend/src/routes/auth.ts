@@ -12,7 +12,7 @@ const auth = new Hono<{ Bindings: Env }>()
 // ============================================
 
 const loginSchema = z.object({
-  correo: z.string().email('Email inválido'),
+  email: z.string().email('Email inválido'),
   password: z.string().min(1, 'Password requerido')
 })
 
@@ -20,7 +20,7 @@ const registerSchema = z.object({
   nombre: z.string().min(2, 'Nombre debe tener al menos 2 caracteres'),
   telefono: z.string().optional(),
   direccion: z.string().optional(),
-  correo: z.string().email('Email inválido'),
+  email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Password debe tener al menos 6 caracteres')
 })
 
@@ -28,12 +28,12 @@ const registerSchema = z.object({
 // POST /api/auth/login - Email/Password
 // ============================================
 auth.post('/login', zValidator('json', loginSchema), async (c) => {
-  const { correo, password } = c.req.valid('json')
+  const { email, password } = c.req.valid('json')
   const supabase = getSupabaseAdmin(c.env)
 
   // Autenticar con Supabase
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: correo,
+    email: email,
     password: password
   })
 
@@ -71,12 +71,12 @@ auth.post('/login', zValidator('json', loginSchema), async (c) => {
 // POST /api/auth/register - Registro
 // ============================================
 auth.post('/register', zValidator('json', registerSchema), async (c) => {
-  const { nombre, telefono, direccion, correo, password } = c.req.valid('json')
+  const { nombre, telefono, direccion, email, password } = c.req.valid('json')
   const supabase = getSupabaseAdmin(c.env)
 
   // Registrar usuario en Supabase
   const { data, error } = await supabase.auth.signUp({
-    email: correo,
+    email: email,
     password: password,
     options: {
       data: { nombre, telefono, direccion },
@@ -230,18 +230,18 @@ auth.post('/exchange-token', zValidator('json', exchangeTokenSchema), async (c) 
 // POST /api/auth/resend-confirmation - Reenviar email de confirmación
 // ============================================
 const resendSchema = z.object({
-  correo: z.string().email('Email inválido')
+  email: z.string().email('Email inválido')
 })
 
 auth.post('/resend-confirmation', zValidator('json', resendSchema), async (c) => {
-  const { correo } = c.req.valid('json')
+  const { email } = c.req.valid('json')
   const supabase = getSupabaseAdmin(c.env)
 
   const { error } = await supabase.auth.resend({
     type: 'signup',
-    email: correo,
+    email: email,
     options: {
-      emailRedirectTo: `${c.req.header('Origin') || 'http://localhost:5173'}/auth/callback`
+      emailRedirectTo: `${c.req.header('Origin') || 'http://localhost:5173'}/auth/callback'
     }
   })
 
