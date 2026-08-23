@@ -4,8 +4,33 @@ import { z } from 'zod'
 import type { Env } from '../services/supabase'
 import { getSupabaseAdmin } from '../services/supabase'
 import { createSessionCookie, clearSessionCookie } from '../utils/cookies'
+import type { Context } from 'hono'
 
 const auth = new Hono<{ Bindings: Env }>()
+
+// ============================================
+// Helper para obtener URL del frontend
+// ============================================
+
+/**
+ * Obtiene la URL del frontend basándose en el entorno o el header Origin
+ * Prioridad:
+ * 1. Header Origin (cuando viene del frontend)
+ * 2. URL de producción si ENVIRONMENT=production
+ * 3. localhost para desarrollo
+ */
+function getFrontendUrl(c: Context<{ Bindings: Env }>): string {
+  const origin = c.req.header('Origin')
+
+  if (origin) {
+    return origin
+  }
+
+  // Si no hay Origin, usar URL basada en el entorno
+  return c.env.ENVIRONMENT === 'production'
+    ? 'https://flystore.flycontact555.workers.dev'
+    : 'http://localhost:5173'
+}
 
 // ============================================
 // Esquemas de validación con Zod
@@ -80,7 +105,7 @@ auth.post('/register', zValidator('json', registerSchema), async (c) => {
     password: password,
     options: {
       data: { nombre, telefono, direccion },
-      emailRedirectTo: `${c.req.header('Origin') || 'http://localhost:5173'}/auth/callback`
+      emailRedirectTo: `${getFrontendUrl(c)}/auth/callback`
     }
   })
 
@@ -241,7 +266,7 @@ auth.post('/resend-confirmation', zValidator('json', resendSchema), async (c) =>
     type: 'signup',
     email: email,
     options: {
-      emailRedirectTo: `${c.req.header('Origin') || 'http://localhost:5173'}/auth/callback'
+      emailRedirectTo: `${getFrontendUrl(c)}/auth/callback`
     }
   })
 
@@ -260,13 +285,12 @@ auth.post('/resend-confirmation', zValidator('json', resendSchema), async (c) =>
 // ============================================
 auth.post('/google', async (c) => {
   const supabase = getSupabaseAdmin(c.env)
-  const origin = c.req.header('Origin') || 'http://localhost:5173'
 
   // Generar URL de OAuth
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${origin}/auth/google/callback`,
+      redirectTo: `${getFrontendUrl(c)}/auth/google/callback`,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent'
@@ -289,16 +313,16 @@ auth.get('/callback', async (c) => {
   const error = c.req.query('error')
   const errorDescription = c.req.query('error_description')
 
+  const frontendUrl = getFrontendUrl(c)
+
   // Si hay error en el OAuth
   if (error) {
-    const origin = c.req.header('Referer') || 'http://localhost:5173'
-    return c.redirect(`${origin}/login?error=${encodeURIComponent(errorDescription || error)}`)
+    return c.redirect(`${frontendUrl}/login?error=${encodeURIComponent(errorDescription || error)}`)
   }
 
   // Si no hay código, redirigir a login
   if (!code) {
-    const origin = c.req.header('Referer') || 'http://localhost:5173'
-    return c.redirect(`${origin}/login?error=no_code`)
+    return c.redirect(`${frontendUrl}/login?error=no_code`)
   }
 
   const supabase = getSupabaseAdmin(c.env)
@@ -307,19 +331,14 @@ auth.get('/callback', async (c) => {
   const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
   if (exchangeError || !data.session || !data.user) {
-    const origin = c.req.header('Referer') || 'http://localhost:5173'
-    return c.redirect(`${origin}/login?error=${encodeURIComponent(mapAuthError(exchangeError?.message || 'Error de autenticación'))}`)
+    return c.redirect(`${frontendUrl}/login?error=${encodeURIComponent(mapAuthError(exchangeError?.message || 'Error de autenticación'))}`)
   }
 
   // Crear cookie HTTP-only
   const cookie = createSessionCookie(data.session.access_token, data.session.refresh_token)
 
-  // Construir URL de redirección con base en el Origin o Referer
-  const origin = c.req.header('Referer')?.split('/auth/')[0] || 'http://localhost:5173'
-  const redirectUrl = `${origin}/auth/google/callback`
-
   // Redirigir al frontend con la cookie establecida
-  return c.redirect(redirectUrl, 302, {
+  return c.redirect(`${frontendUrl}/auth/google/callback`, 302, {
     'Set-Cookie': cookie
   })
 })
