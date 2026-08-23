@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "flystore-frontend",
+  "name": "flystore",
   "compatibility_date": "2026-07-27",
 
   // Configuración de assets para SPA
