@@ -17,7 +17,9 @@ app.use('/*', cors({
       'http://localhost:3000',
       'http://localhost:5174',
       'http://127.0.0.1:5173',
-      // Dominios de producción
+      // Frontend en Cloudflare Workers (actual)
+      'https://flystore.flycontact555.workers.dev',
+      // Dominio final (cuando esté listo)
       'https://flystore.mx',
       'https://www.flystore.mx'
     ]
