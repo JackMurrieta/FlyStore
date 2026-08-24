@@ -38,35 +38,95 @@ function findMatchingMarca(folderName: string, marcas: any[]): any | null {
 }
 
 /**
+ * Endpoint para obtener marcas y categorías disponibles en la BD
+ * GET /api/catalogo/flycaps/metadata
+ */
+flycaps.get('/metadata', async (c) => {
+  try {
+    const supabase = getSupabaseAdmin(c.env)
+
+    // Obtener marcas activas
+    const { data: marcas, error: marcasError } = await supabase
+      .from('marcas')
+      .select('id, nombre, logo_url')
+      .eq('activo', true)
+      .order('nombre')
+
+    if (marcasError) {
+      return c.json({ error: 'Error al obtener marcas', details: marcasError }, 500)
+    }
+
+    // Obtener categorías activas con subcategorías
+    const { data: categorias, error: categoriasError } = await supabase
+      .from('categorias')
+      .select(`
+        id,
+        nombre,
+        subcategorias(id, nombre, descripcion)
+      `)
+      .eq('activo', true)
+      .order('orden')
+
+    if (categoriasError) {
+      return c.json({ error: 'Error al obtener categorías', details: categoriasError }, 500)
+    }
+
+    return c.json({
+      marcas: marcas || [],
+      categorias: categorias || []
+    })
+
+  } catch (error) {
+    return c.json({ error: 'Error al obtener metadata', details: error }, 500)
+  }
+})
+
+/**
  * Endpoint para sincronizar productos de flycaps desde el storage
  * POST /api/catalogo/flycaps/sync
  *
  * Body (opcional):
  * {
- *   "id_subcategoria": 1,  // ID de la subcategor�a para asignar
- *   "id_marca": 1,          // ID de la marca para asignar
- *   "carpeta_drop": "mix-drop", // Carpeta espec�fica o "all" para todas
- *   "precio_base": 350,     // Precio base default
- *   "activo": true          // Si los productos deben estar activos
+ *   "carpeta_drop": "all",      // Carpeta específica o "all" para todas
+ *   "precio_base": 350,         // Precio base default
+ *   "activo": true,             // Si los productos deben estar activos
+ *   "auto_detect_marca": true,  // Si debe detectar la marca automáticamente por nombre
+ *   "dry_run": false            // Si es true, solo muestra qué haría sin insertar
  * }
  */
 flycaps.post('/sync', async (c) => {
   try {
     const supabase = getSupabaseAdmin(c.env)
 
-    // Obtener par�metros del body (opcionales)
+    // Obtener parámetros del body (opcionales)
     const body = await c.req.json().catch(() => ({}))
     const {
-      id_subcategoria = null,
-      id_marca = null,
-      carpeta_drop = 'all', // 'mix-drop', 'newEra-drop', o 'all'
+      carpeta_drop = 'all',
       precio_base = 350,
       activo = true,
       permitir_sin_stock = true,
-      destacado = false
+      destacado = false,
+      auto_detect_marca = true,
+      dry_run = false
     } = body
 
-    // 1. Listar carpetas en el bucket productos/flycaps
+    // 1. Obtener todas las marcas activas de la BD
+    const { data: marcas, error: marcasError } = await supabase
+      .from('marcas')
+      .select('id, nombre')
+      .eq('activo', true)
+
+    if (marcasError) {
+      return c.json({
+        error: 'Error al obtener marcas de la BD',
+        details: marcasError
+      }, 500)
+    }
+
+    console.log(`📋 Marcas encontradas en BD: ${marcas?.length || 0}`)
+    marcas?.forEach(m => console.log(`  - ${m.nombre} (ID: ${m.id})`))
+
+    // 2. Listar carpetas en el bucket productos/flycaps
     const { data: folders, error: foldersError } = await supabase
       .storage
       .from('productos')
@@ -82,7 +142,7 @@ flycaps.post('/sync', async (c) => {
       }, 500)
     }
 
-    // Filtrar solo carpetas (las carpetas tienen prefix null y son directories)
+    // Filtrar solo carpetas
     const dropFolders = folders?.filter(item =>
       !item.name.includes('.') && // No es archivo
       (carpeta_drop === 'all' || item.name === carpeta_drop)
@@ -97,10 +157,29 @@ flycaps.post('/sync', async (c) => {
 
     const productosInsertados: any[] = []
     const errores: any[] = []
+    const matchingInfo: any[] = []
 
-    // 2. Por cada carpeta de drop (ej: mix-drop, newEra-drop)
+    // 3. Por cada carpeta de drop (ej: mix-drop, newEra-drop)
     for (const dropFolder of dropFolders) {
       const dropName = dropFolder.name
+
+      // Intentar detectar la marca del drop
+      const marcaDetectada = auto_detect_marca
+        ? findMatchingMarca(dropName, marcas || [])
+        : null
+
+      console.log(`\n📁 Procesando drop: ${dropName}`)
+      if (marcaDetectada) {
+        console.log(`   ✅ Marca detectada: ${marcaDetectada.nombre} (ID: ${marcaDetectada.id})`)
+      } else {
+        console.log(`   ⚠️  No se detectó marca automáticamente`)
+      }
+
+      matchingInfo.push({
+        drop: dropName,
+        marca_detectada: marcaDetectada?.nombre || null,
+        id_marca: marcaDetectada?.id || null
+      })
 
       // Listar productos dentro del drop
       const { data: productFolders, error: productFoldersError } = await supabase
@@ -125,13 +204,15 @@ flycaps.post('/sync', async (c) => {
         !item.name.includes('.')
       ) || []
 
-      // 3. Por cada carpeta de producto
+      console.log(`   📦 Productos encontrados: ${productoDirs.length}`)
+
+      // 4. Por cada carpeta de producto
       for (const productDir of productoDirs) {
         const productName = productDir.name
         const productPath = `flycaps/${dropName}/${productName}`
 
         try {
-          // Listar im�genes del producto
+          // Listar imágenes del producto
           const { data: images, error: imagesError } = await supabase
             .storage
             .from('productos')
@@ -144,7 +225,7 @@ flycaps.post('/sync', async (c) => {
             errores.push({
               producto: productName,
               drop: dropName,
-              error: 'Error al leer im�genes',
+              error: 'Error al leer imágenes',
               details: imagesError
             })
             continue
@@ -159,15 +240,15 @@ flycaps.post('/sync', async (c) => {
             errores.push({
               producto: productName,
               drop: dropName,
-              error: 'No se encontraron im�genes'
+              error: 'No se encontraron imágenes'
             })
             continue
           }
 
-          // Generar slug �nico
+          // Generar slug único
           const slug = `${productName.toLowerCase().replace(/\s+/g, '-')}-${dropName}`
 
-          // 4. Verificar si el producto ya existe (por slug)
+          // Verificar si el producto ya existe (por slug)
           const { data: existingProduct } = await supabase
             .from('productos')
             .select('id')
@@ -184,19 +265,35 @@ flycaps.post('/sync', async (c) => {
             continue
           }
 
+          // Si es dry_run, solo simular
+          if (dry_run) {
+            productosInsertados.push({
+              dry_run: true,
+              producto: {
+                nombre: productName,
+                slug: slug,
+                id_marca: marcaDetectada?.id || null,
+                marca_nombre: marcaDetectada?.nombre || 'Sin marca',
+                imagenes_encontradas: imageFiles.length
+              },
+              drop: dropName
+            })
+            continue
+          }
+
           // 5. Insertar producto
           const { data: newProduct, error: productError } = await supabase
             .from('productos')
             .insert({
-              id_subcategoria,
-              id_marca,
+              id_subcategoria: null, // El admin lo asigna después
+              id_marca: marcaDetectada?.id || null,
               nombre: productName,
               slug: slug,
               sku: `FLYCAPS-${dropName.toUpperCase()}-${productName.toUpperCase().replace(/\s+/g, '-')}`,
-              descripcion: `Gorra ${productName} - Colecci�n ${dropName}`,
+              descripcion: `Gorra ${productName}${marcaDetectada ? ` - ${marcaDetectada.nombre}` : ''} - Colección ${dropName}`,
               precio_base: precio_base,
-              precio_mayoreo: null, // Admin lo configura despu�s
-              precio_distribuidor: null, // Admin lo configura despu�s
+              precio_mayoreo: null,
+              precio_distribuidor: null,
               min_mayoreo: null,
               min_distribuidor: null,
               activo,
@@ -216,7 +313,7 @@ flycaps.post('/sync', async (c) => {
             continue
           }
 
-          // 6. Insertar im�genes del producto
+          // 6. Insertar imágenes del producto
           const imagenesInsertadas: any[] = []
           for (let i = 0; i < imageFiles.length; i++) {
             const imageFile = imageFiles[i]
@@ -229,7 +326,7 @@ flycaps.post('/sync', async (c) => {
                 storage_path: storagePath,
                 alt_text: `${productName} - Imagen ${i + 1}`,
                 orden: i,
-                es_principal: i === 0 // Primera imagen es principal
+                es_principal: i === 0
               })
               .select()
               .single()
@@ -239,17 +336,17 @@ flycaps.post('/sync', async (c) => {
             }
           }
 
-          // 7. Insertar una variante inicial (sin talla ni color espec�fico)
+          // 7. Insertar una variante inicial
           const { data: variante, error: varianteError } = await supabase
             .from('producto_variantes')
             .insert({
               id_producto: newProduct.id,
               sku: `${newProduct.sku}-DEFAULT`,
-              talla: null, // Admin configura despu�s
-              color: null, // Admin configura despu�s
+              talla: null,
+              color: null,
               color_hex: null,
               precio_extra: 0,
-              stock: 0, // Admin configura despu�s
+              stock: 0,
               stock_minimo: 5,
               id_imagen: imagenesInsertadas[0]?.id || null,
               activo: true
@@ -261,8 +358,11 @@ flycaps.post('/sync', async (c) => {
             producto: newProduct,
             imagenes: imagenesInsertadas,
             variante: variante,
-            drop: dropName
+            drop: dropName,
+            marca_detectada: marcaDetectada?.nombre || null
           })
+
+          console.log(`      ✅ ${productName} insertado`)
 
         } catch (err) {
           errores.push({
@@ -277,10 +377,13 @@ flycaps.post('/sync', async (c) => {
 
     return c.json({
       success: true,
+      dry_run: dry_run,
       productos_insertados: productosInsertados.length,
       productos: productosInsertados,
       errores: errores.length > 0 ? errores : undefined,
-      carpetas_procesadas: dropFolders.map(f => f.name)
+      carpetas_procesadas: dropFolders.map(f => f.name),
+      matching_info: matchingInfo,
+      marcas_disponibles: marcas?.map(m => m.nombre)
     })
 
   } catch (error) {
