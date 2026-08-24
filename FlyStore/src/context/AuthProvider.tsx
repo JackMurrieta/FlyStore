@@ -32,6 +32,8 @@ interface AuthContextType {
   loginWithGoogle(): Promise<void>;
 
   logout(): Promise<void>;
+
+  refreshSession(): Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -175,6 +177,18 @@ export function AuthProvider({ children }: Props) {
     }
   }
 
+  async function refreshSession() {
+    setLoading(true);
+    try {
+      const data = await api.auth.getSession();
+      setUser(data.user);
+    } catch (err) {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const value = useMemo(
     () => ({
       user,
@@ -198,6 +212,8 @@ export function AuthProvider({ children }: Props) {
       loginWithGoogle,
 
       logout,
+
+      refreshSession,
     }),
     [user, loading, submitting, error, registerResult],
   );

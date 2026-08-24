@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import authRoutes from './routes/auth'
 import usuarioRoutes from './routes/usuario'
+import flycapsRoutes from './routes/catalogo/flycaps'
 import type { Env } from './services/supabase'
 
 const app = new Hono<{ Bindings: Env }>()
@@ -53,6 +54,9 @@ app.route('/api/auth', authRoutes)
 
 // Usuario (protegido)
 app.route('/api/usuario', usuarioRoutes)
+
+// Catálogo - Flycaps (admin)
+app.route('/api/catalogo/flycaps', flycapsRoutes)
 
 // TODO: Montar rutas de pedidos, productos, etc.
 // app.route('/api/pedidos', pedidoRoutes)
