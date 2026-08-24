@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { User } from "../../types";
+import { api, handleApiError } from "../../services/apiClient";
 import "./ProfileSection.css";
 
 interface ProfileSectionProps {
@@ -31,20 +32,41 @@ function getInitial(nombre: string): string {
 
 export function ProfileSection({ user }: ProfileSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [nombre, setNombre] = useState(user.nombre);
+  const [nombre, setNombre] = useState(user.nombre || "");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const initial = getInitial(user.nombre);
+  const initial = getInitial(user.nombre || "Usuario");
   const avatarColor = getColorFromInitial(initial);
 
-  const handleSave = () => {
-    // TODO: Implementar lógica para guardar el nombre
-    console.log("Guardar nombre:", nombre);
-    setIsEditing(false);
+  const handleSave = async () => {
+    if (!nombre.trim()) {
+      setError("El nombre no puede estar vacío");
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+
+    try {
+      await api.usuario.updateNombre(nombre.trim());
+      // Actualizar el usuario en el contexto
+      user.nombre = nombre.trim();
+      setIsEditing(false);
+      console.log("Nombre actualizado exitosamente");
+    } catch (err) {
+      const errorMessage = handleApiError(err);
+      setError(errorMessage);
+      console.error("Error al actualizar nombre:", errorMessage);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
-    setNombre(user.nombre);
+    setNombre(user.nombre || "");
     setIsEditing(false);
+    setError("");
   };
 
   return (
@@ -58,6 +80,7 @@ export function ProfileSection({ user }: ProfileSectionProps) {
       <div className="profile-info">
         {isEditing ? (
           <div className="profile-edit">
+            {error && <p className="profile-error">{error}</p>}
             <input
               type="text"
               className="profile-input"
@@ -65,19 +88,22 @@ export function ProfileSection({ user }: ProfileSectionProps) {
               onChange={(e) => setNombre(e.target.value)}
               placeholder="Nombre completo"
               autoFocus
+              disabled={submitting}
             />
             <div className="profile-actions">
               <button
                 className="profile-btn profile-btn-save"
                 onClick={handleSave}
                 type="button"
+                disabled={submitting}
               >
-                Guardar
+                {submitting ? "Guardando..." : "Guardar"}
               </button>
               <button
                 className="profile-btn profile-btn-cancel"
                 onClick={handleCancel}
                 type="button"
+                disabled={submitting}
               >
                 Cancelar
               </button>
@@ -85,7 +111,8 @@ export function ProfileSection({ user }: ProfileSectionProps) {
           </div>
         ) : (
           <>
-            <h2 className="profile-name">{user.nombre}</h2>
+            <h2 className="profile-name">{user.nombre || "Sin nombre"}</h2>
+            <p className="profile-email">{user.email}</p>
             <button
               className="profile-btn-edit"
               onClick={() => setIsEditing(true)}

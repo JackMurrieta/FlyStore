@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { User, DireccionDetallada } from "../../types";
 import { api, handleApiError } from "../../services/apiClient";
+import { parseDireccion } from "../../types/usuario.types";
 import "./AddressSection.css";
 
 interface AddressSectionProps {
@@ -8,24 +9,47 @@ interface AddressSectionProps {
 }
 
 
-export function AddressSection({ }: AddressSectionProps) {
+export function AddressSection({ user }: AddressSectionProps) {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
 
-  // Mockup de datos de dirección
+  // Estado inicial basado en los datos del usuario
   const [direccionDetallada, setDireccionDetallada] = useState<DireccionDetallada>({
-    calle: "Infonavit Yukujimari Arivaipa",
+    calle: "",
     entreCalle1: "",
     entreCalle2: "",
-    numero: "1823",
+    numero: "",
     colonia: "",
-    ciudad: "Cd. Obregón",
-    estado: "Sonora",
-    codigoPostal: "85120",
-    celular: "6441234567"
+    ciudad: "",
+    estado: "",
+    codigoPostal: "",
+    celular: user.telefono || ""
   });
 
-  const [celularTemp, setCelularTemp] = useState(direccionDetallada.celular);
+  const [originalDireccion, setOriginalDireccion] = useState<DireccionDetallada>({
+    calle: "",
+    entreCalle1: "",
+    entreCalle2: "",
+    numero: "",
+    colonia: "",
+    ciudad: "",
+    estado: "",
+    codigoPostal: "",
+    celular: user.telefono || ""
+  });
+
+  const [celularTemp, setCelularTemp] = useState(user.telefono || "");
+
+  // Intentar parsear la dirección del usuario al cargar
+  useEffect(() => {
+    if (user.direccion) {
+      const parsed = parseDireccion(user.direccion);
+      if (parsed) {
+        setDireccionDetallada(parsed);
+        setOriginalDireccion(parsed);
+      }
+    }
+  }, [user.direccion]);
 
   const handleInputChange = (field: keyof DireccionDetallada, value: string) => {
     setDireccionDetallada(prev => ({
@@ -38,50 +62,48 @@ export function AddressSection({ }: AddressSectionProps) {
     try {
       // Llamar a la API del backend para actualizar la dirección
       await api.usuario.updateDireccionDetallada(direccionDetallada);
+      // Actualizar el original después de guardar exitosamente
+      setOriginalDireccion(direccionDetallada);
+      // Actualizar el usuario en el contexto
+      user.direccion = `${direccionDetallada.calle} ${direccionDetallada.numero}, ${direccionDetallada.ciudad}`;
       setIsEditingAddress(false);
-      // TODO: Mostrar notificación de éxito
       console.log("Dirección actualizada exitosamente");
     } catch (error) {
       const errorMessage = handleApiError(error);
       console.error("Error al actualizar dirección:", errorMessage);
-      // TODO: Mostrar notificación de error al usuario
       alert(errorMessage);
     }
   };
 
   const handleCancelAddress = () => {
     // Restaurar datos originales
-    setDireccionDetallada(prev => ({
-      ...prev,
-      calle: "Infonavit Yukujimari Arivaipa",
-      entreCalle1: "",
-      entreCalle2: "",
-      numero: "1823",
-      colonia: "",
-      ciudad: "Cd. Obregón",
-      estado: "Sonora",
-      codigoPostal: "85120"
-    }));
+    setDireccionDetallada(originalDireccion);
     setIsEditingAddress(false);
   };
 
   const handleSavePhone = async () => {
     try {
+      // Llamar a la API del backend para actualizar el teléfono
+      await api.usuario.updateTelefono(celularTemp);
+
       // Actualizar el celular en el estado local
       setDireccionDetallada(prev => ({
         ...prev,
         celular: celularTemp
       }));
+      setOriginalDireccion(prev => ({
+        ...prev,
+        celular: celularTemp
+      }));
 
-      // Llamar a la API del backend para actualizar el teléfono
-      await api.usuario.updateTelefono(celularTemp);
+      // Actualizar el usuario en el contexto
+      user.telefono = celularTemp;
+
       setIsEditingPhone(false);
-      // TODO: Mostrar notificación de éxito
       console.log("Teléfono actualizado exitosamente");
     } catch (error) {
       const errorMessage = handleApiError(error);
       console.error("Error al actualizar teléfono:", errorMessage);
-      // TODO: Mostrar notificación de error al usuario
       alert(errorMessage);
     }
   };
@@ -135,7 +157,34 @@ export function AddressSection({ }: AddressSectionProps) {
         <div className="address-content">
           <h3 className="address-label">DIRECCIÓN DE ENVÍO</h3>
 
-          {isEditingAddress ? (
+          {!user.direccion && !isEditingAddress ? (
+            <>
+              <p className="address-text" style={{ color: 'var(--muted2)', fontStyle: 'italic' }}>
+                No has agregado una dirección de envío
+              </p>
+              <button
+                className="address-btn-edit"
+                onClick={() => setIsEditingAddress(true)}
+                type="button"
+                aria-label="Agregar dirección"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                Agregar dirección
+              </button>
+            </>
+          ) : isEditingAddress ? (
             <div className="address-edit">
               <p className="address-info-text">
                 * Campos obligatorios
@@ -255,7 +304,9 @@ export function AddressSection({ }: AddressSectionProps) {
           ) : (
             <>
               <div className="address-display">
-                <p className="address-text">{formatDireccionCompleta()}</p>
+                <p className="address-text">
+                  {formatDireccionCompleta() || user.direccion || "Sin dirección"}
+                </p>
               </div>
               <button
                 className="address-btn-edit"
@@ -288,7 +339,34 @@ export function AddressSection({ }: AddressSectionProps) {
         <div className="address-content">
           <h3 className="address-label">NÚMERO DE CONTACTO</h3>
 
-          {isEditingPhone ? (
+          {!user.telefono && !isEditingPhone ? (
+            <>
+              <p className="address-text" style={{ color: 'var(--muted2)', fontStyle: 'italic' }}>
+                No has agregado un número de contacto
+              </p>
+              <button
+                className="address-btn-edit"
+                onClick={() => setIsEditingPhone(true)}
+                type="button"
+                aria-label="Agregar teléfono"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                Agregar teléfono
+              </button>
+            </>
+          ) : isEditingPhone ? (
             <div className="address-edit">
               <div className="address-form">
                 <div className="address-form-group address-form-group-small">
@@ -325,23 +403,21 @@ export function AddressSection({ }: AddressSectionProps) {
           ) : (
             <>
               <div className="address-display">
-                {direccionDetallada.celular && (
-                  <p className="address-phone">
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                    </svg>
-                    {formatCelular(direccionDetallada.celular)}
-                  </p>
-                )}
+                <p className="address-phone">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                  {direccionDetallada.celular ? formatCelular(direccionDetallada.celular) : user.telefono || "Sin teléfono"}
+                </p>
               </div>
               <button
                 className="address-btn-edit"

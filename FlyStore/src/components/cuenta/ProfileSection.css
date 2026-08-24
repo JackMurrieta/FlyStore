@@ -39,8 +39,26 @@
   font-size: 18px;
   font-weight: 600;
   color: #fff;
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   letter-spacing: 0.5px;
+}
+
+.profile-email {
+  font-family: var(--fb);
+  font-size: 13px;
+  color: var(--muted2);
+  margin: 0 0 8px;
+}
+
+.profile-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #ef4444;
+  font-family: var(--fb);
+  font-size: 12px;
+  margin-bottom: 12px;
 }
 
 .profile-btn-edit {
