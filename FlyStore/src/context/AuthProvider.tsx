@@ -68,27 +68,6 @@ export function AuthProvider({ children }: Props) {
       });
   }, []);
 
-  /**
-   * Redirige al usuario según el estado de su perfil
-   * - Perfil incompleto → /cuenta
-   * - Perfil completo → / (inicio)
-   */
-  function redirectAfterLogin(user: User) {
-    const profileComplete = isProfileComplete(user);
-    console.log('[AuthProvider] redirectAfterLogin - Perfil completo:', profileComplete);
-    console.log('[AuthProvider] redirectAfterLogin - Usuario:', user);
-
-    if (!profileComplete) {
-      // Perfil incompleto (probablemente login con Google)
-      console.log('[AuthProvider] Navegando a /cuenta');
-      navigate('/cuenta', { replace: true });
-    } else {
-      // Perfil completo
-      console.log('[AuthProvider] Navegando a /');
-      navigate('/', { replace: true });
-    }
-  }
-
   async function login(dto: LoginDto) {
     setError("");
     setSubmitting(true);
@@ -100,8 +79,19 @@ export function AuthProvider({ children }: Props) {
       setUser(response.user);
 
       // Redirigir según el estado del perfil
-      console.log('[AuthProvider] Llamando redirectAfterLogin...');
-      redirectAfterLogin(response.user);
+      const profileComplete = isProfileComplete(response.user);
+      console.log('[AuthProvider] Perfil completo:', profileComplete);
+
+      // Usar setTimeout para asegurar que la redirección ocurra después de actualizar el estado
+      setTimeout(() => {
+        if (!profileComplete) {
+          console.log('[AuthProvider] Navegando a /cuenta (perfil incompleto)');
+          navigate('/cuenta', { replace: true });
+        } else {
+          console.log('[AuthProvider] Navegando a / (perfil completo)');
+          navigate('/', { replace: true });
+        }
+      }, 100);
     } catch (err) {
       console.error('[AuthProvider] Error en login:', err);
       setError(err instanceof Error ? err.message : "Error al iniciar sesión.");
@@ -129,8 +119,19 @@ export function AuthProvider({ children }: Props) {
           setUser(session.user);
 
           // Redirigir según el estado del perfil
-          console.log('[AuthProvider] Llamando redirectAfterLogin...');
-          redirectAfterLogin(session.user);
+          const profileComplete = isProfileComplete(session.user);
+          console.log('[AuthProvider] Perfil completo:', profileComplete);
+
+          // Usar setTimeout para asegurar que la redirección ocurra después de actualizar el estado
+          setTimeout(() => {
+            if (!profileComplete) {
+              console.log('[AuthProvider] Navegando a /cuenta (perfil incompleto)');
+              navigate('/cuenta', { replace: true });
+            } else {
+              console.log('[AuthProvider] Navegando a / (perfil completo)');
+              navigate('/', { replace: true });
+            }
+          }, 100);
         }
       } else {
         console.log('[AuthProvider] Registro requiere confirmación de email');

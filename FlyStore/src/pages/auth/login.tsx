@@ -33,12 +33,9 @@ export function LoginPage() {
   const [showPasswordStrength, setShowPasswordStrength] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  // Redirigir si el usuario ya está autenticado
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      navigate('/', { replace: true })
-    }
-  }, [isAuthenticated, user, navigate])
+  // ELIMINADO: El AuthProvider ya maneja la redirección según el estado del perfil
+  // No es necesario redirigir aquí porque el AuthProvider.redirectAfterLogin()
+  // ya se encarga de enviar al usuario a /cuenta o / según su perfil
 
   const isRegister = mode === 'register'
   const initials   = getInitials(nombre)
