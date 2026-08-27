@@ -1,9 +1,18 @@
 /**
- * Script de prueba para el endpoint de sincronización de flycaps
+ * Script de sincronización de productos de flycaps desde Supabase Storage
+ *
+ * IMPORTANTE: Procesa UNA carpeta a la vez para mejor control
  *
  * Uso:
  * 1. Asegúrate de tener el servidor corriendo: npm run dev
- * 2. Ejecuta este script: node test-flycaps-sync.js
+ * 2. Configura la carpeta a procesar en la línea 73 (CARPETA_A_PROCESAR)
+ *    - Primera ejecución: 'mix-drop'
+ *    - Segunda ejecución: 'newEra-drop'
+ *    - etc.
+ * 3. Configura dry_run en línea 177:
+ *    - true  = solo simular (no inserta en BD)
+ *    - false = insertar productos realmente
+ * 4. Ejecuta: node test-flycaps-sync.js
  */
 
 const API_URL = 'http://localhost:8787'
@@ -65,18 +74,23 @@ async function testDrops() {
   }
 }
 
-async function testSync(dryRun = true) {
+//cambiar a false para ejecutar la inserción real
+async function testSync(dryRun = false) {
+
   console.log(`\n🔄 ${dryRun ? 'SIMULANDO' : 'EJECUTANDO'} sincronización de productos...\n`)
 
   try {
+    // ⚠️ CAMBIA AQUÍ LA CARPETA: 'mix-drop', 'newEra-drop', etc. (una carpeta a la vez)
+    const CARPETA_A_PROCESAR = 'newEra-drop'
+
     const syncParams = {
-      carpeta_drop: 'all',         // 'all' para todas las carpetas, o nombre específico
-      precio_base: 350,            // Precio base en tu moneda
-      activo: true,                // Productos activos
-      permitir_sin_stock: true,    // Permitir ventas sin stock
-      destacado: false,            // No destacados por defecto
-      auto_detect_marca: true,     // ✅ DETECTAR MARCA AUTOMÁTICAMENTE
-      dry_run: dryRun              // true = solo simula, false = inserta realmente
+      carpeta_drop: CARPETA_A_PROCESAR,  // Procesa UNA carpeta específica a la vez
+      precio_base: 350,                  // Precio base en tu moneda
+      activo: true,                      // Productos activos
+      permitir_sin_stock: true,          // Permitir ventas sin stock
+      destacado: false,                  // No destacados por defecto
+      auto_detect_marca: true,           // ✅ DETECTAR MARCA AUTOMÁTICAMENTE
+      dry_run: dryRun                    // true = solo simula, false = inserta realmente
     }
 
     console.log('Parámetros de sincronización:')
@@ -96,15 +110,11 @@ async function testSync(dryRun = true) {
     if (response.ok) {
       console.log('✅ Sincronización completada!\n')
 
-      // Mostrar información de matching de marcas
-      if (data.matching_info && data.matching_info.length > 0) {
-        console.log('🏷️  Detección de marcas por drop:')
-        data.matching_info.forEach(info => {
-          if (info.marca_detectada) {
-            console.log(`   ✅ ${info.drop} → ${info.marca_detectada} (ID: ${info.id_marca})`)
-          } else {
-            console.log(`   ⚠️  ${info.drop} → Sin marca detectada`)
-          }
+      // Mostrar resumen de marcas detectadas
+      if (data.marcas_detectadas_resumen) {
+        console.log('🏷️  Resumen de marcas detectadas:')
+        Object.entries(data.marcas_detectadas_resumen).forEach(([marca, count]) => {
+          console.log(`   ${marca === 'Sin marca' ? '⚠️' : '✅'}  ${marca}: ${count} productos`)
         })
         console.log('')
       }
@@ -167,16 +177,17 @@ async function main() {
 
   // 2. Verificar drops en storage
   const drops = await testDrops()
+
   if (!drops || drops.length === 0) {
     console.log('\n❌ No se encontraron drops. Verifica el storage.')
     return
   }
 
-  // 3. Ejecutar DRY RUN (simulación)
+  // 3. Ejecutar sincronización
   console.log('\n' + '='.repeat(60))
-  console.log('PASO 1: SIMULACIÓN (DRY RUN)')
+  console.log('SINCRONIZACIÓN DE PRODUCTOS')
   console.log('='.repeat(60))
-  const dryRunResult = await testSync(true)
+  const dryRunResult = await testSync(false)
 
   if (!dryRunResult) {
     console.log('\n❌ La simulación falló. No se procederá con la inserción real.')
@@ -190,14 +201,17 @@ async function main() {
   console.log('La simulación se completó correctamente.')
   console.log(`Se insertarían ${dryRunResult.productos_insertados} productos.`)
   console.log('')
-  console.log('Para ejecutar la inserción REAL:')
+  console.log('Para cambiar de carpeta o ejecutar inserción REAL:')
   console.log('1. Revisa los resultados de la simulación arriba')
   console.log('2. Abre este archivo (test-flycaps-sync.js)')
-  console.log('3. En la línea 172, cambia "await testSync(true)" por "await testSync(false)"')
-  console.log('4. Ejecuta nuevamente: node test-flycaps-sync.js')
+  console.log('3. En la línea 73, cambia CARPETA_A_PROCESAR a otra carpeta si deseas')
+  console.log('   Ejemplo: const CARPETA_A_PROCESAR = \'newEra-drop\'')
+  console.log('4. En la línea 177, cambia "await testSync(false)" por "await testSync(false)"')
+  console.log('   para ejecutar la inserción real (o déjalo en true para simular)')
+  console.log('5. Ejecuta nuevamente: node test-flycaps-sync.js')
   console.log('')
-  console.log('💡 Tip: Puedes modificar los parámetros en la función testSync()')
-  console.log('   para personalizar el precio, activar/desactivar productos, etc.')
+  console.log('💡 Tip: Procesa una carpeta a la vez para mejor control.')
+  console.log('   Actualmente procesando: ' + syncParams.carpeta_drop)
 }
 
 // Ejecutar el test

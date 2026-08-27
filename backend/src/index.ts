@@ -3,6 +3,8 @@ import { cors } from 'hono/cors'
 import authRoutes from './routes/auth'
 import usuarioRoutes from './routes/usuario'
 import flycapsRoutes from './routes/catalogo/flycaps'
+import adminProductosRoutes from './routes/admin/productos'
+import publicProductosRoutes from './routes/public/productos'
 import type { Env } from './services/supabase'
 
 const app = new Hono<{ Bindings: Env }>()
@@ -49,16 +51,25 @@ app.use('/*', cors({
 // ============================================
 app.get('/', (c) => c.text('FlyStore backend OK'))
 
-// Autenticación (público)
+// ============================================
+// RUTAS PÚBLICAS (sin autenticación)
+// ============================================
 app.route('/api/auth', authRoutes)
+app.route('/api/public/productos', publicProductosRoutes)
 
-// Usuario (protegido)
+// ============================================
+// RUTAS PROTEGIDAS - CLIENTES
+// ============================================
 app.route('/api/usuario', usuarioRoutes)
 
-// Catálogo - Flycaps (admin)
-app.route('/api/catalogo/flycaps', flycapsRoutes)
+// ============================================
+// RUTAS PROTEGIDAS - ADMIN
+// ============================================
+app.route('/api/admin/productos', adminProductosRoutes)
+app.route('/api/admin/catalogo/flycaps', flycapsRoutes)
 
-// TODO: Montar rutas de pedidos, productos, etc.
-// app.route('/api/pedidos', pedidoRoutes)
+// TODO: Más rutas admin
+// app.route('/api/admin/pedidos', adminPedidosRoutes)
+// app.route('/api/admin/usuarios', adminUsuariosRoutes)
 
 export default app

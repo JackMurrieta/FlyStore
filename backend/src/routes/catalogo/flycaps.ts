@@ -16,25 +16,41 @@ function normalizeString(str: string): string {
 }
 
 /**
- * Busca la marca que mejor coincida con el nombre de la carpeta
+ * Busca la marca que mejor coincida con el nombre de la carpeta o producto
  */
-function findMatchingMarca(folderName: string, marcas: any[]): any | null {
-  const normalizedFolder = normalizeString(folderName)
+function findMatchingMarca(name: string, marcas: any[]): any | null {
+  const normalizedName = normalizeString(name)
 
   // Buscar coincidencia exacta primero
   let bestMatch = marcas.find(marca =>
-    normalizeString(marca.nombre) === normalizedFolder
+    normalizeString(marca.nombre) === normalizedName
   )
 
   if (bestMatch) return bestMatch
 
-  // Buscar coincidencia parcial (nombre de marca contenido en carpeta)
+  // Buscar coincidencia parcial (nombre de marca contenido en el nombre)
   bestMatch = marcas.find(marca => {
     const normalizedMarca = normalizeString(marca.nombre)
-    return normalizedFolder.includes(normalizedMarca) || normalizedMarca.includes(normalizedFolder)
+    return normalizedName.includes(normalizedMarca) || normalizedMarca.includes(normalizedName)
   })
 
   return bestMatch || null
+}
+
+/**
+ * Detecta la marca de un producto individual
+ * Primero intenta con el nombre del producto, luego con el nombre del drop
+ */
+function detectMarcaProducto(productName: string, dropName: string, marcas: any[]): any | null {
+  // Primero intentar detectar desde el nombre del producto
+  const marcaFromProduct = findMatchingMarca(productName, marcas)
+  if (marcaFromProduct) {
+    return marcaFromProduct
+  }
+
+  // Si no se encuentra, intentar desde el nombre del drop
+  const marcaFromDrop = findMatchingMarca(dropName, marcas)
+  return marcaFromDrop
 }
 
 /**
@@ -157,29 +173,12 @@ flycaps.post('/sync', async (c) => {
 
     const productosInsertados: any[] = []
     const errores: any[] = []
-    const matchingInfo: any[] = []
 
     // 3. Por cada carpeta de drop (ej: mix-drop, newEra-drop)
     for (const dropFolder of dropFolders) {
       const dropName = dropFolder.name
 
-      // Intentar detectar la marca del drop
-      const marcaDetectada = auto_detect_marca
-        ? findMatchingMarca(dropName, marcas || [])
-        : null
-
       console.log(`\n📁 Procesando drop: ${dropName}`)
-      if (marcaDetectada) {
-        console.log(`   ✅ Marca detectada: ${marcaDetectada.nombre} (ID: ${marcaDetectada.id})`)
-      } else {
-        console.log(`   ⚠️  No se detectó marca automáticamente`)
-      }
-
-      matchingInfo.push({
-        drop: dropName,
-        marca_detectada: marcaDetectada?.nombre || null,
-        id_marca: marcaDetectada?.id || null
-      })
 
       // Listar productos dentro del drop
       const { data: productFolders, error: productFoldersError } = await supabase
@@ -210,6 +209,11 @@ flycaps.post('/sync', async (c) => {
       for (const productDir of productoDirs) {
         const productName = productDir.name
         const productPath = `flycaps/${dropName}/${productName}`
+
+        // Detectar marca del producto (primero desde nombre producto, luego desde drop)
+        const marcaDetectada = auto_detect_marca
+          ? detectMarcaProducto(productName, dropName, marcas || [])
+          : null
 
         try {
           // Listar imágenes del producto
@@ -375,6 +379,13 @@ flycaps.post('/sync', async (c) => {
       }
     }
 
+    // Crear resumen de marcas detectadas
+    const marcasDetectadasResumen = productosInsertados.reduce((acc: any, p: any) => {
+      const marca = p.marca_detectada || 'Sin marca'
+      acc[marca] = (acc[marca] || 0) + 1
+      return acc
+    }, {})
+
     return c.json({
       success: true,
       dry_run: dry_run,
@@ -382,7 +393,7 @@ flycaps.post('/sync', async (c) => {
       productos: productosInsertados,
       errores: errores.length > 0 ? errores : undefined,
       carpetas_procesadas: dropFolders.map(f => f.name),
-      matching_info: matchingInfo,
+      marcas_detectadas_resumen: marcasDetectadasResumen,
       marcas_disponibles: marcas?.map(m => m.nombre)
     })
 
