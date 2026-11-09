@@ -1,0 +1,6 @@
+export enum PasoAlta {
+  DATOS = 'DATOS',
+  VARIANTES = 'VARIANTES',
+  PRECIOS = 'PRECIOS',
+  CONFIRMACION = 'CONFIRMACION',
+}
