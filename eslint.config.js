@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'node_modules', '.tmp']),
+  globalIgnores(['dist', 'node_modules', '.tmp', '.wrangler', 'vite.config.ts', 'vitest.config.ts']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -82,6 +82,13 @@ export default defineConfig([
     files: ['src/test/**/*.ts', '**/*.test.ts', '**/*.test.tsx'],
     rules: {
       'no-restricted-globals': 'off',
+    },
+  },
+  // Excepciones: SesionContext exporta tanto provider como hook (patrón común en React)
+  {
+    files: ['src/compartido/sesion/SesionContext.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
     },
   },
 ])

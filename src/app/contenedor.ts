@@ -8,11 +8,9 @@
 
 import type { ISesion } from '@compartido/sesion'
 import { httpClient } from '@infraestructura/http/HttpClient'
-import {
-  AutenticacionHttpService,
-  UsuarioHttpService,
-  SesionModel,
-} from '@modulos/iniciar-sesion'
+import { AutenticacionHttpService } from '@modulos/iniciar-sesion/infraestructura/AutenticacionHttpService'
+import { UsuarioHttpService } from '@modulos/iniciar-sesion/infraestructura/UsuarioHttpService'
+import { SesionModel } from '@modulos/iniciar-sesion/aplicacion/SesionModel'
 
 /**
  * Contenedor singleton de dependencias

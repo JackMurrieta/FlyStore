@@ -7,13 +7,16 @@ import { BrowserRouter } from 'react-router-dom'
 import { SesionProvider } from '@compartido/sesion'
 import { contenedor } from './contenedor'
 import { Rutas } from './rutas'
+import { ErrorBoundary } from './ErrorBoundary'
 
 export function App() {
   return (
-    <BrowserRouter>
-      <SesionProvider sesion={contenedor.sesion}>
-        <Rutas />
-      </SesionProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <SesionProvider sesion={contenedor.sesion}>
+          <Rutas />
+        </SesionProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   )
 }

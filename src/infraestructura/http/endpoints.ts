@@ -7,9 +7,12 @@
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
-if (!API_BASE && import.meta.env.MODE === 'production') {
-  throw new Error(
-    'VITE_API_URL no está configurada. Define esta variable de entorno antes de desplegar.'
+if (!API_BASE) {
+  console.error(
+    '[FlyStore] VITE_API_URL no está configurada. Las peticiones al backend fallarán. ' +
+    (import.meta.env.MODE === 'production'
+      ? 'Configura esta variable en Cloudflare Workers → Settings → Build → Variables.'
+      : 'Crea un archivo .env.local con: VITE_API_URL=http://localhost:8080')
   )
 }
 

@@ -3,12 +3,12 @@
  * Reset, base, fuentes y foco visible
  */
 
-/* Fuentes Oswald (500, 600) e Inter (400, 500, 600) */
-@import '@fontsource/oswald/500.css';
-@import '@fontsource/oswald/600.css';
-@import '@fontsource/inter/400.css';
-@import '@fontsource/inter/500.css';
-@import '@fontsource/inter/600.css';
+/* Fuentes Oswald (500, 600) e Inter (400, 500, 600) - Solo subconjunto latino */
+@import '@fontsource/oswald/latin-500.css';
+@import '@fontsource/oswald/latin-600.css';
+@import '@fontsource/inter/latin-400.css';
+@import '@fontsource/inter/latin-500.css';
+@import '@fontsource/inter/latin-600.css';
 
 /* Tokens y tipografía */
 @import './tokens.css';
