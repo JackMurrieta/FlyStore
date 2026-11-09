@@ -1,0 +1,132 @@
+/**
+ * Estilos de HeroSection
+ */
+
+.hero {
+  position: relative;
+  width: 100%;
+  max-width: 1280px;
+  height: 460px;
+  margin: 0 auto;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+/* Imagen de fondo (placeholder) */
+.imagenFondo {
+  position: absolute;
+  inset: 0;
+  background-color: var(--fly-superficie);
+  background-size: cover;
+  background-position: center;
+}
+
+/* Overlay con gradiente */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 5, 5, 0.92) 0%,
+    rgba(5, 5, 5, 0.1) 100%
+  );
+}
+
+/* Contenido */
+.contenido {
+  position: relative;
+  z-index: 1;
+  padding: var(--fly-espacio-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-espacio-4);
+  max-width: 600px;
+}
+
+.titulo {
+  color: var(--fly-texto);
+}
+
+.subtitulo {
+  max-width: 480px;
+}
+
+.cta {
+  text-decoration: none;
+  width: fit-content;
+  margin-top: var(--fly-espacio-4);
+}
+
+/* Indicadores de navegación */
+.indicadores {
+  position: absolute;
+  bottom: var(--fly-espacio-5);
+  right: var(--fly-espacio-8);
+  z-index: 2;
+  display: flex;
+  gap: var(--fly-espacio-2);
+  align-items: center;
+}
+
+.dot {
+  height: 4px;
+  background-color: var(--fly-borde-control);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.dot:not(.activo) {
+  width: 8px;
+}
+
+.dot.activo {
+  width: 24px;
+  background-color: var(--fly-texto);
+}
+
+.dot:hover:not(.activo) {
+  background-color: var(--fly-texto-2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero {
+    height: 380px;
+  }
+
+  .contenido {
+    padding: var(--fly-espacio-6);
+  }
+
+  .titulo {
+    font-size: 32px;
+  }
+
+  .indicadores {
+    right: var(--fly-espacio-6);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    height: 320px;
+    border-radius: 8px;
+  }
+
+  .contenido {
+    padding: var(--fly-espacio-5);
+  }
+
+  .titulo {
+    font-size: 28px;
+  }
+
+  .indicadores {
+    bottom: var(--fly-espacio-4);
+    right: var(--fly-espacio-5);
+  }
+}

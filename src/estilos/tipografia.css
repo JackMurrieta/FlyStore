@@ -1,0 +1,159 @@
+/**
+ * Tipografía FLY B/N
+ * Fuente: Figma FlyStore · FlyRediseño · Casos de uso (144:57)
+ * Fuentes: Oswald (500, 600) e Inter (400, 500, 600)
+ */
+
+/* Display - Oswald SemiBold 600, 56/62, 0.5px, mayúsculas */
+.fly-display {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 56px;
+  line-height: 62px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--fly-texto);
+}
+
+/* H1 - Oswald SemiBold 600, 36/42, 0.4px, mayúsculas */
+.fly-h1 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 36px;
+  line-height: 42px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--fly-texto);
+}
+
+/* H2 - Oswald Medium 500, 24/30, 0.4px, mayúsculas */
+.fly-h2 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 30px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--fly-texto);
+}
+
+/* H3 - Oswald Medium 500, 18/24, 0.6px, mayúsculas */
+.fly-h3 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--fly-texto);
+}
+
+/* Precio L - Oswald Medium 500, 32/38, 0 */
+.fly-precio-l {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 38px;
+  letter-spacing: 0;
+  color: var(--fly-texto);
+}
+
+/* Cuerpo - Inter Regular 400, 15/22, 0 */
+.fly-cuerpo {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 22px;
+  letter-spacing: 0;
+  color: var(--fly-texto);
+}
+
+/* Cuerpo S - Inter Regular 400, 13/19, 0 */
+.fly-cuerpo-s {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 19px;
+  letter-spacing: 0;
+  color: var(--fly-texto);
+}
+
+/* Etiqueta - Inter Medium 500, 13/18, 0 */
+.fly-etiqueta {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: 0;
+  color: var(--fly-texto);
+}
+
+/* Etiqueta Fuerte - Inter SemiBold 600, 14/20, 0 */
+.fly-etiqueta-fuerte {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0;
+  color: var(--fly-texto);
+}
+
+/* Precio - Inter SemiBold 600, 16/22, 0 */
+.fly-precio {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 22px;
+  letter-spacing: 0;
+  color: var(--fly-texto);
+}
+
+/* Sobretítulo - Inter SemiBold 600, 11/16, 2px, mayúsculas */
+.fly-sobretitulo {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--fly-texto);
+}
+
+/* Botón - Inter SemiBold 600, 13/16, 1px, mayúsculas */
+.fly-boton {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--fly-texto);
+}
+
+/* Mini - Inter Medium 500, 11/14, 0.2px */
+.fly-mini {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.2px;
+  color: var(--fly-texto);
+}
+
+/* Variantes de tono */
+.fly-tono-principal {
+  color: var(--fly-texto);
+}
+
+.fly-tono-secundario {
+  color: var(--fly-texto-2);
+}
+
+/* Responsive: evitar zoom en iOS (input mínimo 16px) */
+@media (max-width: 768px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}

@@ -1,0 +1,48 @@
+/**
+ * Estilos de ProductGrid
+ */
+
+.section {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* Header de sección */
+.header {
+  margin-bottom: var(--fly-espacio-7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-espacio-2);
+}
+
+/* Grid de productos */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--fly-espacio-4);
+  }
+
+  .header {
+    margin-bottom: var(--fly-espacio-6);
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

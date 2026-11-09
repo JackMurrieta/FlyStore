@@ -1,0 +1,147 @@
+/**
+ * Estilos del Footer
+ */
+
+.footer {
+  width: 100%;
+  background-color: var(--fly-fondo);
+  border-top: 1px solid var(--fly-borde);
+  padding: var(--fly-espacio-8) 0;
+}
+
+.contenedor {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 80px;
+}
+
+/* Sección principal */
+.principal {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--fly-espacio-8);
+  align-items: start;
+  margin-bottom: var(--fly-espacio-7);
+}
+
+/* Logo */
+.logoContainer {
+  min-width: 76px;
+}
+
+.logo {
+  text-decoration: none;
+  color: var(--fly-texto);
+  transition: opacity 0.2s ease;
+  display: inline-block;
+}
+
+.logo:hover {
+  opacity: 0.8;
+}
+
+.logoPlaceholder {
+  width: 76px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--fly-superficie);
+  border-radius: var(--fly-radio-control);
+}
+
+/* Columnas de navegación */
+.columnas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--fly-espacio-8);
+  max-width: 800px;
+}
+
+.columna {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-espacio-4);
+}
+
+.titulo {
+  color: var(--fly-texto);
+  margin-bottom: var(--fly-espacio-2);
+}
+
+.enlaces {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-espacio-3);
+}
+
+.enlace {
+  color: var(--fly-texto-2);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  width: fit-content;
+}
+
+.enlace:hover {
+  color: var(--fly-texto);
+}
+
+/* WhatsApp */
+.whatsappContainer {
+  min-width: 282px;
+}
+
+.whatsappBtn {
+  text-decoration: none;
+  display: block;
+}
+
+/* Separador */
+.separador {
+  width: 100%;
+  height: 1px;
+  background-color: var(--fly-borde);
+  margin: var(--fly-espacio-7) 0;
+}
+
+/* Copyright */
+.copyright {
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .contenedor {
+    padding: 0 var(--fly-espacio-6);
+  }
+
+  .principal {
+    grid-template-columns: 1fr;
+    gap: var(--fly-espacio-6);
+  }
+
+  .columnas {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .whatsappContainer {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .columnas {
+    grid-template-columns: 1fr;
+    gap: var(--fly-espacio-6);
+  }
+
+  .footer {
+    padding: var(--fly-espacio-7) 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .contenedor {
+    padding: 0 var(--fly-espacio-4);
+  }
+}

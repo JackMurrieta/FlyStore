@@ -1,0 +1,70 @@
+/**
+ * Estilos de ProductCard
+ */
+
+.card {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Imagen de producto (placeholder) */
+.imagenProducto {
+  position: absolute;
+  inset: 0;
+  background-color: var(--fly-superficie);
+  background-size: cover;
+  background-position: center;
+}
+
+/* Overlay con gradiente */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 5, 5, 0) 0%,
+    rgba(5, 5, 5, 0.95) 100%
+  );
+}
+
+/* Información del producto */
+.info {
+  position: relative;
+  z-index: 1;
+  padding: var(--fly-espacio-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-espacio-2);
+}
+
+.nombre {
+  color: var(--fly-texto);
+}
+
+.precio {
+  color: var(--fly-texto);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .card {
+    height: 320px;
+  }
+
+  .info {
+    padding: var(--fly-espacio-5);
+  }
+}

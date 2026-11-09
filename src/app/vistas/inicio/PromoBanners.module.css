@@ -1,0 +1,58 @@
+/**
+ * Estilos de PromoBanners
+ */
+
+.section {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* Grid de banners */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* Banner individual */
+.banner {
+  height: 82px;
+  padding: var(--fly-espacio-4) var(--fly-espacio-5);
+  background-color: var(--fly-superficie);
+  border-radius: 7.5px;
+  border: 1px solid var(--fly-borde);
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--fly-espacio-1);
+  transition: all 0.2s ease;
+}
+
+.banner:hover {
+  border-color: var(--fly-borde-fuerte);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.titulo {
+  color: var(--fly-texto);
+}
+
+.descripcion {
+  color: var(--fly-texto-2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: var(--fly-espacio-4);
+  }
+
+  .banner {
+    height: auto;
+    padding: var(--fly-espacio-5);
+  }
+}

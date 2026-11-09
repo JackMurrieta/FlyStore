@@ -1,0 +1,77 @@
+/**
+ * Estilos del componente Radio
+ */
+
+.contenedor {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--fly-espacio-3);
+  padding: var(--fly-espacio-3);
+  cursor: pointer;
+  border-radius: var(--fly-radio-control);
+  transition: background-color 0.2s ease;
+}
+
+.contenedor:hover {
+  background-color: var(--fly-superficie);
+}
+
+.input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.radio {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border: 2px solid var(--fly-borde-fuerte);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  background-color: transparent;
+  margin-top: 2px;
+}
+
+.radioMarca {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--fly-cta);
+  transition: transform 0.2s ease;
+}
+
+.input:checked + .radio {
+  border-color: var(--fly-cta);
+}
+
+.input:checked + .radio .radioMarca {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.input:focus-visible + .radio {
+  outline: 2px solid var(--fly-cta);
+  outline-offset: 2px;
+}
+
+.contenido {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-espacio-1);
+  flex: 1;
+}
+
+.deshabilitado {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.deshabilitado:hover {
+  background-color: transparent;
+}

@@ -1,0 +1,71 @@
+/**
+ * Tokens de diseño FLY - Colección oscura
+ * Fuente: Figma FlyStore · FlyRediseño · Casos de uso (144:57)
+ * Modo único: Oscuro (no hay modo claro)
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* Superficies */
+  --fly-fondo: #050505;
+  --fly-superficie: #0f0f11;
+  --fly-superficie-2: #17171a;
+  --fly-superficie-hundida: #0a0a0b;
+
+  /* Bordes */
+  --fly-borde: #1c1c20;
+  --fly-borde-fuerte: #2a2a2f;
+  --fly-borde-control: #6e6e76;
+
+  /* Texto */
+  --fly-texto: #f5f5f4;
+  --fly-texto-2: #a3a3a8;
+
+  /* Acción */
+  --fly-cta: #f5f5f4;
+  --fly-sobre-cta: #050505;
+  --fly-whatsapp: #25d366;
+
+  /* Estados (solo en estados, siempre con ícono + texto) */
+  --fly-estado-exito: #34d399;
+  --fly-estado-advertencia: #fb923c;
+  --fly-estado-error: #f87171;
+  --fly-estado-info: #60a5fa;
+
+  /* Otros */
+  --fly-foto: #ededeb; /* fondo de fotos de producto */
+
+  /* Alfas */
+  --fly-alfa-exito-12: rgb(52 211 153 / 0.12);
+  --fly-alfa-exito-35: rgb(52 211 153 / 0.35);
+  --fly-alfa-advertencia-12: rgb(251 146 60 / 0.12);
+  --fly-alfa-advertencia-35: rgb(251 146 60 / 0.35);
+  --fly-alfa-error-12: rgb(248 113 113 / 0.12);
+  --fly-alfa-error-35: rgb(248 113 113 / 0.35);
+  --fly-alfa-info-12: rgb(96 165 250 / 0.12);
+  --fly-alfa-info-35: rgb(96 165 250 / 0.35);
+  --fly-alfa-velo-75: rgb(5 5 5 / 0.75); /* fondo detrás de diálogos */
+
+  /* Forma y espacio */
+  --fly-radio-control: 6px; /* botón, entrada */
+  --fly-radio-tarjeta: 8px; /* aviso, toast */
+  --fly-radio-dialogo: 12px; /* diálogo, tarjeta de acceso */
+  --fly-radio-pastilla: 999px; /* chip, insignia */
+
+  --fly-espacio-1: 4px;
+  --fly-espacio-2: 6px;
+  --fly-espacio-3: 8px;
+  --fly-espacio-4: 12px;
+  --fly-espacio-5: 14px;
+  --fly-espacio-6: 16px;
+  --fly-espacio-7: 22px;
+  --fly-espacio-8: 28px;
+
+  /* Elevación */
+  --fly-sombra-toast: 0 12px 32px rgb(0 0 0 / 0.55);
+  --fly-sombra-dialogo: 0 24px 64px rgb(0 0 0 / 0.6);
+
+  /* Foco visible */
+  --fly-foco: 0 0 0 2px var(--fly-fondo), 0 0 0 4px var(--fly-texto);
+}

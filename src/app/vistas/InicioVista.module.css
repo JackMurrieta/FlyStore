@@ -1,0 +1,47 @@
+/**
+ * Estilos de InicioVista
+ */
+
+.pagina {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--fly-fondo);
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--fly-espacio-8) 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+}
+
+.seccion {
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .main {
+    padding: var(--fly-espacio-7) var(--fly-espacio-6);
+    gap: var(--fly-espacio-8);
+  }
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: var(--fly-espacio-6) var(--fly-espacio-5);
+    gap: var(--fly-espacio-7);
+  }
+}
+
+@media (max-width: 480px) {
+  .main {
+    padding: var(--fly-espacio-5) var(--fly-espacio-4);
+    gap: var(--fly-espacio-6);
+  }
+}

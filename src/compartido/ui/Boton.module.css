@@ -1,0 +1,124 @@
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--fly-espacio-3);
+  height: 44px;
+  padding: var(--fly-espacio-5) var(--fly-espacio-7);
+  border-radius: var(--fly-radio-control);
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.boton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.boton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Variantes */
+.primario {
+  background-color: var(--fly-cta);
+  color: var(--fly-sobre-cta);
+}
+
+.primario:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.secundario {
+  background-color: transparent;
+  color: var(--fly-texto);
+  border: 1px solid var(--fly-texto);
+  box-shadow: inset 0 0 0 1px var(--fly-texto);
+}
+
+.secundario:hover:not(:disabled) {
+  background-color: rgb(245 245 244 / 0.1);
+}
+
+.fantasma {
+  background-color: transparent;
+  color: var(--fly-texto);
+  padding: var(--fly-espacio-5) var(--fly-espacio-2);
+}
+
+.fantasma:hover:not(:disabled) {
+  background-color: rgb(245 245 244 / 0.08);
+}
+
+.whatsapp {
+  background-color: var(--fly-whatsapp);
+  color: var(--fly-sobre-cta);
+}
+
+.whatsapp:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.peligro {
+  background-color: transparent;
+  color: var(--fly-estado-error);
+  border: 1px solid var(--fly-estado-error);
+  box-shadow: inset 0 0 0 1px var(--fly-estado-error);
+}
+
+.peligro:hover:not(:disabled) {
+  background-color: var(--fly-alfa-error-12);
+}
+
+.peligroSolido {
+  background-color: var(--fly-estado-error);
+  color: var(--fly-sobre-cta);
+}
+
+.peligroSolido:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.deshabilitado {
+  background-color: var(--fly-superficie-2);
+  color: var(--fly-texto-2);
+  border: none;
+}
+
+/* Ancho completo */
+.anchoCompleto {
+  width: 100%;
+}
+
+/* Cargando */
+.cargando {
+  position: relative;
+  color: transparent;
+  pointer-events: none;
+}
+
+.spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}

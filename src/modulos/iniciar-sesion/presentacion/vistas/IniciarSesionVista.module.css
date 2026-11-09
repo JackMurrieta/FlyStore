@@ -1,0 +1,94 @@
+/**
+ * Estilos para IniciarSesionVista
+ */
+
+.contenedor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--fly-espacio-5);
+  background-color: var(--fly-fondo);
+}
+
+.tarjeta {
+  width: 100%;
+  max-width: 420px;
+  padding: var(--fly-espacio-8) var(--fly-espacio-6);
+  background-color: var(--fly-superficie);
+  border: 1px solid var(--fly-borde);
+  border-radius: 20px;
+}
+
+.logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--fly-espacio-6);
+}
+
+.logoImagen {
+  height: 60px;
+  width: auto;
+}
+
+.encabezado {
+  margin-bottom: var(--fly-espacio-6);
+  text-align: center;
+}
+
+.encabezado h1 {
+  margin-bottom: var(--fly-espacio-2);
+}
+
+.divisor {
+  display: flex;
+  align-items: center;
+  gap: var(--fly-espacio-3);
+  margin: var(--fly-espacio-5) 0;
+}
+
+.divisorLinea {
+  flex: 1;
+  height: 1px;
+  background-color: var(--fly-borde);
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-espacio-4);
+}
+
+.pie {
+  margin-top: var(--fly-espacio-5);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-espacio-3);
+}
+
+.enlace {
+  color: var(--fly-texto);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.enlace:hover {
+  text-decoration: underline;
+}
+
+.footer {
+  margin-top: var(--fly-espacio-2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 480px) {
+  .tarjeta {
+    padding: var(--fly-espacio-6) var(--fly-espacio-5);
+  }
+
+  .logoImagen {
+    height: 50px;
+  }
+}

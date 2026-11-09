@@ -1,0 +1,87 @@
+/**
+ * Estilos globales de FlyStore
+ * Reset, base, fuentes y foco visible
+ */
+
+/* Fuentes Oswald (500, 600) e Inter (400, 500, 600) */
+@import '@fontsource/oswald/500.css';
+@import '@fontsource/oswald/600.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+
+/* Tokens y tipografía */
+@import './tokens.css';
+@import './tipografia.css';
+
+/* Reset CSS */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--fly-texto);
+  background-color: var(--fly-fondo);
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* Foco visible para accesibilidad */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--fly-foco);
+}
+
+/* Botones y enlaces sin estilos por defecto */
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Imágenes responsivas */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Quitar spinner de inputs numéricos */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+/* Desactivar autocompletado visual en Chrome */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--fly-texto);
+  -webkit-box-shadow: 0 0 0 1000px var(--fly-superficie-hundida) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}

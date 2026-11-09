@@ -1,0 +1,109 @@
+.contenedor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-espacio-2);
+  width: 100%;
+}
+
+.etiqueta {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--fly-texto);
+}
+
+.entradaContenedor {
+  position: relative;
+  width: 100%;
+}
+
+.entrada {
+  width: 100%;
+  height: 48px;
+  padding: var(--fly-espacio-4) var(--fly-espacio-5);
+  border-radius: var(--fly-radio-control);
+  background-color: var(--fly-superficie-hundida);
+  border: 1px solid var(--fly-borde-fuerte);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--fly-texto);
+  transition: border-color 0.2s ease;
+}
+
+.entrada::placeholder {
+  color: var(--fly-texto-2);
+}
+
+.entrada:focus {
+  outline: none;
+  border-color: var(--fly-texto);
+  border-width: 1.5px;
+  padding: calc(var(--fly-espacio-4) - 0.5px) calc(var(--fly-espacio-5) - 0.5px);
+}
+
+.entrada:disabled {
+  color: var(--fly-texto-2);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.entradaError {
+  border-color: var(--fly-estado-error);
+}
+
+.entradaError:focus {
+  border-color: var(--fly-estado-error);
+}
+
+/* Campo de contraseña con botón de mostrar/ocultar */
+.entradaConBoton {
+  padding-right: 48px;
+}
+
+.botonMostrar {
+  position: absolute;
+  right: var(--fly-espacio-4);
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: var(--fly-espacio-2);
+  cursor: pointer;
+  color: var(--fly-texto-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.botonMostrar:hover {
+  color: var(--fly-texto);
+}
+
+.botonMostrar:focus-visible {
+  outline: none;
+  color: var(--fly-texto);
+}
+
+.ayuda {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.2px;
+  color: var(--fly-texto-2);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--fly-espacio-2);
+}
+
+.ayudaError {
+  color: var(--fly-estado-error);
+}
+
+.iconoAyuda {
+  flex-shrink: 0;
+  margin-top: 1px;
+}

@@ -1,0 +1,44 @@
+.insignia {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: var(--fly-espacio-1) var(--fly-espacio-3);
+  border-radius: var(--fly-radio-pastilla);
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.neutro {
+  background-color: var(--fly-superficie-2);
+  border: 1px solid var(--fly-texto-2);
+  color: var(--fly-texto-2);
+}
+
+.info {
+  background-color: var(--fly-alfa-info-12);
+  border: 1px solid var(--fly-alfa-info-35);
+  color: var(--fly-estado-info);
+}
+
+.advertencia {
+  background-color: var(--fly-alfa-advertencia-12);
+  border: 1px solid var(--fly-alfa-advertencia-35);
+  color: var(--fly-estado-advertencia);
+}
+
+.exito {
+  background-color: var(--fly-alfa-exito-12);
+  border: 1px solid var(--fly-alfa-exito-35);
+  color: var(--fly-estado-exito);
+}
+
+.error {
+  background-color: var(--fly-alfa-error-12);
+  border: 1px solid var(--fly-alfa-error-35);
+  color: var(--fly-estado-error);
+}
