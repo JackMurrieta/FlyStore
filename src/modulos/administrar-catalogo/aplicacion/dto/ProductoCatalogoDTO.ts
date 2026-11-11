@@ -1,5 +1,5 @@
-import { VarianteDTO } from './VarianteDTO';
-import { PrecioProductoDTO } from './PrecioProductoDTO';
+import type { VarianteDTO } from './VarianteDTO';
+import type { PrecioProductoDTO } from './PrecioProductoDTO';
 
 export interface ProductoCatalogoDTO {
   idProducto: string;

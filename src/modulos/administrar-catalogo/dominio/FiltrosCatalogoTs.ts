@@ -1,4 +1,4 @@
-import { EstadoProducto } from './enums/EstadoProducto';
+import type { EstadoProducto } from './EstadoProducto';
 
 export interface FiltrosCatalogoTs {
   texto: string;

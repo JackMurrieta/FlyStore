@@ -1,4 +1,4 @@
-import { TipoBaja } from './enums/TipoBaja';
+import type { TipoBaja } from './TipoBaja';
 
 export interface ResultadoBajaTs {
   idProducto: string;

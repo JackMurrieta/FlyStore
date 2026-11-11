@@ -1,4 +1,4 @@
-import { CatalogoItemTs } from './CatalogoItemTs';
+import type { CatalogoItemTs } from './CatalogoItemTs';
 
 export interface FiltrosDisponiblesTs {
   categorias: CatalogoItemTs[];

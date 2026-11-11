@@ -1,4 +1,4 @@
-import { TipoPrecio } from './enums/TipoPrecio';
+import type { TipoPrecio } from './TipoPrecio';
 
 export interface PrecioProductoTs {
   tipoPrecio: TipoPrecio;

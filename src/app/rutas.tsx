@@ -13,6 +13,10 @@ const CallbackAuthVista = lazy(() => import('@modulos/iniciar-sesion').then(m =>
 
 // Vista temporal de inicio
 const InicioVista = lazy(() => import('./vistas/InicioVista'))
+// El import y la ruta se eliminan de la compilación de producción.
+const AdministrarCatalogoDemo = import.meta.env.DEV
+  ? lazy(() => import('./desarrollo/AdministrarCatalogoDemo'))
+  : null
 
 /**
  * Componente de carga para rutas lazy
@@ -42,6 +46,7 @@ export function Rutas() {
       <Routes>
         {/* Ruta raíz */}
         <Route path="/" element={<InicioVista />} />
+        {AdministrarCatalogoDemo && <Route path="/dev/administrar-catalogo" element={<AdministrarCatalogoDemo />} />}
 
         {/* Rutas del módulo iniciar-sesion */}
         <Route path="/iniciar-sesion" element={<IniciarSesionVista />} />

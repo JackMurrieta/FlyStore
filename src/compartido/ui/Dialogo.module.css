@@ -89,3 +89,12 @@
 .contenido {
   color: var(--fly-texto-2);
 }
+
+.izquierda { width: 520px; }
+.izquierda .encabezado { align-items: flex-start; gap: 18px; margin-bottom: 12px; }
+.izquierda .titulo { text-align: left; }
+.peligro { color: var(--fly-estado-error); }
+
+@media (prefers-reduced-motion: reduce) {
+  .velo, .dialogo { animation: none; }
+}

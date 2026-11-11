@@ -1,0 +1,1 @@
+.aviso { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 12px 20px; background: var(--fly-alfa-info-12); border-bottom: 1px solid var(--fly-alfa-info-35); color: var(--fly-estado-info); font-size: 12px; line-height: 18px; }

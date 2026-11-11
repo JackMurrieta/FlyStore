@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef } from 'react'
+import { type ReactNode, useEffect, useId, useRef } from 'react'
 import { Icono, type NombreIcono } from './iconos/Icono'
 import { Texto } from './Texto'
 import estilos from './Dialogo.module.css'
@@ -9,6 +9,8 @@ export interface DialogoProps {
   readonly titulo: string
   readonly icono?: NombreIcono
   readonly children: ReactNode
+  readonly alineacion?: 'centro' | 'izquierda'
+  readonly tonoIcono?: 'neutro' | 'peligro'
 }
 
 /**
@@ -25,7 +27,8 @@ export interface DialogoProps {
  *   <Boton onClick={confirmar}>Confirmar</Boton>
  * </Dialogo>
  */
-export function Dialogo({ abierto, alCerrar, titulo, icono, children }: DialogoProps) {
+export function Dialogo({ abierto, alCerrar, titulo, icono, children, alineacion = 'centro', tonoIcono = 'neutro' }: DialogoProps) {
+  const tituloId = useId()
   const dialogoRef = useRef<HTMLDivElement>(null)
   const botonCerrarRef = useRef<HTMLButtonElement>(null)
 
@@ -50,7 +53,7 @@ export function Dialogo({ abierto, alCerrar, titulo, icono, children }: DialogoP
       if (e.key !== 'Tab' || !dialogoRef.current) return
 
       const elementosEnfocables = dialogoRef.current.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
       )
 
       const primerElemento = elementosEnfocables[0]
@@ -96,8 +99,8 @@ export function Dialogo({ abierto, alCerrar, titulo, icono, children }: DialogoP
   }
 
   return (
-    <div className={estilos.velo} onClick={manejarClicVelo} role="dialog" aria-modal="true">
-      <div className={estilos.dialogo} ref={dialogoRef}>
+    <div className={estilos.velo} onClick={manejarClicVelo} role="dialog" aria-modal="true" aria-labelledby={tituloId}>
+      <div className={`${estilos.dialogo} ${alineacion === 'izquierda' ? estilos.izquierda : ''}`} ref={dialogoRef}>
         <button
           ref={botonCerrarRef}
           className={estilos.botonCerrar}
@@ -109,12 +112,12 @@ export function Dialogo({ abierto, alCerrar, titulo, icono, children }: DialogoP
 
         <div className={estilos.encabezado}>
           {icono && (
-            <div className={estilos.iconoCirculo}>
+            <div className={`${estilos.iconoCirculo} ${tonoIcono === 'peligro' ? estilos.peligro : ''}`}>
               <Icono nombre={icono} tamano={24} aria-hidden="true" />
             </div>
           )}
           <Texto variante="h2" como="h2" className={estilos.titulo}>
-            {titulo}
+            <span id={tituloId}>{titulo}</span>
           </Texto>
         </div>
 

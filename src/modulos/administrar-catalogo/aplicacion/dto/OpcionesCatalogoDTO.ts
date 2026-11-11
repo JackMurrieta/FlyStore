@@ -1,4 +1,4 @@
-import { CatalogoItemDTO } from './CatalogoItemDTO';
+import type { CatalogoItemDTO } from './CatalogoItemDTO';
 
 export interface OpcionesCatalogoDTO {
   categorias: CatalogoItemDTO[];

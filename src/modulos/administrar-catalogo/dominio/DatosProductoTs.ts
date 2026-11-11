@@ -1,6 +1,6 @@
-import { EstadoProducto } from './enums/EstadoProducto';
-import { VarianteProductoTs } from './VarianteProductoTs';
-import { PrecioProductoTs } from './PrecioProductoTs';
+import type { EstadoProducto } from './EstadoProducto';
+import type { VarianteProductoTs } from './VarianteProductoTs';
+import type { PrecioProductoTs } from './PrecioProductoTs';
 
 export interface DatosProductoTs {
   clave: string;
@@ -9,7 +9,7 @@ export interface DatosProductoTs {
   idCategoria: string;
   idSubcategoria: string;
   idMarca: string;
-  imagenes: string;
+  imagenes: File | null;
   estado: EstadoProducto;
   variantes: VarianteProductoTs[];
   precios: PrecioProductoTs[];

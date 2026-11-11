@@ -1,6 +1,6 @@
-import { EstadoProducto } from './enums/EstadoProducto';
-import { VarianteProductoTs } from './VarianteProductoTs';
-import { PrecioProductoTs } from './PrecioProductoTs';
+import type { EstadoProducto } from './EstadoProducto';
+import type { VarianteProductoTs } from './VarianteProductoTs';
+import type { PrecioProductoTs } from './PrecioProductoTs';
 
 export interface ProductoCatalogoTs {
   idProducto: string;
