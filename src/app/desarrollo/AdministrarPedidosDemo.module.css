@@ -1,0 +1,9 @@
+.pagina { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: var(--fly-fondo); color: var(--fly-texto); font-family: Inter, sans-serif; }
+.tarjeta { width: 100%; max-width: 620px; padding: 28px; border: 1px solid var(--fly-borde-fuerte); border-radius: 12px; }
+.etiqueta { margin: 0 0 8px; padding: 6px 10px; display: inline-block; background: var(--fly-alfa-info-12); border: 1px solid var(--fly-alfa-info-35); border-radius: 6px; color: var(--fly-estado-info); font-size: 12px; }
+.titulo { margin: 0 0 8px; font-size: 22px; line-height: 28px; }
+.texto { margin: 0 0 16px; color: var(--fly-texto-2); font-size: 14px; line-height: 21px; }
+.lista { margin: 0 0 18px; padding-left: 18px; font-size: 13px; line-height: 22px; }
+.opcion { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; font-size: 13px; }
+.acciones { display: flex; flex-wrap: wrap; gap: 12px; }
+.nota { margin: 16px 0 0; color: var(--fly-texto-2); font-size: 12px; }

@@ -22,6 +22,9 @@ const InicioVista = lazy(() => import('./vistas/InicioVista'))
 const AdministrarCatalogoDemo = import.meta.env.DEV
   ? lazy(() => import('./desarrollo/AdministrarCatalogoDemo'))
   : null
+const AdministrarPedidosDemo = import.meta.env.DEV
+  ? lazy(() => import('./desarrollo/AdministrarPedidosDemo'))
+  : null
 
 /**
  * Componente de carga para rutas lazy
@@ -52,6 +55,7 @@ export function Rutas() {
         {/* Ruta raíz */}
         <Route path="/" element={<InicioVista />} />
         {AdministrarCatalogoDemo && <Route path="/dev/administrar-catalogo" element={<AdministrarCatalogoDemo />} />}
+        {AdministrarPedidosDemo && <Route path="/dev/administrar-pedidos" element={<AdministrarPedidosDemo />} />}
 
         {/* Rutas del módulo iniciar-sesion */}
         <Route path="/iniciar-sesion" element={<IniciarSesionVista />} />
