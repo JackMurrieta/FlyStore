@@ -1,0 +1,208 @@
+/**
+ * Estilos compartidos por los diálogos del detalle de pedido (Front 3 y 4):
+ * DialogoConfirmarAprobacion, DialogoRechazarComprobante,
+ * DialogoActualizarEstado y DialogoCancelarPedido
+ */
+
+.contenido {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-espacio-6);
+}
+
+/* Resumen con borde (total, monto del comprobante, método) */
+.resumen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-espacio-3);
+  padding: var(--fly-espacio-5) var(--fly-espacio-6);
+  border: 1px solid var(--fly-borde);
+  border-radius: var(--fly-radio-tarjeta);
+}
+
+.dato {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--fly-espacio-4);
+}
+
+/* Grupo de opciones (motivos de rechazo, tipo de entrega) */
+.grupo {
+  display: flex;
+  flex-direction: column;
+  padding: var(--fly-espacio-3);
+  border: 1px solid var(--fly-borde);
+  border-radius: var(--fly-radio-tarjeta);
+}
+
+.grupoError {
+  border-color: var(--fly-estado-error);
+}
+
+.campoConError {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-espacio-3);
+}
+
+/* Mismo aspecto que el texto de error de Campo */
+.errorCampo {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--fly-espacio-2);
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.2px;
+  color: var(--fly-estado-error);
+}
+
+/* Área de texto con el aspecto de Campo (compartido/ui no tiene una) */
+.area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-espacio-2);
+}
+
+.areaEtiqueta {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--fly-texto);
+}
+
+.areaEntrada {
+  width: 100%;
+  min-height: 72px;
+  padding: var(--fly-espacio-4) var(--fly-espacio-5);
+  border-radius: var(--fly-radio-control);
+  background-color: var(--fly-superficie-hundida);
+  border: 1px solid var(--fly-borde-fuerte);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--fly-texto);
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.areaEntrada::placeholder {
+  color: var(--fly-texto-2);
+}
+
+.areaEntrada:focus {
+  outline: none;
+  border-color: var(--fly-texto);
+}
+
+.areaEntrada:disabled {
+  color: var(--fly-texto-2);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Pasos del pedido en «Actualizar estado» */
+.pasos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--fly-espacio-3) var(--fly-espacio-4);
+}
+
+.paso {
+  display: flex;
+  align-items: center;
+  gap: var(--fly-espacio-4);
+}
+
+.conector {
+  width: 12px;
+  height: 1px;
+  background-color: var(--fly-texto-2);
+}
+
+.pasoFijo,
+.pasoBoton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--fly-espacio-3);
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.pasoFijo {
+  color: var(--fly-texto);
+}
+
+.pasoBoton {
+  color: var(--fly-texto-2);
+  border-radius: var(--fly-radio-pastilla);
+  transition: color 0.2s ease;
+}
+
+.pasoBoton:hover:not(:disabled),
+.pasoElegido {
+  color: var(--fly-texto);
+}
+
+.pasoBoton:disabled {
+  cursor: not-allowed;
+}
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--fly-borde-control);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.marcaCompleta {
+  background-color: var(--fly-cta);
+  border-color: var(--fly-cta);
+  color: var(--fly-sobre-cta);
+}
+
+.pasoElegido .marca {
+  border-color: var(--fly-texto);
+}
+
+/* Paquetería y guía, alineados con el texto de la opción */
+.envio {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--fly-espacio-4);
+  padding: var(--fly-espacio-1) var(--fly-espacio-3) var(--fly-espacio-3) 36px;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--fly-espacio-4);
+  padding-top: var(--fly-espacio-3);
+}
+
+@media (max-width: 480px) {
+  .envio {
+    grid-template-columns: 1fr;
+    padding-left: var(--fly-espacio-3);
+  }
+
+  .acciones {
+    flex-direction: column-reverse;
+  }
+}
