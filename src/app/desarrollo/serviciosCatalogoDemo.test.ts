@@ -27,12 +27,10 @@ describe('Servicios de prueba del catálogo', () => {
     const { productoService, liberarImagenes } = crearServiciosCatalogoDemo()
     const datos = { clave: 'SKU-NUEVO', nombre: 'Producto nuevo', descripcion: 'Descripción',
       idCategoria: 'gorras', idSubcategoria: 'gorra', idMarca: 'new-era', estado: 'BORRADOR',
-      imagenes: new File(['imagen'], 'imagen.png', { type: 'image/png' }) }
-    const { idProducto } = await productoService.crearProducto(datos)
-    await productoService.agregarVariante(idProducto, { talla: 'Ajustable', color: 'Gris', stock: 5 })
-    await productoService.crearPrecios(idProducto, { preciosProducto: [{ tipoPrecio: 'BASE', precio: 100, minPiezas: 1 }] })
+      imagenes: new File(['imagen'], 'imagen.png', { type: 'image/png' }), variantes: [{talla:'Ajustable',color:'Gris',stock:5}], preciosProducto:[{tipoPrecio:'BASE',precio:100,minPiezas:1}] }
+    await productoService.crearProducto(datos)
     expect(await productoService.buscarProductos({ ...filtrosVacios, texto: 'SKU-NUEVO' })).toMatchObject([
-      { idProducto, img: 'blob:demo', variantes: [{ stock: 5 }], preciosProducto: [{ precio: 100 }] },
+      { img: 'blob:demo', variantes: [{ stock: 5 }], preciosProducto: [{ precio: 100 }] },
     ])
     await expect(productoService.crearProducto(datos)).rejects.toThrow('SKU ya existe')
     liberarImagenes()

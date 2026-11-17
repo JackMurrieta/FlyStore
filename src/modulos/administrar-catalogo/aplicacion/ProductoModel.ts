@@ -5,8 +5,8 @@ import type { PrecioProductoTs } from '../dominio/PrecioProductoTs'
 import { TipoPrecio } from '../dominio/TipoPrecio'
 
 export class ProductoModel {
-  private readonly productoService: IProductoService
-  constructor(productoService: IProductoService) { this.productoService = productoService }
+  private readonly productoService: Pick<IProductoService, 'crearProducto'>
+  constructor(productoService: Pick<IProductoService, 'crearProducto'>) { this.productoService = productoService }
 
   validarDatosCompletos(datos: DatosProductoTs): Record<string, string> {
     const errores: Record<string, string> = {}
@@ -14,6 +14,12 @@ export class ProductoModel {
       if (!datos[campo].trim()) errores[campo] = 'Este campo es obligatorio'
     }
     if (!datos.imagenes) errores.imagenes = 'Selecciona una imagen'
+    else if (!['image/jpeg','image/png','image/webp'].includes(datos.imagenes.type) || !datos.imagenes.size || datos.imagenes.size > 5*1024*1024) errores.imagenes = 'Selecciona una imagen JPG, PNG o WEBP de hasta 5 MB'
+    const claves = datos.variantes.map(v => v.talla.trim().toLowerCase() + ':' + v.color.trim().toLowerCase())
+    if (new Set(claves).size !== claves.length) errores.variantes = 'La combinación de talla y color ya existe'
+    if (new Set(datos.precios.map(p=>p.tipoPrecio)).size !== datos.precios.length) errores.precios = 'No repitas tipos de precio'
+    const base = datos.precios.find(p=>p.tipoPrecio === TipoPrecio.BASE)
+    if (base && (base.minPiezas !== 1 || datos.precios.some(p=>p.precio > base.precio))) errores.precios = 'BASE debe aplicar desde una pieza y los precios por volumen no pueden superarlo'
     if (!datos.variantes.length) errores.variantes = 'Agrega al menos una variante'
     if (datos.variantes.some(v => this.validarVariante(v))) errores.variantes = 'Revisa las variantes'
     if (!datos.precios.some(p => p.tipoPrecio === TipoPrecio.BASE)) errores.precios = 'Agrega el precio base'
@@ -31,31 +37,15 @@ export class ProductoModel {
       ? 'Indica un precio positivo y una cantidad mínima entera mayor que cero' : null
   }
 
-  crearProductoDTO(datos: DatosProductoTs) {
+  aCrearProductoDTO(datos: DatosProductoTs) {
     if (!datos.imagenes) throw new Error('Selecciona una imagen')
     return { clave: datos.clave.trim(), nombre: datos.nombre.trim(), descripcion: datos.descripcion.trim(),
       idCategoria: datos.idCategoria, idSubcategoria: datos.idSubcategoria,
-      idMarca: datos.idMarca, imagenes: datos.imagenes, estado: datos.estado }
+      idMarca: datos.idMarca, imagenes: datos.imagenes, estado: datos.estado, variantes: datos.variantes, preciosProducto: datos.precios }
   }
-
-  private progreso: { datos: DatosProductoTs; idProducto: string; variantes: number } | null = null
-
-  tieneRegistroPendiente(): boolean { return this.progreso !== null }
 
   async registrarProducto(datos: DatosProductoTs): Promise<void> {
     if (Object.keys(this.validarDatosCompletos(datos)).length) throw new Error('Revisa los datos del producto')
-    if (!this.progreso) {
-      const creado = await this.productoService.crearProducto(this.crearProductoDTO(datos))
-      this.progreso = { datos, idProducto: creado.idProducto, variantes: 0 }
-    }
-    if (this.progreso.datos !== datos) throw new Error('Reintenta el registro pendiente antes de cambiar los datos')
-    const progreso = this.progreso
-    while (progreso.variantes < datos.variantes.length) {
-      const variante = datos.variantes[progreso.variantes]!
-      await this.productoService.agregarVariante(progreso.idProducto, variante)
-      progreso.variantes++
-    }
-    await this.productoService.crearPrecios(progreso.idProducto, { preciosProducto: datos.precios })
-    this.progreso = null
+    await this.productoService.crearProducto(this.aCrearProductoDTO(datos))
   }
 }

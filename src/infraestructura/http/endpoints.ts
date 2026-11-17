@@ -178,3 +178,14 @@ export const ventas = {
   /** GET → ComprobantePedidoDTO (JSON con HTML+CSS del ticket) */
   comprobantePedido: (folio: string) => `${API_BASE}/api/ventas/pedidos/${encodeURIComponent(folio)}/comprobante`,
 } as const
+
+export const catalogoAdmin = {
+ productos: () => API_BASE + '/api/productos',
+ filtros: () => API_BASE + '/api/catalogo/filtros',
+ tallas: (id: string) => API_BASE + '/api/catalogo/categorias/' + encodeURIComponent(id) + '/tallas',
+ buscarProductos: (filtros: {texto:string; idCategoria:string; idSubcategoria:string; idMarca:string; estado:string|null}) => {
+ const params = new URLSearchParams()
+ for (const [clave, valor] of Object.entries(filtros)) if (valor?.trim()) params.set(clave, valor.trim())
+ return API_BASE + '/api/productos/buscar?' + params
+ }
+} as const

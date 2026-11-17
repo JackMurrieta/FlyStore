@@ -13,10 +13,10 @@ import { ProductoModel } from '../../aplicacion/ProductoModel'
 function dependencias() {
   const producto: IProductoService = {
     obtenerProductos: vi.fn().mockResolvedValue([]), buscarProductos: vi.fn().mockResolvedValue([]),
-    crearProducto: vi.fn(), agregarVariante: vi.fn(), crearPrecios: vi.fn(), darDeBajaProducto: vi.fn(),
+    crearProducto: vi.fn(), darDeBajaProducto: vi.fn(),
   }
   const catalogo: ICatalogoService = {
-    obtenerFiltrosDisponibles: vi.fn().mockResolvedValue({ categorias: [], subcategorias: [], marcas: [] }),
+    obtenerFiltrosDisponibles: vi.fn().mockResolvedValue({ categorias: [], subcategorias: [], marcas: [], colores: ['Verde'] }),
     obtenerTallasPorCategoria: vi.fn().mockResolvedValue([]),
   }
   return { producto, catalogo }
@@ -45,14 +45,9 @@ describe('ViewModels de catálogo', () => {
     expect(result.current.datosProducto.idSubcategoria).toBe('playera')
   })
 
-  it.each([false, true])('mantiene el formulario editable solo cuando no hay un alta remota parcial (%s)', async parcial => {
+  it.each([false, true])('mantiene el formulario editable después de un rechazo (%s)', async parcial => {
     const { producto, catalogo } = dependencias()
-    if (parcial) {
-      vi.mocked(producto.crearProducto).mockResolvedValue({ idProducto: 'p1', clave: 'SKU' })
-      vi.mocked(producto.agregarVariante).mockRejectedValue(new Error('No se pudo registrar la variante'))
-    } else {
-      vi.mocked(producto.crearProducto).mockRejectedValue(new Error('La clave ya existe'))
-    }
+    vi.mocked(producto.crearProducto).mockRejectedValue(new Error(parcial ? 'No se pudo guardar' : 'La clave ya existe'))
     const catalogoModel = new CatalogoModel(catalogo, producto)
     const productoModel = new ProductoModel(producto)
     const { result } = renderHook(() => useNuevoProducto(catalogoModel, productoModel))
@@ -66,10 +61,10 @@ describe('ViewModels de catálogo', () => {
       result.current.actualizarCampo('precios', [{ tipoPrecio: 'BASE', precio: 100, minPiezas: 1 }])
     })
     await act(async () => { expect(await result.current.guardarProducto()).toBe(false) })
-    expect(result.current.bloqueado).toBe(parcial)
+    expect(result.current.bloqueado).toBe(false)
     expect(result.current.datosProducto.nombre).toBe('SKU')
     act(() => result.current.actualizarCampo('clave', 'SKU-CORREGIDO'))
-    expect(result.current.datosProducto.clave).toBe(parcial ? 'SKU' : 'SKU-CORREGIDO')
+    expect(result.current.datosProducto.clave).toBe('SKU-CORREGIDO')
   })
 
   it('conserva la búsqueda más reciente aunque la anterior termine después', async () => {

@@ -19,6 +19,7 @@ const PedidosAdminVista = lazy(() => import('@modulos/administrar-pedidos').then
 const DetallePedidoVista = lazy(() => import('@modulos/administrar-pedidos').then(m => ({ default: m.DetallePedidoVista })))
 
 // Vista temporal de inicio
+const CatalogoAdminVista = lazy(() => import('./vistas/CatalogoAdminVista'))
 const InicioVista = lazy(() => import('./vistas/InicioVista'))
 // El import y la ruta se eliminan de la compilación de producción.
 const AdministrarCatalogoDemo = import.meta.env.DEV
@@ -56,6 +57,7 @@ export function Rutas() {
       <Routes>
         {/* Ruta raíz */}
         <Route path="/" element={<InicioVista />} />
+        <Route path="/admin/catalogo" element={<RutaProtegida roles={['ADMIN', 'EMPLEADO']}><CatalogoAdminVista /></RutaProtegida>} />
         {AdministrarCatalogoDemo && <Route path="/dev/administrar-catalogo" element={<AdministrarCatalogoDemo />} />}
         {GestionarVentaDemo && <Route path="/dev/gestionar-venta/*" element={<GestionarVentaDemo />} />}
 

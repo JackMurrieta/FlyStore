@@ -1,5 +1,18 @@
 # CU Administrar catálogo
 
+## Uso real y configuración
+
+La ruta conectada al backend es **/admin/catalogo**, protegida para ADMIN y EMPLEADO. El enlace Administrar catálogo aparece en el encabezado para esos roles. La ruta /dev/administrar-catalogo sigue siendo una demostración en memoria: sus altas no escriben en la BD ni en Storage.
+
+Consulta: Pantalla → hook → CatalogoModel → ProductoService/CatalogoService → API → BO → DAO. Se cargan primero productos y después opciones. Buscar exige al menos un filtro y no recarga las opciones; Limpiar consulta todos. Los IDs permanecen String, incluidos identificadores mayores que el límite seguro de JavaScript.
+
+Alta: selecciona categoría, talla y un color exacto de la BD. Conserva archivo y vista previa local. Se envía una única petición POST multipart a /api/productos, con producto (JSON, variantes y preciosProducto) e imagen (File). El backend sube a Supabase Storage, persiste el agregado en una transacción y devuelve 201 sin cuerpo. El cliente vuelve al catálogo y lo consulta de nuevo. Un rechazo conserva el formulario editable; no hay registro parcial por peticiones separadas.
+
+Configura VITE_API_URL según .env.example, o utiliza el proxy /api de Vite hacia localhost:8080. Las credenciales secretas y el bucket se configuran exclusivamente en el backend (ver su STORAGE.md). Si se pierde la respuesta después de guardar, consulta el catálogo antes de repetir: no se puede garantizar el resultado de una petición interrumpida.
+
+La baja de la ruta real queda pendiente de su flujo aprobado; el botón permanece deshabilitado. La demostración conserva su baja local.
+
+
 Para probar la presentación sin backend: ejecutar `npm run dev` y abrir `/dev/administrar-catalogo` en la dirección que indique Vite (normalmente `http://localhost:5173/dev/administrar-catalogo`). Esta ruta solo existe en desarrollo y usa adaptadores en memoria ubicados en `src/app/desarrollo`. Permite filtrar, registrar productos con una imagen local y dar de baja; una recarga reinicia los datos. No modifica la sesión ni los servicios reales.
 
 Implementación React y TypeScript de las tres referencias UML proporcionadas. Los elementos «View» son componentes funcionales, los «ViewModel» son hooks y los modelos de aplicación encapsulan validación y coordinación de servicios.
@@ -83,9 +96,9 @@ classDiagram
 
 ## Integración
 
-El módulo exporta `AdministrarCatalogo`, que recibe implementaciones de `ICatalogoService` e `IProductoService`. Mantener estables las instancias durante el montaje. Crear los adaptadores HTTP usando el `HttpClient` existente y las rutas reales del backend. Envolver el componente en `RutaProtegida roles={['ADMIN', 'EMPLEADO']}` al registrarlo en el router. No se registró una ruta con servicios ficticios: las referencias no especifican URLs ni formatos HTTP.
+El módulo exporta `AdministrarCatalogo` para la demostración. La ruta real compone las vistas con los adaptadores HTTP y modelos del contenedor, usando el `HttpClient` compartido y `RutaProtegida`. Se preservan los módulos de ventas y pedidos.
 
-Los contratos incluyen creación de variantes y precios porque el alta requiere esas operaciones además de crear el producto. `OpcionesCatalogoDTO` representa las opciones disponibles; no se necesita recuperar el archivo eliminado `FiltrosCatalogoDTO.ts`. Los DTO actuales no relacionan subcategorías con categorías, por lo que se muestran las opciones que devuelve el servicio sin inventar esa relación.
+El contrato de alta incluye variantes y precios en la misma solicitud; no utiliza endpoints separados. `OpcionesCatalogoDTO` representa las opciones disponibles; no se necesita recuperar el archivo eliminado `FiltrosCatalogoDTO.ts`. Los DTO actuales no relacionan subcategorías con categorías, por lo que se muestran las opciones que devuelve el servicio sin inventar esa relación.
 
 ## Decisiones respecto al UML
 
@@ -93,7 +106,7 @@ Los contratos incluyen creación de variantes y precios porque el alta requiere 
 - Los enums se representan con objetos `as const` y tipos derivados, compatibles con `erasableSyntaxOnly` del proyecto.
 - Las existencias se calculan sumando el stock de las variantes del DTO.
 - El formulario presenta datos, variantes y precios en secciones de una misma página, con publicación y vista previa en una columna lateral. Conserva `PasoAlta` y los hooks del diagrama, y valida todos los campos antes del registro.
-- Tras un error de alta, se conservan los datos y las operaciones confirmadas para reintentar. Si ya existe un producto remoto parcial, la edición queda bloqueada hasta completar el registro; si falló la creación inicial, los campos siguen editables. Para garantizar reintentos seguros cuando el servidor procesa una petición pero se pierde la respuesta, el backend debe proporcionar idempotencia o una operación transaccional; el cliente por sí solo no puede garantizarlo.
+- Tras un rechazo del alta se conservan los datos editables. El backend guarda el agregado en una transacción y compensa la imagen ante rollback. Una respuesta de red perdida requiere consultar el catálogo antes de reintentar.
 - Los hooks reciben dependencias; las vistas no realizan peticiones HTTP directamente.
 ```
 View → Hook (ViewModel) → Model → interfaz de servicio → adaptador HTTP

@@ -21,10 +21,13 @@ export function useCatalogoAdmin(model: CatalogoModel) {
     setCargando(true)
     setError(null)
     try {
-      const [lista, opciones] = await Promise.all([
-        filtros ? model.buscarProductos(filtros) : model.obtenerCatalogo(), model.obtenerFiltrosDisponibles(),
-      ])
-      if (actual === solicitud.current) { setProductos(lista); setFiltros(opciones) }
+      const lista = await (filtros ? model.buscarProductos(filtros) : model.obtenerCatalogo())
+      if (actual !== solicitud.current) return
+      setProductos(lista)
+      if (!filtros) {
+        const opciones = await model.obtenerFiltrosDisponibles()
+        if (actual === solicitud.current) setFiltros(opciones)
+      }
     } catch (e) {
       if (actual === solicitud.current) setError(mensajeError(e))
     } finally {
@@ -35,16 +38,16 @@ export function useCatalogoAdmin(model: CatalogoModel) {
   useEffect(() => {
     let vigente = true
     const actual = ++solicitud.current
-    Promise.all([model.obtenerCatalogo(), model.obtenerFiltrosDisponibles()])
-      .then(([lista, opciones]) => {
-        if (vigente && actual === solicitud.current) {
-          setProductos(lista); setFiltros(opciones); setError(null)
-        }
-      }).catch(e => {
-        if (vigente && actual === solicitud.current) setError(mensajeError(e))
-      }).finally(() => {
-        if (vigente && actual === solicitud.current) setCargando(false)
-      })
+    model.obtenerCatalogo().then(async lista => {
+      if (!vigente || actual !== solicitud.current) return
+      setProductos(lista)
+      const opciones = await model.obtenerFiltrosDisponibles()
+      if (vigente && actual === solicitud.current) setFiltros(opciones)
+    }).catch(e => {
+      if (vigente && actual === solicitud.current) setError(mensajeError(e))
+    }).finally(() => {
+      if (vigente && actual === solicitud.current) setCargando(false)
+    })
     return () => { vigente = false }
   }, [model])
 

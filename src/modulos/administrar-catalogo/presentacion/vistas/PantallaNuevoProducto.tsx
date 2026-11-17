@@ -38,7 +38,7 @@ export function PantallaNuevoProducto({ catalogoModel, productoModel, alRegresar
   const seleccionarImagen = (evento: ChangeEvent<HTMLInputElement>) => {
     const imagen = evento.target.files?.[0]
     if (!imagen) return
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(imagen.type) || imagen.size > 5 * 1024 * 1024) {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(imagen.type) || !imagen.size || imagen.size > 5 * 1024 * 1024) {
       setErrorImagen('Selecciona una imagen JPG, PNG o WEBP de hasta 5 MB.')
       evento.target.value = ''
       return
@@ -78,9 +78,7 @@ export function PantallaNuevoProducto({ catalogoModel, productoModel, alRegresar
       Completa los campos señalados, agrega una imagen, al menos una variante y el precio base.
     </Aviso>}
     {vm.cargando && <p role="status">Cargando opciones…</p>}
-    {vm.bloqueado && !vm.guardando && <Aviso tono="advertencia" titulo="Registro pendiente">
-      Reintenta guardar para continuar desde la última operación confirmada.
-    </Aviso>}
+
     <div className={estilos.formularioColumnas}>
       <div className={estilos.seccionesFormulario}>
         <fieldset id="categorias-producto" className={estilos.tarjeta} disabled={vm.bloqueado || vm.cargando} onFocusCapture={() => vm.setPaso(PasoAlta.DATOS)}>
@@ -138,7 +136,7 @@ export function PantallaNuevoProducto({ catalogoModel, productoModel, alRegresar
             <tbody>{datos.variantes.map((variante, indice) => <tr key={`${variante.talla}-${variante.color}`}><td>{variante.color}</td><td>{variante.talla}</td><td>{variante.stock} pzas</td>
               <td><button type="button" className={estilos.botonIcono} aria-label={`Quitar variante ${variante.color} ${variante.talla}`}
                 onClick={() => vm.actualizarCampo('variantes', datos.variantes.filter((_, i) => i !== indice))}><Icono nombre="trash" tamano={14} /></button></td></tr>)}</tbody></table></div>}
-          <VarianteProductoPanel key={datos.idCategoria} tallas={vm.tallasCategoria}
+          <VarianteProductoPanel colores={vm.filtrosDisponibles?.colores ?? []} key={datos.idCategoria} tallas={vm.tallasCategoria}
             categoriaSeleccionada={!!datos.idCategoria} cargandoTallas={vm.cargandoTallas} errorTallas={vm.errorTallas}
             alAgregar={vm.agregarVariante} />
           {errores.variantes && <p className={estilos.errorCampo} role="alert">{errores.variantes}</p>}

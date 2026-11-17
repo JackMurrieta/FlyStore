@@ -7,9 +7,9 @@ import { TipoPrecio } from '../dominio/TipoPrecio'
 
 export class CatalogoModel {
   private readonly catalogoService: ICatalogoService
-  private readonly productoService: IProductoService
+  private readonly productoService: Pick<IProductoService, 'obtenerProductos' | 'buscarProductos'>
 
-  constructor(catalogoService: ICatalogoService, productoService: IProductoService) {
+  constructor(catalogoService: ICatalogoService, productoService: Pick<IProductoService, 'obtenerProductos' | 'buscarProductos'>) {
     this.catalogoService = catalogoService
     this.productoService = productoService
   }
@@ -24,6 +24,7 @@ export class CatalogoModel {
   }
 
   async buscarProductos(filtros: FiltrosCatalogoTs) {
+    if (!Object.values(filtros).some(v=>v?.trim())) throw new Error('Selecciona al menos un filtro para buscar.')
     return (await this.productoService.buscarProductos(filtros)).map(this.aProductoCatalogoTs)
   }
 

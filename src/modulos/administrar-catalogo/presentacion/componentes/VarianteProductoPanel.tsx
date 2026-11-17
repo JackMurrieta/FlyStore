@@ -7,13 +7,14 @@ import { Icono } from '@compartido/ui/iconos/Icono'
 import estilos from '../vistas/CatalogoAdmin.module.css'
 
 interface Props {
+  colores: string[]
   tallas: TallaTs[]
   categoriaSeleccionada: boolean
   cargandoTallas: boolean
   errorTallas: string | null
   alAgregar: (variante: VarianteProductoTs) => boolean
 }
-export function VarianteProductoPanel({ tallas, categoriaSeleccionada, cargandoTallas, errorTallas, alAgregar }: Props) {
+export function VarianteProductoPanel({ colores, tallas, categoriaSeleccionada, cargandoTallas, errorTallas, alAgregar }: Props) {
   const ayudaId = useId()
   const [talla, setTalla] = useState('')
   const [color, setColor] = useState('')
@@ -24,7 +25,12 @@ export function VarianteProductoPanel({ tallas, categoriaSeleccionada, cargandoT
         : !tallas.length ? 'La categoría seleccionada no tiene tallas disponibles.' : null
   return <div className={estilos.editorVariante}>
     <div className={estilos.tresColumnas}>
-      <Campo etiqueta="Color predominante *" placeholder="Ej. Negro" value={color} onChange={e => setColor(e.target.value)} />
+      <label className={estilos.campoSelect}>Color predominante *
+        <select value={color} onChange={e => setColor(e.target.value)} disabled={!colores.length}>
+          <option value="">{colores.length ? 'Selecciona un color' : 'Sin colores disponibles'}</option>
+          {colores.map(nombre => <option key={nombre} value={nombre}>{nombre}</option>)}
+        </select>
+      </label>
       <label className={estilos.campoSelect}>Talla *
         <select value={talla} onChange={e => setTalla(e.target.value)} disabled={!tallas.length || cargandoTallas || !!errorTallas}
           aria-busy={cargandoTallas} aria-describedby={ayuda ? ayudaId : undefined}>
@@ -38,7 +44,7 @@ export function VarianteProductoPanel({ tallas, categoriaSeleccionada, cargandoT
     {ayuda && <p id={ayudaId} role={errorTallas ? 'alert' : 'status'}>{ayuda}
       {!categoriaSeleccionada && <> <a href="#categorias-producto">Ir a categorías</a></>}
     </p>}
-    <Boton variante="secundario" disabled={!categoriaSeleccionada || cargandoTallas || !!errorTallas || !tallas.length}
+    <Boton variante="secundario" disabled={!categoriaSeleccionada || cargandoTallas || !!errorTallas || !tallas.length || !colores.includes(color)}
       icono={<Icono nombre="plus" tamano={16} />} onClick={() => {
       if (alAgregar({ talla, color, stock: stock === '' ? NaN : Number(stock) })) { setColor(''); setStock('0') }
     }}>Agregar variante</Boton>

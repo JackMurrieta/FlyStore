@@ -10,8 +10,6 @@ function servicios() {
   const producto: IProductoService = {
     obtenerProductos: vi.fn(), buscarProductos: vi.fn(),
     crearProducto: vi.fn().mockResolvedValue({ idProducto: 'p1', clave: 'TEN-01' }),
-    agregarVariante: vi.fn().mockResolvedValue(undefined),
-    crearPrecios: vi.fn().mockResolvedValue(undefined),
     darDeBajaProducto: vi.fn().mockResolvedValue({ idProducto: 'p1', tipoBaja: 'INACTIVADO' }),
   }
   const catalogo: ICatalogoService = {
@@ -38,17 +36,14 @@ describe('Modelos de administrar catálogo', () => {
     })
   })
 
-  it('reanuda el alta después de un fallo sin repetir operaciones confirmadas', async () => {
+  it('envía el agregado en un solo paso y permite corregir tras un rechazo', async () => {
     const { producto } = servicios()
-    vi.mocked(producto.agregarVariante).mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('Sin conexión'))
+    vi.mocked(producto.crearProducto).mockRejectedValueOnce(new Error('Sin conexión')).mockResolvedValue(undefined)
     const model = new ProductoModel(producto)
-    const formulario = datos()
-    await expect(model.registrarProducto(formulario)).rejects.toThrow('Sin conexión')
-    expect(producto.crearPrecios).not.toHaveBeenCalled()
-    await model.registrarProducto(formulario)
-    expect(producto.crearProducto).toHaveBeenCalledTimes(1)
-    expect(producto.agregarVariante).toHaveBeenCalledTimes(3)
-    expect(producto.crearPrecios).toHaveBeenCalledWith('p1', { preciosProducto: formulario.precios })
+    await expect(model.registrarProducto(datos())).rejects.toThrow('Sin conexión')
+    await model.registrarProducto(datos())
+    expect(producto.crearProducto).toHaveBeenCalledTimes(2)
+    expect(producto.crearProducto).toHaveBeenLastCalledWith(expect.objectContaining({variantes: datos().variantes, preciosProducto: datos().precios}))
   })
 
   it('mapea imagen, estado, precios y existencias desde los DTO', async () => {

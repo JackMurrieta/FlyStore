@@ -6,6 +6,9 @@
  * y los conecta entre sí
  */
 
+import { CatalogoService } from '@modulos/administrar-catalogo/infraestructura/CatalogoService'
+import { ProductoService } from '@modulos/administrar-catalogo/infraestructura/ProductoService'
+import { CatalogoModel } from '@modulos/administrar-catalogo/aplicacion/CatalogoModel'
 import type { ISesion } from '@compartido/sesion'
 import { httpClient } from '@infraestructura/http/HttpClient'
 import { AutenticacionHttpService } from '@modulos/iniciar-sesion/infraestructura/AutenticacionHttpService'
@@ -26,6 +29,9 @@ class Contenedor {
   // Servicios
   public readonly autenticacionService = new AutenticacionHttpService(this.http)
   public readonly usuarioService = new UsuarioHttpService(this.http)
+  public readonly catalogoService = new CatalogoService(this.http)
+  public readonly productoService = new ProductoService(this.http)
+  public readonly catalogoModel = new CatalogoModel(this.catalogoService, this.productoService)
   public readonly gestionarVentaGateway = new GestionarVentaHttpGateway(this.http)
 
   // Modelos

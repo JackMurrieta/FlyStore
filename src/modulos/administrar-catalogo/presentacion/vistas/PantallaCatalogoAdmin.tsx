@@ -17,7 +17,7 @@ import estilos from './CatalogoAdmin.module.css'
 
 interface Props {
   catalogoModel: CatalogoModel
-  bajaProductoModel: BajaProductoModel
+  bajaProductoModel?: BajaProductoModel
   alAgregar: () => void
   mensaje?: string | null
   alCerrarMensaje?: () => void
@@ -62,7 +62,7 @@ export function PantallaCatalogoAdmin({ catalogoModel, bajaProductoModel, alAgre
     {baja.resultado && <div role="status" className={estilos.mensajeExito}><Icono nombre="check-circle" tamano={18} />
       Producto {baja.resultado.tipoBaja === TipoBaja.ELIMINADO ? 'eliminado' : 'inactivado'} correctamente.</div>}
     <section id="panel-productos" role="tabpanel" aria-labelledby="tab-productos" hidden={pestana !== 'productos'}>
-      <FiltrosCatalogoPanel filtrosDisponibles={vm.filtrosDisponibles} cargando={vm.cargando} alBuscar={buscar} />
+      <FiltrosCatalogoPanel filtrosDisponibles={vm.filtrosDisponibles} cargando={vm.cargando} alBuscar={buscar} alLimpiar={async()=>{setFiltrosActuales(undefined);setPagina(0);await vm.obtenerCatalogo()}} />
       {vm.cargando ? <div role="status" className={estilos.estadoVacio}>Cargando catálogo…</div>
         : !vm.productos.length ? <div className={estilos.estadoVacio}><Icono nombre="search-x" tamano={28} />
           <h2>{vm.error ? 'Catálogo no disponible' : 'No encontramos productos'}</h2><p>Revisa los filtros o intenta consultar nuevamente.</p></div>
@@ -79,7 +79,7 @@ export function PantallaCatalogoAdmin({ catalogoModel, bajaProductoModel, alAgre
                   <td className={estilos.preciosCelda}>{formatearPrecios(producto.precios)}</td>
                   <td><EstadoProductoInsignia estado={producto.estado} /></td>
                   <td><button type="button" className={estilos.botonIcono} aria-label={`Dar de baja ${producto.nombre}`} title="Dar de baja"
-                    disabled={baja.confirmando || producto.estado === 'INACTIVO'} onClick={() => baja.solicitarBaja(producto)}><Icono nombre="archive" tamano={16} /></button></td>
+                    disabled={!bajaProductoModel || baja.confirmando || producto.estado === 'INACTIVO'} onClick={() => baja.solicitarBaja(producto)}><Icono nombre="archive" tamano={16} /></button></td>
                 </tr>)}</tbody>
               </table>
             </div>

@@ -9,11 +9,12 @@ import estilos from '../vistas/CatalogoAdmin.module.css'
 
 interface Props {
   filtrosDisponibles: FiltrosDisponiblesTs | null
+  alLimpiar?: () => Promise<void>
   cargando: boolean
   alBuscar: (filtros: FiltrosCatalogoTs) => Promise<void>
 }
 
-export function FiltrosCatalogoPanel({ filtrosDisponibles, cargando, alBuscar }: Props) {
+export function FiltrosCatalogoPanel({ filtrosDisponibles, cargando, alBuscar, alLimpiar }: Props) {
   const [filtros, setFiltros] = useState(filtrosVacios)
   const activos = Object.values(filtros).filter(Boolean).length
   return <form className={estilos.filtros} onSubmit={e => { e.preventDefault(); void alBuscar(filtros) }}>
@@ -43,7 +44,7 @@ export function FiltrosCatalogoPanel({ filtrosDisponibles, cargando, alBuscar }:
       <Boton type="submit" variante="secundario">Buscar</Boton>
     </fieldset>
     <div className={estilos.ayudaFiltros}><p><Icono nombre="info" tamano={16} />Filtra el catálogo por categoría, tipo de producto, marca o estado.</p>
-      <button type="button" disabled={cargando} onClick={() => { setFiltros(filtrosVacios); void alBuscar(filtrosVacios) }}>{activos} filtros activos · Limpiar</button>
+      <button type="button" disabled={cargando} onClick={() => { setFiltros(filtrosVacios); void (alLimpiar ? alLimpiar() : alBuscar(filtrosVacios)) }}>{activos} filtros activos · Limpiar</button>
     </div>
   </form>
 }

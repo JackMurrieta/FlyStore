@@ -56,6 +56,7 @@ export function Header() {
             />
           </div>
 
+          {estado === 'autenticado' && (usuario?.rol === 'ADMIN' || usuario?.rol === 'EMPLEADO') && <Link to="/admin/catalogo" className={styles.enlace}>Administrar catálogo</Link>}
           {/* Carrito */}
           <Link to="/carrito" className={styles.iconoBtn} aria-label="Ver carrito">
             <Icono nombre="cart" />
