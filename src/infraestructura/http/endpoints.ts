@@ -101,3 +101,29 @@ export const pedidos = {
   listar: () => `${API_BASE}/api/pedidos/yo`,
   obtener: (id: number) => `${API_BASE}/api/pedidos/${id}`,
 } as const
+
+/**
+ * Endpoints de CU-02 Gestionar venta (GestionarVentaController, funciona como BFF).
+ * La identidad del cliente sale de la cookie de sesión: el front nunca envía clienteId.
+ * // SUPUESTO: Rutas pendientes de confirmar con backend
+ */
+export const ventas = {
+  /** GET → PedidoVentaDTO (pedido en estado PENDIENTE = carrito) */
+  pedidoEnCurso: () => `${API_BASE}/api/ventas/pedido-en-curso`,
+  /** PATCH ActualizarCantidadPeticionDTO → PedidoVentaDTO */
+  cantidad: () => `${API_BASE}/api/ventas/pedido-en-curso/cantidad`,
+  /** POST AplicarCodigoPeticionDTO → PedidoVentaDTO */
+  codigoDescuento: () => `${API_BASE}/api/ventas/pedido-en-curso/codigo-descuento`,
+  /** GET → DatosEntregaDTO */
+  datosEntrega: () => `${API_BASE}/api/ventas/datos-entrega`,
+  /** GET → datos de la cuenta para transferir */
+  datosBancarios: () => `${API_BASE}/api/ventas/datos-bancarios`,
+  /** POST → FolioDTO (genera o devuelve el folio del pedido en curso) */
+  folio: () => `${API_BASE}/api/ventas/pedido-en-curso/folio`,
+  /** POST multipart (tipoPago, folio, archivo) → RespuestaValidacionComprobanteDTO */
+  comprobantePago: () => `${API_BASE}/api/ventas/pedido-en-curso/comprobante`,
+  /** POST PedidoVentaDTO → PedidoVentaDTO registrado */
+  registrar: () => `${API_BASE}/api/ventas/pedido-en-curso/registrar`,
+  /** GET → ComprobantePedidoDTO (JSON con HTML+CSS del ticket) */
+  comprobantePedido: (folio: string) => `${API_BASE}/api/ventas/pedidos/${encodeURIComponent(folio)}/comprobante`,
+} as const

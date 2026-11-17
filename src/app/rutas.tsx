@@ -5,17 +5,23 @@
 
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
+import { RutaProtegida } from '@compartido/sesion'
+import { contenedor } from './contenedor'
 
 // Lazy loading de módulos (se cargan solo cuando se necesitan)
 const IniciarSesionVista = lazy(() => import('@modulos/iniciar-sesion').then(m => ({ default: m.IniciarSesionVista })))
 const RegistroVista = lazy(() => import('@modulos/iniciar-sesion').then(m => ({ default: m.RegistroVista })))
 const CallbackAuthVista = lazy(() => import('@modulos/iniciar-sesion').then(m => ({ default: m.CallbackAuthVista })))
+const GestionarVenta = lazy(() => import('@modulos/gestionar-venta').then(m => ({ default: m.GestionarVenta })))
 
 // Vista temporal de inicio
 const InicioVista = lazy(() => import('./vistas/InicioVista'))
 // El import y la ruta se eliminan de la compilación de producción.
 const AdministrarCatalogoDemo = import.meta.env.DEV
   ? lazy(() => import('./desarrollo/AdministrarCatalogoDemo'))
+  : null
+const GestionarVentaDemo = import.meta.env.DEV
+  ? lazy(() => import('./desarrollo/GestionarVentaDemo'))
   : null
 
 /**
@@ -47,6 +53,17 @@ export function Rutas() {
         {/* Ruta raíz */}
         <Route path="/" element={<InicioVista />} />
         {AdministrarCatalogoDemo && <Route path="/dev/administrar-catalogo" element={<AdministrarCatalogoDemo />} />}
+        {GestionarVentaDemo && <Route path="/dev/gestionar-venta/*" element={<GestionarVentaDemo />} />}
+
+        {/* CU-02 Gestionar venta (protegido): carrito → entrega → pago → confirmación → pedido registrado */}
+        <Route
+          path="/carrito/*"
+          element={
+            <RutaProtegida>
+              <GestionarVenta modelos={contenedor.modelosVenta} rutaBase="/carrito" />
+            </RutaProtegida>
+          }
+        />
 
         {/* Rutas del módulo iniciar-sesion */}
         <Route path="/iniciar-sesion" element={<IniciarSesionVista />} />
@@ -57,16 +74,6 @@ export function Rutas() {
         {/* Consultar catálogo (público) */}
         {/* <Route path="/productos" element={<CatalogoVista />} /> */}
         {/* <Route path="/productos/:id" element={<DetalleProductoVista />} /> */}
-
-        {/* Gestionar venta (protegido) */}
-        {/* <Route */}
-        {/*   path="/carrito" */}
-        {/*   element={ */}
-        {/*     <RutaProtegida> */}
-        {/*       <CarritoVista /> */}
-        {/*     </RutaProtegida> */}
-        {/*   } */}
-        {/* /> */}
 
         {/* Admin (protegido por rol) */}
         {/* <Route */}
