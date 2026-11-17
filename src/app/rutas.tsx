@@ -14,6 +14,10 @@ const RegistroVista = lazy(() => import('@modulos/iniciar-sesion').then(m => ({ 
 const CallbackAuthVista = lazy(() => import('@modulos/iniciar-sesion').then(m => ({ default: m.CallbackAuthVista })))
 const GestionarVenta = lazy(() => import('@modulos/gestionar-venta').then(m => ({ default: m.GestionarVenta })))
 
+// CU-04 Administrar Pedidos (solo ADMIN y EMPLEADO)
+const PedidosAdminVista = lazy(() => import('@modulos/administrar-pedidos').then(m => ({ default: m.PedidosAdminVista })))
+const DetallePedidoVista = lazy(() => import('@modulos/administrar-pedidos').then(m => ({ default: m.DetallePedidoVista })))
+
 // Vista temporal de inicio
 const InicioVista = lazy(() => import('./vistas/InicioVista'))
 // El import y la ruta se eliminan de la compilación de producción.
@@ -69,6 +73,24 @@ export function Rutas() {
         <Route path="/iniciar-sesion" element={<IniciarSesionVista />} />
         <Route path="/registro" element={<RegistroVista />} />
         <Route path="/auth/callback" element={<CallbackAuthVista />} />
+
+        {/* CU-04 Administrar Pedidos (protegido por rol) */}
+        <Route
+          path="/admin/pedidos"
+          element={
+            <RutaProtegida roles={['ADMIN', 'EMPLEADO']}>
+              <PedidosAdminVista />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/admin/pedidos/:folio"
+          element={
+            <RutaProtegida roles={['ADMIN', 'EMPLEADO']}>
+              <DetallePedidoVista />
+            </RutaProtegida>
+          }
+        />
 
         {/* TODO Fase 3+: Otras rutas de módulos */}
         {/* Consultar catálogo (público) */}

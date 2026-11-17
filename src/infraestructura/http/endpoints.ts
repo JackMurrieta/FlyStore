@@ -103,6 +103,57 @@ export const pedidos = {
 } as const
 
 /**
+ * Endpoints de administración de pedidos (CU-04)
+ * Rutas protegidas por rol ADMIN o EMPLEADO (JWT en cookie)
+ * // SUPUESTO: Rutas pendientes de confirmar con backend
+ */
+const ADMIN_PEDIDOS = `${API_BASE}/api/admin/pedidos`
+
+export const adminPedidos = {
+  /**
+   * GET /api/admin/pedidos?texto=&estado=&metodo_pago=&desde=&hasta=&pagina=
+   * Response: PaginaPedidosDTO
+   */
+  listar: (consulta?: string) => `${ADMIN_PEDIDOS}${consulta ? `?${consulta}` : ''}`,
+
+  /**
+   * GET /api/admin/pedidos/{folio}
+   * Response: DetallePedidoAdminDTO · 404 si no existe
+   */
+  detalle: (folio: string) => `${ADMIN_PEDIDOS}/${encodeURIComponent(folio)}`,
+
+  /**
+   * POST /api/admin/pedidos/{folio}/pago-efectivo
+   * Body: RegistrarPagoEfectivoPeticionDTO · Response: ResultadoAccionDTO · 409 si venció o cambió de estado
+   */
+  pagoEfectivo: (folio: string) => `${ADMIN_PEDIDOS}/${encodeURIComponent(folio)}/pago-efectivo`,
+
+  /**
+   * POST /api/admin/pedidos/{folio}/aprobar-pago
+   * Response: ResultadoAccionDTO · 409 si ya no está en pago_en_revision
+   */
+  aprobarPago: (folio: string) => `${ADMIN_PEDIDOS}/${encodeURIComponent(folio)}/aprobar-pago`,
+
+  /**
+   * POST /api/admin/pedidos/{folio}/rechazar-comprobante
+   * Body: RechazarComprobantePeticionDTO · Response: ResultadoAccionDTO
+   */
+  rechazarComprobante: (folio: string) => `${ADMIN_PEDIDOS}/${encodeURIComponent(folio)}/rechazar-comprobante`,
+
+  /**
+   * PATCH /api/admin/pedidos/{folio}/estado
+   * Body: ActualizarEstadoPeticionDTO · Response: ResultadoAccionDTO · 400 si la transición no es válida
+   */
+  estado: (folio: string) => `${ADMIN_PEDIDOS}/${encodeURIComponent(folio)}/estado`,
+
+  /**
+   * POST /api/admin/pedidos/{folio}/cancelar
+   * Body: CancelarPedidoPeticionDTO · Response: ResultadoAccionDTO · 409 si ya salió de la tienda
+   */
+  cancelar: (folio: string) => `${ADMIN_PEDIDOS}/${encodeURIComponent(folio)}/cancelar`,
+} as const
+
+/**
  * Endpoints de CU-02 Gestionar venta (GestionarVentaController, funciona como BFF).
  * La identidad del cliente sale de la cookie de sesión: el front nunca envía clienteId.
  * // SUPUESTO: Rutas pendientes de confirmar con backend

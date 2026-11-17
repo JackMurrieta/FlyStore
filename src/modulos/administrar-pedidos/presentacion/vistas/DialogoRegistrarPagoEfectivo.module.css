@@ -1,0 +1,26 @@
+/**
+ * Estilos de DialogoRegistrarPagoEfectivo
+ */
+
+.contenido {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-espacio-5);
+}
+
+.resumen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fly-espacio-1);
+  padding: var(--fly-espacio-5);
+  background-color: var(--fly-superficie-2);
+  border: 1px solid var(--fly-borde);
+  border-radius: var(--fly-radio-tarjeta);
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--fly-espacio-3);
+  margin-top: var(--fly-espacio-2);
+}

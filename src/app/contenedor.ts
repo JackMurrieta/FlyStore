@@ -13,6 +13,8 @@ import { UsuarioHttpService } from '@modulos/iniciar-sesion/infraestructura/Usua
 import { SesionModel } from '@modulos/iniciar-sesion/aplicacion/SesionModel'
 import { GestionarVentaHttpGateway } from '@modulos/gestionar-venta/infraestructura/GestionarVentaHttpGateway'
 import { crearModelosVenta, reiniciarModelosVenta, type ModelosVenta } from '@modulos/gestionar-venta/aplicacion/ModelosVenta'
+import { PedidosAdminHttpService } from '@modulos/administrar-pedidos/infraestructura/PedidosAdminHttpService'
+import { PedidosAdminModel } from '@modulos/administrar-pedidos/aplicacion/PedidosAdminModel'
 
 /**
  * Contenedor singleton de dependencias
@@ -30,12 +32,20 @@ class Contenedor {
   public readonly sesionModel: SesionModel
   public readonly modelosVenta: ModelosVenta = crearModelosVenta(this.gestionarVentaGateway)
 
+  public readonly pedidosAdminService = new PedidosAdminHttpService(this.http)
+
+  // Modelos
+  public readonly pedidosAdminModel: PedidosAdminModel
+
   // Alias para compatibilidad con SesionProvider
   public readonly sesion: ISesion
 
   constructor() {
     // Crear SesionModel
     this.sesionModel = new SesionModel(this.autenticacionService, this.usuarioService)
+
+    // CU-04 Administrar Pedidos
+    this.pedidosAdminModel = new PedidosAdminModel(this.pedidosAdminService)
 
     // Alias
     this.sesion = this.sesionModel
