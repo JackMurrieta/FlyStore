@@ -36,7 +36,7 @@ export function PantallaCatalogoAdmin({ catalogoModel, bajaProductoModel, alAgre
   const visibles = vm.productos.slice(inicio, inicio + POR_PAGINA)
 
   const buscar = async (filtros: FiltrosCatalogoTs) => {
-    setFiltrosActuales(filtros); setPagina(0)
+    if (Object.values(filtros).some(valor => valor?.trim())) { setFiltrosActuales(filtros); setPagina(0) }
     await vm.buscarProductos(filtros)
   }
 

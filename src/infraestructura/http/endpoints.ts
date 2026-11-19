@@ -180,6 +180,7 @@ export const ventas = {
 } as const
 
 export const catalogoAdmin = {
+ producto: (id: string) => API_BASE + '/api/productos/' + encodeURIComponent(id),
  productos: () => API_BASE + '/api/productos',
  filtros: () => API_BASE + '/api/catalogo/filtros',
  tallas: (id: string) => API_BASE + '/api/catalogo/categorias/' + encodeURIComponent(id) + '/tallas',

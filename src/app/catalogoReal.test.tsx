@@ -10,8 +10,9 @@ vi.mock('./contenedor', async()=>{
  const {ProductoService}=await import('@modulos/administrar-catalogo/infraestructura/ProductoService')
  const {CatalogoService}=await import('@modulos/administrar-catalogo/infraestructura/CatalogoService')
  const {CatalogoModel}=await import('@modulos/administrar-catalogo/aplicacion/CatalogoModel')
+ const {BajaProductoModel}=await import('@modulos/administrar-catalogo/aplicacion/BajaProductoModel')
  const http=new HttpClient();const productoService=new ProductoService(http)
- return {contenedor:{productoService,catalogoModel:new CatalogoModel(new CatalogoService(http),productoService)}}
+ return {contenedor:{bajaProductoModel:new BajaProductoModel(productoService),productoService,catalogoModel:new CatalogoModel(new CatalogoService(http),productoService)}}
 })
 vi.mock('@modulos/iniciar-sesion',()=>({IniciarSesionVista:()=> <p>Inicio de sesión requerido</p>}))
 vi.mock('./vistas/InicioVista',()=>({default:()=> <p>Inicio público</p>}))
@@ -82,7 +83,7 @@ describe('Catálogo real restaurado',()=>{
   await screen.findByText('Gorra nueva')
   expect(backend.altas).toHaveLength(1)
   expect(backend.altas[0]).toMatchObject({idCategoria:'9223372036854775807',variantes:[{talla:'M',color:'Rojo',stock:7}],preciosProducto:[{tipoPrecio:'BASE',precio:100,minPiezas:1}]})
-  expect(backend.pasos.filter(p=>p==='GET /api/productos')).toHaveLength(2)
+  await waitFor(()=>expect(backend.pasos.filter(p=>p==='GET /api/productos')).toHaveLength(2))
  })
  it.each([400,409])('conserva formulario y muestra validación del backend %s',async status=>{
   const backend=api(status);const user=abrir();await formulario(user)
