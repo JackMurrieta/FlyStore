@@ -60,6 +60,12 @@ import {
   MapPin,
   Bell,
   Ban,
+  Mail,
+  ShieldCheck,
+  Star,
+  KeyRound,
+  CircleHelp,
+  EyeOff,
 } from 'lucide-react'
 
 /**
@@ -186,6 +192,12 @@ export type NombreIcono =
   | 'pin'
   | 'bell'
   | 'ban'
+  | 'mail'
+  | 'shield'
+  | 'star'
+  | 'key'
+  | 'help'
+  | 'eye-off'
 
 export interface IconoProps {
   readonly nombre: NombreIcono
@@ -252,6 +264,12 @@ const ICONOS_MAP = {
   pin: MapPin,
   bell: Bell,
   ban: Ban,
+  mail: Mail,
+  shield: ShieldCheck,
+  star: Star,
+  key: KeyRound,
+  help: CircleHelp,
+  'eye-off': EyeOff,
 } as const
 
 /**

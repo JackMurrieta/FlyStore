@@ -6,6 +6,7 @@
 import type { LoginTs } from '../LoginTs'
 import type { RegistroTs } from '../RegistroTs'
 import type { AccesoTs } from '../AccesoTs'
+import type { ConfirmacionCuentaTs } from '../ConfirmacionCuentaTs'
 
 export interface IAutenticacionService {
   /**
@@ -25,4 +26,13 @@ export interface IAutenticacionService {
    * Elimina la cookie HttpOnly del backend
    */
   logout(): Promise<void>
+
+  /** «Olvidé mi contraseña»: envía el enlace por correo. Devuelve el mensaje para mostrar. */
+  recuperarContrasena(correo: string): Promise<string>
+
+  /** Confirma un enlace de correo (token_hash) y abre la sesión si corresponde. */
+  confirmarCuenta(tokenHash: string, tipo: string): Promise<ConfirmacionCuentaTs>
+
+  /** Guarda la nueva contraseña con la sesión abierta por el enlace de recuperación. */
+  restablecerContrasena(nueva: string): Promise<void>
 }

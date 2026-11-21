@@ -59,9 +59,19 @@ export class SesionModel extends ModeloObservable<EstadoSesionTs> implements ISe
    * Redirige al backend que maneja todo el flujo
    */
   public iniciarConGoogle(redirigir?: string): void {
-    const url = endpoints.auth.google()
-    const urlCompleta = redirigir ? `${url}?redirect=${encodeURIComponent(redirigir)}` : url
-    redirigirA(urlCompleta)
+    redirigirA(endpoints.auth.google(redirigir))
+  }
+
+  /**
+   * Vuelve a leer el usuario (GET /api/auth/yo) tras editar el perfil, para que el
+   * encabezado muestre el nombre nuevo. Si la sesión ya no es válida, queda anónima.
+   */
+  public refrescarUsuario = async (): Promise<void> => {
+    try {
+      this.establecerUsuarioAutenticado(await this.usuarioService.obtenerUsuarioActual())
+    } catch {
+      this.establecerAnonimo()
+    }
   }
 
   /**

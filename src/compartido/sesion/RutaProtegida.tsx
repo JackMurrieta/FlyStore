@@ -6,6 +6,7 @@ import { type ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useSesion } from './SesionContext'
 import type { RolTs } from './ISesion'
+import { CargaPagina } from '../ui/carga'
 
 export interface RutaProtegidaProps {
   readonly children: ReactNode
@@ -51,41 +52,7 @@ export function RutaProtegida({ children, roles }: RutaProtegidaProps) {
   return <>{children}</>
 }
 
-/**
- * Componente de carga mientras se verifica la sesión
- */
+/** Mientras se verifica la sesión: esqueleto de página con barra superior. */
 function EsqueletoCarga() {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        backgroundColor: 'var(--fly-fondo)',
-        color: 'var(--fly-texto-2)',
-      }}
-    >
-      <div style={{ textAlign: 'center' }}>
-        <div
-          style={{
-            width: '40px',
-            height: '40px',
-            border: '3px solid var(--fly-borde-fuerte)',
-            borderTopColor: 'var(--fly-texto)',
-            borderRadius: '50%',
-            animation: 'spin 0.8s linear infinite',
-            margin: '0 auto 16px',
-          }}
-        />
-        <p style={{ fontSize: '13px', fontFamily: 'Inter, sans-serif' }}>Verificando sesión...</p>
-      </div>
-
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-    </div>
-  )
+  return <CargaPagina texto="Verificando tu sesión…" />
 }

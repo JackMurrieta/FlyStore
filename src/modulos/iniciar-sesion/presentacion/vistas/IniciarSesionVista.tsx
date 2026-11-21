@@ -61,6 +61,9 @@ export default function IniciarSesionVista() {
         </header>
 
         {error && <Aviso tono="error">{error.mensaje}</Aviso>}
+        {!error && searchParams.get('error') === 'google' && (
+          <Aviso tono="error">No pudimos iniciar sesión con Google. Inténtalo de nuevo o entra con tu correo.</Aviso>
+        )}
 
         {/* Botón de Google primero */}
         <Boton
@@ -101,6 +104,8 @@ export default function IniciarSesionVista() {
             required
             autoComplete="current-password"
           />
+
+          <Link to="/recuperar-contrasena" className={styles.olvido}>¿Olvidaste tu contraseña?</Link>
 
           <Boton type="submit" variante="primario" anchoCompleto cargando={cargando}>
             INICIAR SESIÓN

@@ -70,7 +70,7 @@ export default function PedidoRegistradoView() {
             </div>
           </div>
         ) : (
-          <EstadoCarga texto="Cargando tu pedido…" />
+          <EstadoCarga texto="Cargando tu pedido…" diseno="ticket" />
         )}
       </PaginaVenta>
     )

@@ -69,6 +69,37 @@ export const auth = {
    * Response: 204
    */
   reenviarConfirmacion: () => `${API_BASE}/api/auth/reenviar-confirmacion`,
+
+  /** POST { correo } → 202 MensajeDTO. Envía el enlace para restablecer la contraseña. */
+  recuperarContrasena: () => `${API_BASE}/api/auth/recuperar-contrasena`,
+
+  /** POST { tokenHash, tipo } → ConfirmacionCuentaDTO (+ cookies). Enlaces de correo con token_hash. */
+  confirmar: () => `${API_BASE}/api/auth/confirmar`,
+
+  /** POST → 204. Cierra la sesión en todos los dispositivos y borra las cookies. */
+  cerrarSesionGlobal: () => `${API_BASE}/api/auth/cerrar-sesion-global`,
+} as const
+
+/**
+ * Endpoints de Gestionar perfil (PerfilController). El usuario sale de la cookie de sesión.
+ */
+export const perfil = {
+  /** GET → PerfilDTO · PUT ActualizarPerfilPeticionDTO → PerfilDTO */
+  datos: () => `${API_BASE}/api/perfil`,
+  /** GET → DireccionEntregaDTO[] (solo clientes) */
+  direcciones: () => `${API_BASE}/api/perfil/direcciones`,
+  /** PUT → DireccionEntregaDTO[] */
+  marcarPredeterminada: (id: number) => `${API_BASE}/api/perfil/direcciones/${id}/predeterminada`,
+  /** DELETE → DireccionEntregaDTO[] */
+  quitarPredeterminada: () => `${API_BASE}/api/perfil/direcciones/predeterminada`,
+  /** DELETE → DireccionEntregaDTO[] (la dirección queda inactiva) */
+  direccion: (id: number) => `${API_BASE}/api/perfil/direcciones/${id}`,
+  /** POST { correo } → 202 MensajeDTO */
+  correo: () => `${API_BASE}/api/perfil/correo`,
+  /** PUT { actual, nueva } → 204 (+ cookies renovadas) */
+  contrasena: () => `${API_BASE}/api/perfil/contrasena`,
+  /** POST { nueva } → 204. Solo con la sesión abierta por el enlace de recuperación. */
+  restablecerContrasena: () => `${API_BASE}/api/perfil/contrasena/restablecer`,
 } as const
 
 /**

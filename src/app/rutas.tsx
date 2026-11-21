@@ -7,11 +7,21 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import { RutaProtegida } from '@compartido/sesion'
 import { contenedor } from './contenedor'
+import { CargaPagina } from '@compartido/ui/carga'
 
 // Lazy loading de módulos (se cargan solo cuando se necesitan)
 const IniciarSesionVista = lazy(() => import('@modulos/iniciar-sesion').then(m => ({ default: m.IniciarSesionVista })))
 const RegistroVista = lazy(() => import('@modulos/iniciar-sesion').then(m => ({ default: m.RegistroVista })))
 const CallbackAuthVista = lazy(() => import('@modulos/iniciar-sesion').then(m => ({ default: m.CallbackAuthVista })))
+const RecuperarContrasenaVista = lazy(() => import('@modulos/iniciar-sesion').then(m => ({ default: m.RecuperarContrasenaVista })))
+const RestablecerContrasenaVista = lazy(() => import('@modulos/iniciar-sesion').then(m => ({ default: m.RestablecerContrasenaVista })))
+const ConfirmarCuentaVista = lazy(() => import('@modulos/iniciar-sesion').then(m => ({ default: m.ConfirmarCuentaVista })))
+const EditarPerfil = lazy(() => import('@modulos/editar-perfil').then(m => ({ default: m.EditarPerfil })))
+
+// Páginas públicas de información (Google OAuth pide Privacidad y Términos en el mismo dominio)
+const PrivacidadVista = lazy(() => import('./vistas/informacion/PrivacidadVista'))
+const TerminosVista = lazy(() => import('./vistas/informacion/TerminosVista'))
+const PreguntasFrecuentesVista = lazy(() => import('./vistas/informacion/PreguntasFrecuentesVista'))
 const GestionarVenta = lazy(() => import('@modulos/gestionar-venta').then(m => ({ default: m.GestionarVenta })))
 const MisPedidos = lazy(() => import('@modulos/gestionar-venta').then(m => ({ default: m.MisPedidos })))
 
@@ -30,26 +40,9 @@ const GestionarVentaDemo = import.meta.env.DEV
   ? lazy(() => import('./desarrollo/GestionarVentaDemo'))
   : null
 
-/**
- * Componente de carga para rutas lazy
- */
+/** Mientras llega el código de una ruta: barra superior + esqueleto de página. */
 function CargandoRuta() {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        backgroundColor: 'var(--fly-fondo)',
-        color: 'var(--fly-texto-2)',
-        fontFamily: 'Inter, sans-serif',
-        fontSize: '13px',
-      }}
-    >
-      Cargando...
-    </div>
-  )
+  return <CargaPagina texto="Cargando la página…" />
 }
 
 export function Rutas() {
@@ -81,10 +74,28 @@ export function Rutas() {
           }
         />
 
+        {/* Gestionar perfil (protegido): Datos personales · Direcciones · Seguridad */}
+        <Route
+          path="/perfil/*"
+          element={
+            <RutaProtegida>
+              <EditarPerfil modelos={contenedor.modelosPerfil} rutaBase="/perfil" />
+            </RutaProtegida>
+          }
+        />
+
         {/* Rutas del módulo iniciar-sesion */}
         <Route path="/iniciar-sesion" element={<IniciarSesionVista />} />
         <Route path="/registro" element={<RegistroVista />} />
         <Route path="/auth/callback" element={<CallbackAuthVista />} />
+        <Route path="/auth/confirmar" element={<ConfirmarCuentaVista />} />
+        <Route path="/recuperar-contrasena" element={<RecuperarContrasenaVista />} />
+        <Route path="/restablecer-contrasena" element={<RutaProtegida><RestablecerContrasenaVista /></RutaProtegida>} />
+
+        {/* Información pública */}
+        <Route path="/privacidad" element={<PrivacidadVista />} />
+        <Route path="/terminos" element={<TerminosVista />} />
+        <Route path="/preguntas-frecuentes" element={<PreguntasFrecuentesVista />} />
 
         {/* CU-04 Administrar Pedidos (protegido por rol) */}
         <Route

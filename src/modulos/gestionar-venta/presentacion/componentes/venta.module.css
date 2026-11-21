@@ -13,7 +13,6 @@
 .columnas { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 32px; align-items: start; }
 .principal { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .lateral { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 97px; }
-.estadoCarga { display: flex; align-items: center; gap: 12px; padding: 48px 0; color: var(--fly-texto-2); }
 .spinner { width: 20px; height: 20px; border: 2px solid var(--fly-borde-fuerte); border-top-color: var(--fly-texto); border-radius: 50%; animation: girar 0.8s linear infinite; }
 @keyframes girar { to { transform: rotate(360deg); } }
 .visuallyHidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -179,6 +178,9 @@
 .ticketPapel hr { border: 0; border-top: 1px solid var(--fly-sobre-cta); opacity: 0.6; margin: 4px 0; }
 .ticketSecundario { opacity: 0.8; }
 .ticketGracias { text-align: center; padding-top: 4px; }
+.esqueletoFilas { border: 1px solid var(--fly-borde); border-radius: var(--fly-radio-tarjeta); }
+.esqueletoFilas > div { display: flex; align-items: center; gap: 40px; padding: 18px; border-bottom: 1px solid var(--fly-borde); }
+.esqueletoFilas > div:last-child { border-bottom: 0; }
 .estadoError { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
 .estadoError > :first-child { align-self: stretch; }
 

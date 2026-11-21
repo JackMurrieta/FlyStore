@@ -16,6 +16,8 @@ import { UsuarioHttpService } from '@modulos/iniciar-sesion/infraestructura/Usua
 import { SesionModel } from '@modulos/iniciar-sesion/aplicacion/SesionModel'
 import { GestionarVentaHttpGateway } from '@modulos/gestionar-venta/infraestructura/GestionarVentaHttpGateway'
 import { crearModelosVenta, reiniciarModelosVenta, type ModelosVenta } from '@modulos/gestionar-venta/aplicacion/ModelosVenta'
+import { PerfilHttpGateway } from '@modulos/editar-perfil/infraestructura/PerfilHttpGateway'
+import { crearModelosPerfil, reiniciarModelosPerfil, type ModelosPerfil } from '@modulos/editar-perfil/aplicacion/ModelosPerfil'
 import { PedidosAdminHttpService } from '@modulos/administrar-pedidos/infraestructura/PedidosAdminHttpService'
 import { PedidosAdminModel } from '@modulos/administrar-pedidos/aplicacion/PedidosAdminModel'
 
@@ -33,10 +35,12 @@ class Contenedor {
   public readonly productoService = new ProductoService(this.http)
   public readonly catalogoModel = new CatalogoModel(this.catalogoService, this.productoService)
   public readonly gestionarVentaGateway = new GestionarVentaHttpGateway(this.http)
+  public readonly perfilGateway = new PerfilHttpGateway(this.http)
 
   // Modelos
   public readonly sesionModel: SesionModel
   public readonly modelosVenta: ModelosVenta = crearModelosVenta(this.gestionarVentaGateway)
+  public readonly modelosPerfil: ModelosPerfil
 
   public readonly pedidosAdminService = new PedidosAdminHttpService(this.http)
 
@@ -49,6 +53,9 @@ class Contenedor {
   constructor() {
     // Crear SesionModel
     this.sesionModel = new SesionModel(this.autenticacionService, this.usuarioService)
+
+    // Gestionar perfil: refresca el nombre del encabezado y cierra la sesión local tras «cerrar en todos lados»
+    this.modelosPerfil = crearModelosPerfil(this.perfilGateway, this.sesionModel)
 
     // CU-04 Administrar Pedidos
     this.pedidosAdminModel = new PedidosAdminModel(this.pedidosAdminService)
@@ -65,6 +72,7 @@ class Contenedor {
     this.sesionModel.suscribir(() => {
       if (this.sesionModel.obtenerEstado().estado === 'anonimo') {
         reiniciarModelosVenta(this.modelosVenta)
+        reiniciarModelosPerfil(this.modelosPerfil)
       }
     })
   }

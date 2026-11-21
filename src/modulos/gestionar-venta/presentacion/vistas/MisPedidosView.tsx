@@ -33,7 +33,7 @@ export default function MisPedidosView() {
         <Texto variante="h1" como="h1">Mis pedidos</Texto>
       </div>
 
-      {vm.cargando && <EstadoCarga texto="Cargando tus pedidos…" />}
+      {vm.cargando && <EstadoCarga texto="Cargando tus pedidos…" diseno="pedidos" />}
 
       {vm.error && !vm.cargando && (
         <div className={estilos.estadoError}>
@@ -150,7 +150,7 @@ function DetallePedido({ vm, pedido }: { readonly vm: VistaModelo; readonly pedi
               </Boton>
             </div>
           )}
-          {vm.cargandoDatosBancarios && <EstadoCarga texto="Cargando los datos para transferir…" />}
+          {vm.cargandoDatosBancarios && <EstadoCarga texto="Cargando los datos para transferir…" diseno="filas" />}
           {vm.datosBancarios && <DatosBancariosPedido datos={vm.datosBancarios} total={pedido.total} />}
           <ComprobantePago variante="panel" archivo={vm.archivo} vistaPreviaUrl={vm.vistaPreviaUrl} esPdf={vm.esPdf}
             mensajeError={vm.mensajeError} errorDeConexion={vm.errorDeConexion} comprobanteValido={false}

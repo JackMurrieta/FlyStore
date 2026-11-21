@@ -1,120 +1,68 @@
 /**
- * Footer de la aplicación
- * Información y enlaces compartidos en todas las páginas
+ * Pie de página (Figma «Pie de página» 148:160): marca, Tienda, Ayuda y Contacto.
+ * Solo enlaza a rutas que existen o están planeadas (categorías del catálogo, CU-01).
  */
 
 import { Link } from 'react-router-dom'
-import { Texto } from '@compartido/ui/Texto'
-import { Boton } from '@compartido/ui/Boton'
 import { Icono } from '@compartido/ui/iconos/Icono'
+import { CATEGORIAS, MARCA, RUTAS_AYUDA, RUTAS_CUENTA, enlaceWhatsapp } from '@compartido/config/marca'
 import styles from './Footer.module.css'
 
+const AYUDA = [
+  { etiqueta: 'Mis pedidos', ruta: RUTAS_CUENTA.misPedidos },
+  { etiqueta: 'Preguntas frecuentes', ruta: RUTAS_AYUDA.preguntasFrecuentes },
+  { etiqueta: 'Términos y condiciones', ruta: RUTAS_AYUDA.terminos },
+  { etiqueta: 'Aviso de privacidad', ruta: RUTAS_AYUDA.privacidad },
+] as const
+
 export function Footer() {
-  const currentYear = new Date().getFullYear()
+  const whatsapp = enlaceWhatsapp()
+  const anio = new Date().getFullYear()
 
   return (
     <footer className={styles.footer}>
       <div className={styles.contenedor}>
-        {/* Logo y columnas de navegación */}
-        <div className={styles.principal}>
-          {/* Logo */}
-          <div className={styles.logoContainer}>
-            <Link to="/" className={styles.logo}>
-              <div className={styles.logoPlaceholder}>
-                <Texto variante="h3" como="span">
-                  FLY
-                </Texto>
-              </div>
+        <div className={styles.columnas}>
+          <div className={styles.marca}>
+            <Link to="/" className={styles.logo} aria-label="FlyStore, ir al inicio">
+              <img src="/flyBlanco.svg" alt="" width={76} height={44} />
             </Link>
+            <p className={styles.descripcion}>{MARCA.descripcion}</p>
           </div>
 
-          {/* Columnas de navegación */}
-          <div className={styles.columnas}>
-            {/* Categorías */}
-            <div className={styles.columna}>
-              <Texto variante="etiqueta-fuerte" className={styles.titulo}>
-                Categorías
-              </Texto>
-              <nav className={styles.enlaces}>
-                <Link to="/categoria/gorra" className={styles.enlace}>
-                  <Texto variante="cuerpo-s">Gorra</Texto>
-                </Link>
-                <Link to="/categoria/prenda" className={styles.enlace}>
-                  <Texto variante="cuerpo-s">Prenda</Texto>
-                </Link>
-                <Link to="/categoria/perfumes" className={styles.enlace}>
-                  <Texto variante="cuerpo-s">Perfumes</Texto>
-                </Link>
-                <Link to="/categoria/tenis" className={styles.enlace}>
-                  <Texto variante="cuerpo-s">Tenis</Texto>
-                </Link>
-              </nav>
-            </div>
+          <nav className={styles.columna} aria-labelledby="pie-tienda">
+            <h2 id="pie-tienda" className={styles.titulo}>Tienda</h2>
+            <ul>
+              {CATEGORIAS.map((categoria) => (
+                <li key={categoria.ruta}><Link to={categoria.ruta} className={styles.enlace}>{categoria.nombre}</Link></li>
+              ))}
+            </ul>
+          </nav>
 
-            {/* Soporte */}
-            <div className={styles.columna}>
-              <Texto variante="etiqueta-fuerte" className={styles.titulo}>
-                Soporte
-              </Texto>
-              <nav className={styles.enlaces}>
-                <Link to="/mis-pedidos" className={styles.enlace}>
-                  <Texto variante="cuerpo-s">Mis pedidos</Texto>
-                </Link>
-                <Link to="/soporte/garantia" className={styles.enlace}>
-                  <Texto variante="cuerpo-s">Reparar por garantía</Texto>
-                </Link>
-                <Link to="/contacto" className={styles.enlace}>
-                  <Texto variante="cuerpo-s">Contacto</Texto>
-                </Link>
-                <Link to="/faq" className={styles.enlace}>
-                  <Texto variante="cuerpo-s">Preguntas frecuentes</Texto>
-                </Link>
-              </nav>
-            </div>
+          <nav className={styles.columna} aria-labelledby="pie-ayuda">
+            <h2 id="pie-ayuda" className={styles.titulo}>Ayuda</h2>
+            <ul>
+              {AYUDA.map((enlace) => (
+                <li key={enlace.ruta}><Link to={enlace.ruta} className={styles.enlace}>{enlace.etiqueta}</Link></li>
+              ))}
+            </ul>
+          </nav>
 
-            {/* Información */}
-            <div className={styles.columna}>
-              <Texto variante="etiqueta-fuerte" className={styles.titulo}>
-                Información
-              </Texto>
-              <nav className={styles.enlaces}>
-                <Link to="/acerca" className={styles.enlace}>
-                  <Texto variante="cuerpo-s">Acerca de FlyStore</Texto>
-                </Link>
-                <Link to="/terminos" className={styles.enlace}>
-                  <Texto variante="cuerpo-s">Términos y condiciones</Texto>
-                </Link>
-                <Link to="/privacidad" className={styles.enlace}>
-                  <Texto variante="cuerpo-s">Política de privacidad</Texto>
-                </Link>
-              </nav>
-            </div>
-          </div>
-
-          {/* Botón de WhatsApp */}
-          <div className={styles.whatsappContainer}>
-            <a
-              href="https://wa.me/526441234567"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.whatsappBtn}
-            >
-              <Boton variante="whatsapp" anchoCompleto icono={<Icono nombre="whatsapp" tamano={20} />}>
-                Contactar por WhatsApp
-              </Boton>
+          <div className={styles.columna}>
+            <h2 className={styles.titulo}>Contacto</h2>
+            <a href={`mailto:${MARCA.correoContacto}`} className={styles.correo}>
+              <Icono nombre="mail" tamano={16} /> {MARCA.correoContacto}
             </a>
+            {whatsapp && (
+              <a href={whatsapp} target="_blank" rel="noopener noreferrer" className={styles.whatsapp}>
+                <Icono nombre="whatsapp" tamano={18} /> Escríbenos por WhatsApp
+              </a>
+            )}
           </div>
         </div>
 
-        {/* Separador */}
-        <div className={styles.separador} />
-
-        {/* Copyright */}
-        <div className={styles.copyright}>
-          <Texto variante="mini" tono="secundario">
-            © {currentYear} FlyStore. Todos los derechos reservados.
-          </Texto>
-        </div>
+        <div className={styles.divisor} role="presentation" />
+        <p className={styles.legal}>© {anio} {MARCA.nombreComercial} · Todos los precios en MXN</p>
       </div>
     </footer>
   )

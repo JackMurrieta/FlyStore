@@ -61,7 +61,7 @@ export default function MetodoPagoView() {
             </fieldset>
           </Tarjeta>
 
-          {pago.cargandoDatosBancarios && <EstadoCarga texto="Cargando datos para pagar…" />}
+          {pago.cargandoDatosBancarios && <EstadoCarga texto="Cargando datos para pagar…" diseno="filas" />}
 
           {opcion === TipoPago.TRANSFERENCIA && datosBancarios && (
             <DatosTransferencia datos={datosBancarios} total={informacionPedido.total} />
