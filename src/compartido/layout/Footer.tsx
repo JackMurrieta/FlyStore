@@ -57,6 +57,9 @@ export function Footer() {
                 Soporte
               </Texto>
               <nav className={styles.enlaces}>
+                <Link to="/mis-pedidos" className={styles.enlace}>
+                  <Texto variante="cuerpo-s">Mis pedidos</Texto>
+                </Link>
                 <Link to="/soporte/garantia" className={styles.enlace}>
                   <Texto variante="cuerpo-s">Reparar por garantía</Texto>
                 </Link>

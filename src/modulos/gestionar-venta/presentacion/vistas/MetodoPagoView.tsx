@@ -52,11 +52,11 @@ export default function MetodoPagoView() {
               <legend className={estilos.visuallyHidden}>Forma de pago</legend>
               <OpcionPago nombre="tipoPago" valor={TipoPago.TRANSFERENCIA} seleccionada={opcion === TipoPago.TRANSFERENCIA}
                 icono="bank" titulo="Transferencia bancaria"
-                descripcion={`Sube tu comprobante ahora o en máximo ${HORAS_LIMITE_PAGO} h; si no, tu pedido se elimina.`}
+                descripcion={`Sube tu comprobante ahora o en máximo ${HORAS_LIMITE_PAGO} h; si no, tu pedido se cancela.`}
                 alElegir={pago.elegirTransferencia} />
               <OpcionPago nombre="tipoPago" valor={TipoPago.EFECTIVO} seleccionada={opcion === TipoPago.EFECTIVO}
                 icono="cash" titulo="Efectivo"
-                descripcion={`Tienes ${HORAS_LIMITE_PAGO} horas para pagar; si no, tu pedido se elimina.`}
+                descripcion={`Tienes ${HORAS_LIMITE_PAGO} horas para pagar; si no, tu pedido se cancela.`}
                 alElegir={elegirPagoEfectivo} />
             </fieldset>
           </Tarjeta>
@@ -79,7 +79,7 @@ export default function MetodoPagoView() {
               <CajaFecha icono="clock" etiqueta="Fecha y hora límite" fecha={fechaLimite} estado={metodoPago.estadoInicial} />
               <Aviso tono="advertencia" titulo={`Tienes ${HORAS_LIMITE_PAGO} horas para transferir y subir tu comprobante`}>
                 Usa el folio del pedido como concepto. Tus piezas no quedan apartadas hasta que subas el comprobante.
-                Si no lo subes en {HORAS_LIMITE_PAGO} horas, tu pedido se elimina y tendrás que hacer uno nuevo.
+                Si no lo subes en {HORAS_LIMITE_PAGO} horas, tu pedido se cancela y tendrás que hacer uno nuevo.
               </Aviso>
             </Tarjeta>
           )}
@@ -91,7 +91,7 @@ export default function MetodoPagoView() {
               <ul className={estilos.condiciones}>
                 <li><Icono nombre="package" tamano={18} /><Texto variante="cuerpo">Tus {piezas(informacionPedido.totalPiezas)} no quedan apartadas hasta que se registre tu pago.</Texto></li>
                 <li><Icono nombre="clock" tamano={18} /><Texto variante="cuerpo">El plazo empieza al confirmar el pedido.</Texto></li>
-                <li><Icono nombre="ban" tamano={18} /><Texto variante="cuerpo">Si no pagas en {HORAS_LIMITE_PAGO} horas, tu pedido se elimina y tendrás que hacer uno nuevo.</Texto></li>
+                <li><Icono nombre="ban" tamano={18} /><Texto variante="cuerpo">Si no pagas en {HORAS_LIMITE_PAGO} horas, tu pedido se cancela y tendrás que hacer uno nuevo.</Texto></li>
               </ul>
             </Tarjeta>
           )}

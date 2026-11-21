@@ -5,7 +5,6 @@ import type { MetodoPagoDTO } from '../../aplicacion/dto/MetodoPagoDTO'
 import type { RespuestaValidacionComprobanteDTO } from '../../aplicacion/dto/RespuestaValidacionComprobanteDTO'
 import type { ActualizarCantidadPeticionDTO } from '../../aplicacion/dto/ActualizarCantidadPeticionDTO'
 import type { AplicarCodigoPeticionDTO } from '../../aplicacion/dto/AplicarCodigoPeticionDTO'
-import type { ComprobantePedidoDTO } from '../../aplicacion/dto/ComprobantePedidoDTO'
 
 /**
  * Puerto único del CU-02 hacia el backend (los controllers del backend funcionan como BFF).
@@ -23,10 +22,21 @@ export interface IGestionarVentaGateway {
   validarMetodoPagoDTO(dto: MetodoPagoDTO): Promise<RespuestaValidacionComprobanteDTO>
   /** Básico, mensaje 61; Alt3 y Alt4, mensaje 20. */
   registrarPedidoVenta(dto: PedidoVentaDTO): Promise<PedidoVentaDTO>
-  /** Básico, mensaje 65. Ticket del pedido como JSON con HTML+CSS. */
-  generarComprobantePedidoVenta(folio: string): Promise<ComprobantePedidoDTO>
+  /**
+   * Básico, mensaje 65. Datos del ticket: el pedido registrado tal como lo guarda el backend.
+   * El front lo pinta con TicketPedido y el cliente lo imprime o guarda como PDF (window.print).
+   */
+  generarComprobantePedidoVenta(folio: string): Promise<PedidoVentaDTO>
   /** Alt1, mensaje 4. */
   actualizarCantidad(dto: ActualizarCantidadPeticionDTO): Promise<PedidoVentaDTO>
   /** Alt2, mensaje 4. */
   aplicarCodigoDescuento(dto: AplicarCodigoPeticionDTO): Promise<PedidoVentaDTO>
+
+  // ── S6 «Mis pedidos» (subir el comprobante después) ──
+  /** Pedidos registrados del cliente, del más reciente al más antiguo. No incluye el carrito. */
+  listarPedidosVenta(): Promise<PedidoVentaDTO[]>
+  /** Cuenta para transferir con el folio de un pedido ya registrado (no genera folio nuevo). */
+  obtenerDatosBancariosPedidoVenta(folio: string): Promise<DatosBancariosDTO>
+  /** Sube el comprobante de un pedido PENDIENTE_COMPROBANTE; responde el pedido en PAGO_EN_REVISION. */
+  subirComprobantePedidoVenta(folio: string, archivo: File): Promise<PedidoVentaDTO>
 }

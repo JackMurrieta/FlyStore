@@ -1,6 +1,6 @@
 import { Boton, Icono, Insignia, Texto } from '@compartido/ui'
 import type { CarritoTs } from '../../dominio/CarritoTs'
-import { formatearDescuento, formatearMonto, formatearTotal, piezas } from '../formato'
+import { etiquetaAhorro, formatearDescuento, formatearMonto, formatearTotal, piezas } from '../formato'
 import { CodigoDescuento } from './CodigoDescuento'
 import { Divisor, FilaResumen } from './Elementos'
 import estilos from './venta.module.css'
@@ -33,23 +33,27 @@ export function ResumenCarrito(props: Props) {
             </span>
           </Insignia>
         </div>
-        <div className={estilos.progreso} role="progressbar" aria-label="Avance al siguiente esquema de precio"
-          aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(esquema.progreso * 100)}>
-          <span style={{ width: `${esquema.progreso * 100}%` }} />
-        </div>
+        {!esquema.porProducto && (
+          <div className={estilos.progreso} role="progressbar" aria-label="Avance al siguiente esquema de precio"
+            aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(esquema.progreso * 100)}>
+            <span style={{ width: `${esquema.progreso * 100}%` }} />
+          </div>
+        )}
         <Texto variante="mini" tono="secundario" como="p">
-          {esquema.siguiente
-            ? `Te ${esquema.siguiente.piezasFaltantes === 1 ? 'falta' : 'faltan'} ${piezas(esquema.siguiente.piezasFaltantes)} para precio ${esquema.siguiente.etiqueta}${esquema.siguiente.minPiezas ? ` (${esquema.siguiente.minPiezas}+)` : ''}.`
-            : `Ya tienes el mejor precio: ${esquema.etiqueta}.`}
+          {esquema.porProducto
+            ? 'Con varios productos, cada uno se cobra según sus propias piezas. Revisa el precio de cada uno en tu carrito.'
+            : esquema.siguiente
+              ? `Te ${esquema.siguiente.piezasFaltantes === 1 ? 'falta' : 'faltan'} ${piezas(esquema.siguiente.piezasFaltantes)} para precio ${esquema.siguiente.etiqueta}${esquema.siguiente.minPiezas ? ` (${esquema.siguiente.minPiezas}+)` : ''}.`
+              : `Ya tienes el mejor precio: ${esquema.etiqueta}.`}
         </Texto>
       </div>
       <FilaResumen etiqueta="Piezas" valor={carrito.totalPiezas} />
       <FilaResumen etiqueta="Subtotal a precio Base" valor={formatearMonto(carrito.subtotalPrecioBase)} />
       {carrito.ahorroPorEsquema > 0 && (
-        <FilaResumen etiqueta={`Ahorro por ${esquema.etiqueta}`} valor={formatearDescuento(carrito.ahorroPorEsquema)} tipo="descuento" />
+        <FilaResumen etiqueta={etiquetaAhorro(esquema.etiqueta)} valor={formatearDescuento(carrito.ahorroPorEsquema)} tipo="descuento" />
       )}
-      {carrito.descuentosCodigo.map((descuento) => (
-        <FilaResumen key={descuento.codigo} etiqueta={`Código ${descuento.codigo} · ${descuento.producto}`}
+      {carrito.descuentosCodigo.map((descuento, indice) => (
+        <FilaResumen key={`${descuento.codigo}-${indice}`} etiqueta={`Código ${descuento.codigo} · ${descuento.producto}`}
           valor={formatearDescuento(descuento.monto)} tipo="descuento" />
       ))}
       <Divisor />

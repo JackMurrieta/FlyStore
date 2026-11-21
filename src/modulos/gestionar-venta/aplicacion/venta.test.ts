@@ -25,6 +25,23 @@ describe('PedidoVentaMapper', () => {
     expect(carrito.total).toBe(4084)
   })
 
+  it('usa los estados y esquemas del backend: «Cancelado por vencimiento», «Mixto», envío e id nulo del carrito vacío', () => {
+    expect(PedidoVentaMapper.convertirEstado('CANCELADO_VENCIMIENTO')).toEqual({ valor: 'CANCELADO_VENCIMIENTO', etiqueta: 'Cancelado por vencimiento', tono: 'error' })
+    expect(PedidoVentaMapper.convertirEstado('APARTADO_PENDIENTE_PAGO')).toMatchObject({ etiqueta: 'Pendiente de pago', tono: 'advertencia' })
+    expect(PedidoVentaMapper.convertirEstado('PREPARACION')).toMatchObject({ etiqueta: 'En preparación' })
+
+    const mixto = PedidoVentaMapper.convertirPedidoVentaDTOaCarritoTs({
+      ...pedidoFigma(), tipoPrecioAplicado: 'MIXTO', siguienteTipoPrecio: null, piezasParaSiguienteNivel: null, nivelesPrecio: [],
+    })
+    expect(mixto.esquema).toMatchObject({ tipoPrecio: 'MIXTO', etiqueta: 'Mixto', porProducto: true, siguiente: null })
+    const unProducto = PedidoVentaMapper.convertirPedidoVentaDTOaCarritoTs({ ...pedidoFigma(), detalles: pedidoFigma().detalles.slice(0, 1) })
+    expect(unProducto.esquema.porProducto).toBe(false)
+    expect(PedidoVentaMapper.convertirPedidoVentaDTOaInformacionPedidoTs({ ...pedidoFigma(), costoEnvio: 99 }).costoEnvio).toBe(99)
+
+    const vacio = PedidoVentaMapper.convertirPedidoVentaDTOaCarritoTs({ ...pedidoFigma(), id: null, detalles: [], totalPiezas: 0, total: 0 })
+    expect(vacio.vacio).toBe(true)
+  })
+
   it('convierte el método de pago en su estado inicial y plazo de 42 h', () => {
     const efectivo = PedidoVentaMapper.convertirMetodoPagoDTOaMetodoPagoTs({ tipoPago: 'EFECTIVO', folio: 'F' }, AHORA)
     expect(efectivo).toMatchObject({ modalidad: 'EFECTIVO', estadoInicial: { etiqueta: 'Pendiente de pago', tono: 'advertencia' } })
@@ -111,10 +128,19 @@ describe('Modelos de gestionar venta', () => {
     expect(enviado.datosEntrega).toMatchObject({ nombreCompleto: 'Ana Torres', telefono: '6441234567' })
     expect(pedidoEnCurso.obtenerEstado()).toMatchObject({ carrito: null, pedidoRegistrado: { folio: 'FLY-000128', estado: { etiqueta: 'Pago en revisión' } } })
 
-    const comprobante = await pedidoEnCurso.generarComprobantePedidoVenta('FLY-000128')
-    expect(comprobante?.folio).toBe('FLY-000128')
-    expect(comprobante?.html).toBeTruthy()
-    expect(pedidoEnCurso.obtenerEstado().comprobantePedidoPDF).toBe(comprobante)
+    const ticket = await pedidoEnCurso.generarComprobantePedidoVenta('FLY-000128')
+    expect(gateway.generarComprobantePedidoVenta).toHaveBeenCalledWith('FLY-000128')
+    expect(ticket).toMatchObject({ folio: 'FLY-000128', total: 4210, cliente: { nombre: 'Ana Torres' } })
+    expect(pedidoEnCurso.obtenerEstado().pedidoRegistrado).toBe(ticket)
+  })
+
+  it('B7 por URL o recarga: pide el pedido registrado por su folio; si falla deja el mensaje', async () => {
+    const gateway = gatewayFalso()
+    const { pedidoEnCurso } = crearModelosVenta(gateway)
+    expect(await pedidoEnCurso.generarComprobantePedidoVenta('FLY-000131')).toMatchObject({ folio: 'FLY-000131' })
+    vi.mocked(gateway.generarComprobantePedidoVenta).mockRejectedValueOnce(new Error('No se encontró el pedido'))
+    expect(await pedidoEnCurso.generarComprobantePedidoVenta('FLY-999999')).toBeNull()
+    expect(pedidoEnCurso.obtenerEstado()).toMatchObject({ generandoComprobantePedido: false, errorComprobantePedido: 'No se encontró el pedido' })
   })
 
   it('no sube archivos inválidos (A6) y muestra el rechazo del backend (Alt5) o la falla de red (A7)', async () => {

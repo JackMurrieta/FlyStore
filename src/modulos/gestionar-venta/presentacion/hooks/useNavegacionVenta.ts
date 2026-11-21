@@ -46,7 +46,7 @@ export function useNavegacionVenta() {
     navegar(`${rutaBase}/confirmacion`)
   })
 
-  /** Básico, mensajes 59–69. Registra, navega y pide el ticket en PDF. Si falla (A9) no navega. */
+  /** Básico, mensajes 59–69. Registra, navega a B7 y pide los datos del ticket. Si falla (A9) no navega. */
   const irPedidoRegistrado = (folio: string) => conIndicador(async () => {
     await pedidoEnCurso.registrarPedidoVenta()
     const { error, pedidoRegistrado } = pedidoEnCurso.obtenerEstado()

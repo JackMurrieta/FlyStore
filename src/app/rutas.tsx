@@ -13,6 +13,7 @@ const IniciarSesionVista = lazy(() => import('@modulos/iniciar-sesion').then(m =
 const RegistroVista = lazy(() => import('@modulos/iniciar-sesion').then(m => ({ default: m.RegistroVista })))
 const CallbackAuthVista = lazy(() => import('@modulos/iniciar-sesion').then(m => ({ default: m.CallbackAuthVista })))
 const GestionarVenta = lazy(() => import('@modulos/gestionar-venta').then(m => ({ default: m.GestionarVenta })))
+const MisPedidos = lazy(() => import('@modulos/gestionar-venta').then(m => ({ default: m.MisPedidos })))
 
 // CU-04 Administrar Pedidos (solo ADMIN y EMPLEADO)
 const PedidosAdminVista = lazy(() => import('@modulos/administrar-pedidos').then(m => ({ default: m.PedidosAdminVista })))
@@ -66,7 +67,16 @@ export function Rutas() {
           path="/carrito/*"
           element={
             <RutaProtegida>
-              <GestionarVenta modelos={contenedor.modelosVenta} rutaBase="/carrito" />
+              <GestionarVenta modelos={contenedor.modelosVenta} rutaBase="/carrito" rutaMisPedidos="/mis-pedidos" />
+            </RutaProtegida>
+          }
+        />
+        {/* CU-02 · S6 Mis pedidos (protegido): estado de los pedidos y subir el comprobante después */}
+        <Route
+          path="/mis-pedidos"
+          element={
+            <RutaProtegida>
+              <MisPedidos modelos={contenedor.modelosVenta} rutaCarrito="/carrito" rutaMisPedidos="/mis-pedidos" />
             </RutaProtegida>
           }
         />

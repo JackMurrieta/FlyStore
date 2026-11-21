@@ -154,9 +154,8 @@ export const adminPedidos = {
 } as const
 
 /**
- * Endpoints de CU-02 Gestionar venta (GestionarVentaController, funciona como BFF).
+ * Endpoints de CU-02 Gestionar venta (GestionarVentaController y PedidoController del backend).
  * La identidad del cliente sale de la cookie de sesión: el front nunca envía clienteId.
- * // SUPUESTO: Rutas pendientes de confirmar con backend
  */
 export const ventas = {
   /** GET → PedidoVentaDTO (pedido en estado PENDIENTE = carrito) */
@@ -175,8 +174,13 @@ export const ventas = {
   comprobantePago: () => `${API_BASE}/api/ventas/pedido-en-curso/comprobante`,
   /** POST PedidoVentaDTO → PedidoVentaDTO registrado */
   registrar: () => `${API_BASE}/api/ventas/pedido-en-curso/registrar`,
-  /** GET → ComprobantePedidoDTO (JSON con HTML+CSS del ticket) */
-  comprobantePedido: (folio: string) => `${API_BASE}/api/ventas/pedidos/${encodeURIComponent(folio)}/comprobante`,
+  /** GET → PedidoVentaDTO del pedido registrado (datos del ticket) · 404 si no es del cliente */
+  pedidoRegistrado: (folio: string) => `${API_BASE}/api/ventas/pedidos/${encodeURIComponent(folio)}`,
+  /** POST multipart (archivo) → PedidoVentaDTO · S6: PENDIENTE_COMPROBANTE → PAGO_EN_REVISION */
+  comprobantePedidoRegistrado: (folio: string) =>
+    `${API_BASE}/api/ventas/pedidos/${encodeURIComponent(folio)}/comprobante`,
+  /** GET → PedidoVentaDTO[] · «Mis pedidos»: pedidos registrados del cliente (sin el carrito) */
+  misPedidos: () => `${API_BASE}/api/pedidos`,
 } as const
 
 export const catalogoAdmin = {

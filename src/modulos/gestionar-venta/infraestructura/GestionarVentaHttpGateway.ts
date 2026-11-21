@@ -17,7 +17,6 @@ import type { MetodoPagoDTO } from '../aplicacion/dto/MetodoPagoDTO'
 import type { RespuestaValidacionComprobanteDTO } from '../aplicacion/dto/RespuestaValidacionComprobanteDTO'
 import type { ActualizarCantidadPeticionDTO } from '../aplicacion/dto/ActualizarCantidadPeticionDTO'
 import type { AplicarCodigoPeticionDTO } from '../aplicacion/dto/AplicarCodigoPeticionDTO'
-import type { ComprobantePedidoDTO } from '../aplicacion/dto/ComprobantePedidoDTO'
 
 export class GestionarVentaHttpGateway implements IGestionarVentaGateway {
   private readonly http: HttpClient
@@ -46,6 +45,12 @@ export class GestionarVentaHttpGateway implements IGestionarVentaGateway {
       this.http.post<FolioDTO>(endpoints.ventas.folio()),
     ])
     return { ...datos, folio: folio.folio }
+  }
+
+  /** S6. Solo la cuenta: el concepto es el folio del pedido ya registrado. */
+  async obtenerDatosBancariosPedidoVenta(folio: string): Promise<DatosBancariosDTO> {
+    const datos = await this.http.get<Omit<DatosBancariosDTO, 'folio'>>(endpoints.ventas.datosBancarios())
+    return { ...datos, folio }
   }
 
   /** gestionarVentaValidarDTO. Si el backend rechaza el archivo, lanza la excepción del Alt5. */
@@ -77,9 +82,9 @@ export class GestionarVentaHttpGateway implements IGestionarVentaGateway {
     return this.http.post<PedidoVentaDTO>(endpoints.ventas.registrar(), { ...dto, metodoPago })
   }
 
-  /** gestionarVentaGenerarComprobante. Retorna JSON con HTML+CSS del ticket. */
-  generarComprobantePedidoVenta(folio: string): Promise<ComprobantePedidoDTO> {
-    return this.http.get<ComprobantePedidoDTO>(endpoints.ventas.comprobantePedido(folio))
+  /** gestionarVentaGenerarComprobante. El ticket se arma en el front con los datos del pedido registrado. */
+  generarComprobantePedidoVenta(folio: string): Promise<PedidoVentaDTO> {
+    return this.http.get<PedidoVentaDTO>(endpoints.ventas.pedidoRegistrado(folio))
   }
 
   /** gestionarVentaActualizarCantidad (Alt1) */
@@ -90,5 +95,24 @@ export class GestionarVentaHttpGateway implements IGestionarVentaGateway {
   /** gestionarVentaAplicarCodigoDescuento (Alt2) */
   aplicarCodigoDescuento(dto: AplicarCodigoPeticionDTO): Promise<PedidoVentaDTO> {
     return this.http.post<PedidoVentaDTO>(endpoints.ventas.codigoDescuento(), dto)
+  }
+
+  /** S6 · Mis pedidos */
+  listarPedidosVenta(): Promise<PedidoVentaDTO[]> {
+    return this.http.get<PedidoVentaDTO[]>(endpoints.ventas.misPedidos())
+  }
+
+  /** S6 · Subir comprobante. Si el backend rechaza el archivo o el pedido ya no lo admite, lanza la excepción del Alt5. */
+  async subirComprobantePedidoVenta(folio: string, archivo: File): Promise<PedidoVentaDTO> {
+    const datos = new FormData()
+    datos.append('archivo', archivo)
+    try {
+      return await this.http.postMultipart<PedidoVentaDTO>(endpoints.ventas.comprobantePedidoRegistrado(folio), datos)
+    } catch (error) {
+      if (error instanceof ErrorApi && (error.tipo === 'VALIDACION' || error.tipo === 'NEGOCIO')) {
+        throw new RespuestaValidacionComprobanteException(error.message)
+      }
+      throw error
+    }
   }
 }

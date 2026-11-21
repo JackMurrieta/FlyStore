@@ -3,8 +3,20 @@
  * El backend vuelve a validar todo; estas reglas solo evitan viajes inútiles.
  */
 
-/** Plazo para pagar o subir el comprobante; al vencer, el pedido se elimina. */
+import { EstadoVenta } from './EstadoVenta'
+
+/** Plazo para pagar o subir el comprobante; al vencer, el pedido queda CANCELADO_VENCIMIENTO (no se borra). */
 export const HORAS_LIMITE_PAGO = 42
+
+/**
+ * El plazo de pago de un pedido registrado ya venció: el backend lo canceló por vencimiento, o
+ * sigue esperando pago pero pasó su fecha límite (el proceso que lo cancela aún no corre).
+ */
+export function plazoPagoVencido(estadoVenta: string, fechaLimitePago: Date | null, ahora: Date): boolean {
+  if (estadoVenta === EstadoVenta.CANCELADO_VENCIMIENTO) return true
+  const esperaPago = estadoVenta === EstadoVenta.PENDIENTE_COMPROBANTE || estadoVenta === EstadoVenta.APARTADO_PENDIENTE_PAGO
+  return esperaPago && fechaLimitePago !== null && fechaLimitePago.getTime() <= ahora.getTime()
+}
 
 /** Formatos aceptados para el comprobante de transferencia. */
 export const TIPOS_COMPROBANTE = ['image/jpeg', 'image/png', 'application/pdf'] as const

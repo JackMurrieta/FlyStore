@@ -19,26 +19,30 @@ import type { MetodoPagoTs } from '../../dominio/MetodoPagoTs'
 import type { EstadoPedidoTs } from '../../dominio/EstadoVenta'
 import { EstadoVenta } from '../../dominio/EstadoVenta'
 import { TipoPago } from '../../dominio/TipoPago'
-import { TipoPrecio } from '../../dominio/TipoPrecio'
+import type { TipoPrecioAplicado } from '../../dominio/TipoPrecio'
+import { TIPO_PRECIO_MIXTO, TipoPrecio } from '../../dominio/TipoPrecio'
 import { HORAS_LIMITE_PAGO, soloDigitos } from '../../dominio/ReglasVenta'
 
-const ETIQUETAS_ESQUEMA: Record<TipoPrecio, string> = {
+const ETIQUETAS_ESQUEMA: Record<TipoPrecioAplicado, string> = {
   [TipoPrecio.BASE]: 'Base',
+  [TipoPrecio.EMPRENDEDOR]: 'Emprendedor',
   [TipoPrecio.MAYOREO]: 'Mayoreo',
   [TipoPrecio.DISTRIBUIDOR]: 'Distribuidor',
+  [TipoPrecio.SOCIO_COMERCIAL]: 'Socio comercial',
+  [TIPO_PRECIO_MIXTO]: 'Mixto',
 }
 
 const ESTADOS: Record<string, Omit<EstadoPedidoTs, 'valor'>> = {
   [EstadoVenta.PENDIENTE]: { etiqueta: 'En carrito', tono: 'neutro' },
-  [EstadoVenta.PAGO_EN_REVISION]: { etiqueta: 'Pago en revisión', tono: 'info' },
+  [EstadoVenta.APARTADO_PENDIENTE_PAGO]: { etiqueta: 'Pendiente de pago', tono: 'advertencia' },
   [EstadoVenta.PENDIENTE_COMPROBANTE]: { etiqueta: 'Pendiente de comprobante', tono: 'advertencia' },
-  [EstadoVenta.PENDIENTE_PAGO]: { etiqueta: 'Pendiente de pago', tono: 'advertencia' },
-  // Nombre anterior del mismo estado en la propuesta del backend (3-nov).
-  APARTADO_PENDIENTE_PAGO: { etiqueta: 'Pendiente de pago', tono: 'advertencia' },
+  [EstadoVenta.PAGO_EN_REVISION]: { etiqueta: 'Pago en revisión', tono: 'info' },
   [EstadoVenta.PAGADO]: { etiqueta: 'Pagado', tono: 'exito' },
+  [EstadoVenta.PREPARACION]: { etiqueta: 'En preparación', tono: 'info' },
   [EstadoVenta.ENVIADO]: { etiqueta: 'Enviado', tono: 'info' },
   [EstadoVenta.ENTREGADO]: { etiqueta: 'Entregado', tono: 'exito' },
-  [EstadoVenta.ELIMINADO_POR_VENCIMIENTO]: { etiqueta: 'Eliminado por vencimiento', tono: 'error' },
+  [EstadoVenta.CANCELADO]: { etiqueta: 'Cancelado', tono: 'error' },
+  [EstadoVenta.CANCELADO_VENCIMIENTO]: { etiqueta: 'Cancelado por vencimiento', tono: 'error' },
 }
 
 const MS_POR_HORA = 60 * 60 * 1000
@@ -79,6 +83,7 @@ export class PedidoVentaMapper {
       subtotalPrecioBase: dto.subtotalPrecioBase,
       ahorroPorEsquema: dto.ahorroPorTipoPrecio,
       descuentosCodigo: PedidoVentaMapper.convertirDescuentosCodigo(dto.detalles),
+      costoEnvio: dto.costoEnvio ?? 0,
       total: dto.total,
       estado: dto.estadoVenta ? PedidoVentaMapper.convertirEstado(dto.estadoVenta) : null,
       tipoPago: dto.metodoPago?.tipoPago ?? null,
@@ -140,7 +145,7 @@ export class PedidoVentaMapper {
         modalidad: 'EFECTIVO',
         etiqueta: 'Efectivo',
         comprobanteNombre: null,
-        estadoInicial: PedidoVentaMapper.convertirEstado(EstadoVenta.PENDIENTE_PAGO),
+        estadoInicial: PedidoVentaMapper.convertirEstado(EstadoVenta.APARTADO_PENDIENTE_PAGO),
         fechaLimiteEstimada,
       }
     }
@@ -220,9 +225,11 @@ export class PedidoVentaMapper {
     const minSiguiente = siguienteTipo
       ? niveles.find((nivel) => nivel.tipoPrecio === siguienteTipo)?.minPiezas ?? null
       : null
+    const variosProductos = new Set(dto.detalles.map((detalle) => detalle.productoNombre)).size > 1
     return {
       tipoPrecio: dto.tipoPrecioAplicado,
       etiqueta: ETIQUETAS_ESQUEMA[dto.tipoPrecioAplicado] ?? dto.tipoPrecioAplicado,
+      porProducto: dto.tipoPrecioAplicado === TIPO_PRECIO_MIXTO || variosProductos,
       rango,
       siguiente: siguienteTipo
         ? {

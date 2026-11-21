@@ -1,7 +1,7 @@
 import { Texto } from '@compartido/ui'
 import type { InformacionPedidoTs } from '../../dominio/InformacionPedidoTs'
 import { TipoPago } from '../../dominio/TipoPago'
-import { formatearDescuento, formatearFechaTicket, formatearMonto, formatearTelefono, formatearTotal, piezas } from '../formato'
+import { etiquetaAhorro, formatearDescuento, formatearFechaTicket, formatearMonto, formatearTelefono, formatearTotal, piezas } from '../formato'
 import estilos from './venta.module.css'
 
 interface Props {
@@ -9,7 +9,10 @@ interface Props {
   readonly cliente: { readonly nombre: string; readonly telefono: string } | null
 }
 
-/** «Comprobante de pedido» de B7: versión en pantalla del ticket PDF. */
+/**
+ * «Comprobante de pedido» de B7. Se arma con los datos del pedido registrado y es lo único que
+ * se imprime con «Ver / Imprimir ticket» (window.print → imprimir o guardar como PDF).
+ */
 export function TicketPedido({ pedido, cliente }: Props) {
   return (
     <aside className={estilos.ticket} aria-labelledby="titulo-ticket">
@@ -34,11 +37,12 @@ export function TicketPedido({ pedido, cliente }: Props) {
         <hr />
         <Fila etiqueta="Subtotal a precio Base" valor={formatearMonto(pedido.subtotalPrecioBase)} />
         {pedido.ahorroPorEsquema > 0 && (
-          <Fila etiqueta={`Ahorro ${pedido.etiquetaEsquema}`} valor={formatearDescuento(pedido.ahorroPorEsquema)} />
+          <Fila etiqueta={etiquetaAhorro(pedido.etiquetaEsquema)} valor={formatearDescuento(pedido.ahorroPorEsquema)} />
         )}
-        {pedido.descuentosCodigo.map((descuento) => (
-          <Fila key={descuento.codigo} etiqueta={`Código ${descuento.codigo}`} valor={formatearDescuento(descuento.monto)} />
+        {pedido.descuentosCodigo.map((descuento, indice) => (
+          <Fila key={`${descuento.codigo}-${indice}`} etiqueta={`Código ${descuento.codigo}`} valor={formatearDescuento(descuento.monto)} />
         ))}
+        {pedido.costoEnvio > 0 && <Fila etiqueta="Envío" valor={formatearMonto(pedido.costoEnvio)} />}
         <Fila etiqueta="Método de pago" valor={pedido.tipoPago === TipoPago.EFECTIVO ? 'Efectivo' : 'Transferencia'} />
         {pedido.estado && <Fila etiqueta="Estado" valor={pedido.estado.etiqueta} />}
         <div className={estilos.filaTotal}>

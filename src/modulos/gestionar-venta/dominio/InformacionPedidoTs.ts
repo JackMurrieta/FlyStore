@@ -21,6 +21,8 @@ export interface InformacionPedidoTs {
   readonly subtotalPrecioBase: number
   readonly ahorroPorEsquema: number
   readonly descuentosCodigo: readonly DescuentoCodigoTs[]
+  /** 0 si el pedido no lleva envío. */
+  readonly costoEnvio: number
   readonly total: number
   readonly estado: EstadoPedidoTs | null
   readonly tipoPago: TipoPago | null

@@ -22,10 +22,12 @@ import PedidoRegistradoView from './vistas/PedidoRegistradoView'
 export interface GestionarVentaProps {
   readonly modelos: ModelosVenta
   readonly rutaBase?: string
+  /** A dónde lleva B7 para subir el comprobante después (S6). */
+  readonly rutaMisPedidos?: string
 }
 
-export function GestionarVenta({ modelos, rutaBase = '/carrito' }: GestionarVentaProps) {
-  const contexto = useMemo<ContextoVenta>(() => ({ modelos, rutaBase }), [modelos, rutaBase])
+export function GestionarVenta({ modelos, rutaBase = '/carrito', rutaMisPedidos = '/mis-pedidos' }: GestionarVentaProps) {
+  const contexto = useMemo<ContextoVenta>(() => ({ modelos, rutaBase, rutaMisPedidos }), [modelos, rutaBase, rutaMisPedidos])
   return (
     <ModelosVentaContext.Provider value={contexto}>
       <Routes>

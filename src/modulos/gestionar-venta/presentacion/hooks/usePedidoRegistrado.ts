@@ -1,10 +1,11 @@
 /**
  * usePedidoRegistrado · ViewModel de PedidoRegistradoView (B7).
- * Recibe el ticket como JSON con HTML+CSS (mensaje 68) para mostrar en pantalla
- * y permitir descarga como PDF usando window.print().
+ * Si el pedido de ese folio no está en memoria (la página se abrió por URL o se recargó),
+ * lo pide al backend (generarComprobantePedidoVenta) en lugar de regresar al carrito.
+ * El ticket se arma con esos datos y se imprime o guarda como PDF con window.print().
  */
 
-import { useSyncExternalStore } from 'react'
+import { useEffect, useSyncExternalStore } from 'react'
 import { useModelosVenta } from '../ModelosVentaContext'
 
 export function usePedidoRegistrado(folio: string) {
@@ -13,7 +14,12 @@ export function usePedidoRegistrado(folio: string) {
   const pedido = useSyncExternalStore(modelo.suscribir, modelo.obtenerEstado)
   const entrega = useSyncExternalStore(modelos.datosEntrega.suscribir, modelos.datosEntrega.obtenerEstado)
 
-  const comprobante = pedido.comprobantePedidoPDF
+  useEffect(() => {
+    if (!folio) return
+    const estado = modelo.obtenerEstado()
+    if (estado.pedidoRegistrado?.folio === folio || estado.generandoComprobantePedido) return
+    void modelo.generarComprobantePedidoVenta(folio)
+  }, [folio, modelo])
 
   const registrado = pedido.pedidoRegistrado
   const coincide = Boolean(registrado) && (registrado?.folio ?? folio) === folio
@@ -22,10 +28,9 @@ export function usePedidoRegistrado(folio: string) {
   return {
     pedidoRegistrado: coincide ? registrado : null,
     cliente: registrado?.cliente ?? (datos ? { nombre: datos.nombreCompleto, telefono: datos.telefono } : null),
-    comprobante, // ComprobantePedidoDTO con { folio, fechaEmision, html, css }
-    nombreTicket: `Pedido-${folio}.pdf`,
-    generandoTicket: pedido.generandoComprobantePedido,
-    errorTicket: pedido.errorComprobantePedido,
-    reintentarTicket: () => modelo.generarComprobantePedidoVenta(folio),
+    cargando: !coincide && pedido.generandoComprobantePedido,
+    error: coincide ? null : pedido.errorComprobantePedido,
+    reintentar: () => modelo.generarComprobantePedidoVenta(folio),
+    imprimirTicket: () => window.print(),
   }
 }

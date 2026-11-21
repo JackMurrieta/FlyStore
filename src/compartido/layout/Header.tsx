@@ -64,7 +64,7 @@ export function Header() {
 
           {/* Usuario / Login */}
           {estado === 'autenticado' && usuario ? (
-            <Link to="/perfil" className={styles.perfil}>
+            <Link to="/mis-pedidos" className={styles.perfil} title="Mis pedidos">
               <div className={styles.avatar}>{usuario.iniciales}</div>
               <Texto variante="etiqueta-fuerte" className={styles.nombreUsuario}>
                 {usuario.nombre.split(' ')[0]}

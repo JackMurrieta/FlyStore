@@ -11,7 +11,7 @@ import { useNavegacionVenta } from '../hooks/useNavegacionVenta'
 import { useModelosVenta } from '../ModelosVentaContext'
 import { PaginaVenta } from '../componentes/PaginaVenta'
 import { Divisor, FilaResumen, FotoProducto, InsigniaEstado, Tarjeta } from '../componentes/Elementos'
-import { formatearDescuento, formatearFechaLimite, formatearMonto, formatearTotal, piezas, productos } from '../formato'
+import { etiquetaAhorro, formatearDescuento, formatearFechaLimite, formatearMonto, formatearTotal, piezas, productos } from '../formato'
 import estilos from '../componentes/venta.module.css'
 
 export default function ConfirmarPedidoView() {
@@ -91,12 +91,13 @@ export default function ConfirmarPedidoView() {
             <FilaResumen etiqueta="Esquema aplicado" valor={pedido.etiquetaEsquema} />
             <FilaResumen etiqueta="Subtotal a precio Base" valor={formatearMonto(pedido.subtotalPrecioBase)} />
             {pedido.ahorroPorEsquema > 0 && (
-              <FilaResumen etiqueta={`Ahorro por ${pedido.etiquetaEsquema}`} valor={formatearDescuento(pedido.ahorroPorEsquema)} tipo="descuento" />
+              <FilaResumen etiqueta={etiquetaAhorro(pedido.etiquetaEsquema)} valor={formatearDescuento(pedido.ahorroPorEsquema)} tipo="descuento" />
             )}
-            {pedido.descuentosCodigo.map((descuento) => (
-              <FilaResumen key={descuento.codigo} etiqueta={`Código ${descuento.codigo} · ${descuento.producto}`}
+            {pedido.descuentosCodigo.map((descuento, indice) => (
+              <FilaResumen key={`${descuento.codigo}-${indice}`} etiqueta={`Código ${descuento.codigo} · ${descuento.producto}`}
                 valor={formatearDescuento(descuento.monto)} tipo="descuento" />
             ))}
+            {pedido.costoEnvio > 0 && <FilaResumen etiqueta="Envío" valor={formatearMonto(pedido.costoEnvio)} />}
             <Divisor />
             <FilaResumen etiqueta="Total" valor={formatearTotal(pedido.total)} tipo="total" />
             <Boton variante="primario" anchoCompleto cargando={procesando} disabled={!pedido.folio}

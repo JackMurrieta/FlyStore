@@ -1,6 +1,6 @@
 import { Texto } from '@compartido/ui'
 import type { InformacionPedidoTs } from '../../dominio/InformacionPedidoTs'
-import { formatearDescuento, formatearMonto, formatearTotal, piezas } from '../formato'
+import { etiquetaAhorro, formatearDescuento, formatearMonto, formatearTotal, piezas } from '../formato'
 import { Divisor, FilaResumen, FotoProducto } from './Elementos'
 import estilos from './venta.module.css'
 
@@ -27,12 +27,13 @@ export function ResumenPedido({ informacion }: { readonly informacion: Informaci
       <FilaResumen etiqueta="Piezas" valor={informacion.totalPiezas} />
       <FilaResumen etiqueta="Esquema aplicado" valor={informacion.etiquetaEsquema} />
       {informacion.ahorroPorEsquema > 0 && (
-        <FilaResumen etiqueta={`Ahorro por ${informacion.etiquetaEsquema}`} valor={formatearDescuento(informacion.ahorroPorEsquema)} tipo="descuento" />
+        <FilaResumen etiqueta={etiquetaAhorro(informacion.etiquetaEsquema)} valor={formatearDescuento(informacion.ahorroPorEsquema)} tipo="descuento" />
       )}
-      {informacion.descuentosCodigo.map((descuento) => (
-        <FilaResumen key={descuento.codigo} etiqueta={`Código ${descuento.codigo} · ${descuento.producto}`}
+      {informacion.descuentosCodigo.map((descuento, indice) => (
+        <FilaResumen key={`${descuento.codigo}-${indice}`} etiqueta={`Código ${descuento.codigo} · ${descuento.producto}`}
           valor={formatearDescuento(descuento.monto)} tipo="descuento" />
       ))}
+      {informacion.costoEnvio > 0 && <FilaResumen etiqueta="Envío" valor={formatearMonto(informacion.costoEnvio)} />}
       <Divisor />
       <FilaResumen etiqueta="Total" valor={formatearTotal(informacion.total)} tipo="total" />
     </aside>

@@ -7,6 +7,7 @@ import { SesionProvider, type EstadoSesionTs, type ISesion } from '@compartido/s
 import { crearModelosVenta, type ModelosVenta } from '../../aplicacion/ModelosVenta'
 import { gatewayFalso, pedidoFigma } from '../../pruebas/fixturesVenta'
 import { GestionarVenta } from '../GestionarVenta'
+import { MisPedidos } from '../MisPedidos'
 import { ModelosVentaContext } from '../ModelosVentaContext'
 import { useCarrito } from './useCarrito'
 import { useNavegacionVenta } from './useNavegacionVenta'
@@ -27,7 +28,7 @@ function envoltorio(modelos: ModelosVenta, ruta = '/carrito') {
     return (
       <MemoryRouter initialEntries={[ruta]}>
         <SesionProvider sesion={sesion}>
-          <ModelosVentaContext.Provider value={{ modelos, rutaBase: '/carrito' }}>
+          <ModelosVentaContext.Provider value={{ modelos, rutaBase: '/carrito', rutaMisPedidos: '/mis-pedidos' }}>
             {children}
             <Ubicacion />
           </ModelosVentaContext.Provider>
@@ -148,5 +149,88 @@ describe('Vistas de gestionar venta', () => {
       </MemoryRouter>
     )
     await waitFor(() => expect(screen.getByTestId('ruta').textContent).toBe('/carrito'))
+  })
+
+  it('B7 se puede recargar: pide el pedido por su folio e imprime solo el ticket', async () => {
+    const gateway = gatewayFalso()
+    const imprimir = vi.spyOn(window, 'print').mockImplementation(() => {})
+    render(
+      <MemoryRouter initialEntries={['/carrito/pedido/FLY-000131']}>
+        <SesionProvider sesion={sesion}>
+          <Routes><Route path="/carrito/*" element={<GestionarVenta modelos={crearModelosVenta(gateway)} />} /></Routes>
+          <Ubicacion />
+        </SesionProvider>
+      </MemoryRouter>
+    )
+    expect(await screen.findByRole('heading', { name: 'Folio FLY-000131' })).toBeInTheDocument()
+    expect(gateway.generarComprobantePedidoVenta).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('ruta').textContent).toBe('/carrito/pedido/FLY-000131')
+    expect(screen.getByText('Comprobante de pedido')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /Ver \/ Imprimir ticket/ }))
+    expect(imprimir).toHaveBeenCalled()
+    imprimir.mockRestore()
+  })
+
+  it('B7 sin acceso al pedido muestra el error y permite ir a Mis pedidos', async () => {
+    const gateway = gatewayFalso()
+    vi.mocked(gateway.generarComprobantePedidoVenta).mockRejectedValue(new Error('No se encontró el pedido'))
+    render(
+      <MemoryRouter initialEntries={['/carrito/pedido/FLY-999999']}>
+        <SesionProvider sesion={sesion}>
+          <Routes><Route path="/carrito/*" element={<GestionarVenta modelos={crearModelosVenta(gateway)} />} /></Routes>
+          <Ubicacion />
+        </SesionProvider>
+      </MemoryRouter>
+    )
+    expect(await screen.findByText('No se encontró el pedido')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /Ver mis pedidos/ }))
+    expect(screen.getByTestId('ruta').textContent).toBe('/mis-pedidos')
+  })
+})
+
+describe('Mis pedidos (S6, A10)', () => {
+  const AHORA = new Date('2026-10-23T18:37:00-07:00')
+
+  function renderizarMisPedidos(modelos: ModelosVenta, ruta = '/mis-pedidos') {
+    return render(
+      <MemoryRouter initialEntries={[ruta]}>
+        <SesionProvider sesion={sesion}>
+          <Routes><Route path="/mis-pedidos" element={<MisPedidos modelos={modelos} />} /></Routes>
+          <Ubicacion />
+        </SesionProvider>
+      </MemoryRouter>
+    )
+  }
+
+  it('lista los pedidos, abre el del enlace y sube el comprobante: pasa a «Pago en revisión»', async () => {
+    const gateway = gatewayFalso()
+    renderizarMisPedidos(crearModelosVenta(gateway, () => AHORA), '/mis-pedidos?folio=FLY-000131')
+    expect(await screen.findByRole('heading', { name: 'FLY-000131' })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /FLY-000/ })).toHaveLength(3)
+    expect(screen.getByText('Sube tu comprobante antes de')).toBeInTheDocument()
+    expect(await screen.findByText('722 969 0101 2345 6789')).toBeInTheDocument()
+    expect(gateway.obtenerDatosBancariosPedidoVenta).toHaveBeenCalledWith('FLY-000131')
+    expect(gateway.obtenerDatosBancarios).not.toHaveBeenCalled()
+
+    // jsdom no implementa la vista previa del archivo.
+    Object.defineProperty(URL, 'createObjectURL', { value: vi.fn(() => 'blob:vista-previa'), writable: true, configurable: true })
+    Object.defineProperty(URL, 'revokeObjectURL', { value: vi.fn(), writable: true, configurable: true })
+    const archivo = new File(['imagen'], 'comprobante.png', { type: 'image/png' })
+    await userEvent.upload(screen.getByLabelText(/Subir comprobante/), archivo)
+    await userEvent.click(screen.getByRole('button', { name: /Enviar comprobante/ }))
+    expect(gateway.subirComprobantePedidoVenta).toHaveBeenCalledWith('FLY-000131', archivo)
+    expect(await screen.findByText('Recibimos tu comprobante')).toBeInTheDocument()
+    expect(screen.queryByText('Sube tu comprobante antes de')).not.toBeInTheDocument()
+  })
+
+  it('muestra el pedido vencido como «Cancelado por vencimiento» con sus acciones (A10)', async () => {
+    renderizarMisPedidos(crearModelosVenta(gatewayFalso(), () => AHORA))
+    await userEvent.click(await screen.findByRole('button', { name: /FLY-000097/ }))
+    expect(screen.getByRole('heading', { name: 'FLY-000097' })).toBeInTheDocument()
+    expect(screen.getByText('Este pedido se canceló por vencimiento')).toBeInTheDocument()
+    expect(screen.getByText('El plazo venció el')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Hacer un nuevo pedido/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Escribir por WhatsApp/ })).toHaveAttribute('href', expect.stringContaining('wa.me'))
+    expect(screen.getByTestId('ruta').textContent).toBe('/mis-pedidos')
   })
 })

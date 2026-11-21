@@ -12,6 +12,8 @@ interface Props {
   readonly archivoValidoLocal: boolean
   readonly validando: boolean
   readonly seleccionarArchivo: (archivo: File | null) => void
+  /** «tarjeta» (B4): sección con título. «panel» (S6): solo la zona de carga, dentro del detalle del pedido. */
+  readonly variante?: 'tarjeta' | 'panel'
 }
 
 const ACEPTA = 'image/jpeg,image/png,application/pdf,.jpg,.jpeg,.png,.pdf'
@@ -20,8 +22,9 @@ function tamanoLegible(bytes: number): string {
   return bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`
 }
 
-/** «Tu comprobante» (B4, A6, A7): seleccionar, vista previa y estado de validación. */
+/** «Tu comprobante» (B4, A6, A7 y S6): seleccionar, vista previa y estado de validación. */
 export function ComprobantePago(props: Props) {
+  const { variante = 'tarjeta' } = props
   const { archivo, mensajeError, errorDeConexion } = props
   const entradaId = useId()
   const [arrastrando, setArrastrando] = useState(false)
@@ -40,15 +43,8 @@ export function ComprobantePago(props: Props) {
       onChange={(e) => { props.seleccionarArchivo(e.target.files?.item(0) ?? null); e.target.value = '' }} />
   )
 
-  return (
-    <section className={estilos.tarjeta} aria-labelledby="titulo-comprobante">
-      <div className={estilos.encabezadoTarjeta}>
-        <div>
-          <Texto variante="h3" como="h2" id="titulo-comprobante">Tu comprobante</Texto>
-          <Texto variante="cuerpo-s" como="p" tono="secundario">JPG, PNG o PDF · máximo 5 MB.</Texto>
-        </div>
-      </div>
-
+  const contenido = (
+    <>
       {mensajeError && (
         <Aviso tono="error" titulo={errorDeConexion ? 'El comprobante no se pudo subir' : 'No pudimos usar ese archivo'}>
           {errorDeConexion ? `${mensajeError} Tu archivo sigue seleccionado; inténtalo de nuevo.` : mensajeError}
@@ -56,12 +52,12 @@ export function ComprobantePago(props: Props) {
       )}
 
       {!archivo ? (
-        <div className={estilos.zonaArchivo} data-arrastrando={arrastrando}
+        <div className={estilos.zonaArchivo} data-arrastrando={arrastrando} data-variante={variante}
           onDragOver={(e) => { e.preventDefault(); setArrastrando(true) }}
           onDragLeave={() => setArrastrando(false)} onDrop={soltar}>
-          <Icono nombre="upload" tamano={24} />
+          <Icono nombre="upload" tamano={variante === 'panel' ? 28 : 24} />
           <Texto variante="etiqueta-fuerte">Arrastra tu comprobante o selecciónalo</Texto>
-          <Texto variante="mini" tono="secundario">JPG, PNG o PDF · máximo 5 MB</Texto>
+          <Texto variante={variante === 'panel' ? 'cuerpo-s' : 'mini'} tono="secundario">JPG, PNG o PDF · máximo 5 MB</Texto>
           {entrada}
           <label htmlFor={entradaId} className={estilos.botonSubir}>
             <Icono nombre="upload" tamano={18} /> Subir comprobante
@@ -97,6 +93,21 @@ export function ComprobantePago(props: Props) {
           <Texto variante="cuerpo-s" tono="secundario">Subiendo y validando tu comprobante…</Texto>
         </div>
       )}
+    </>
+  )
+
+  if (variante === 'panel') {
+    return <div className={estilos.comprobantePanel} role="group" aria-label="Tu comprobante">{contenido}</div>
+  }
+  return (
+    <section className={estilos.tarjeta} aria-labelledby="titulo-comprobante">
+      <div className={estilos.encabezadoTarjeta}>
+        <div>
+          <Texto variante="h3" como="h2" id="titulo-comprobante">Tu comprobante</Texto>
+          <Texto variante="cuerpo-s" como="p" tono="secundario">JPG, PNG o PDF · máximo 5 MB.</Texto>
+        </div>
+      </div>
+      {contenido}
     </section>
   )
 }

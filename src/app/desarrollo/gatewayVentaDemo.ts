@@ -9,11 +9,12 @@ import type { PedidoVentaDTO } from '@modulos/gestionar-venta/aplicacion/dto/Ped
 import type { DetallePedidoDTO } from '@modulos/gestionar-venta/aplicacion/dto/DetallePedidoDTO'
 import type { DatosEntregaDTO } from '@modulos/gestionar-venta/aplicacion/dto/DatosEntregaDTO'
 import type { NivelPrecioDTO } from '@modulos/gestionar-venta/aplicacion/dto/NivelPrecioDTO'
-import type { ComprobantePedidoDTO } from '@modulos/gestionar-venta/aplicacion/dto/ComprobantePedidoDTO'
 import { RespuestaValidacionComprobanteException } from '@modulos/gestionar-venta/dominio/RespuestaValidacionComprobanteException'
 import { validarArchivoComprobante, HORAS_LIMITE_PAGO } from '@modulos/gestionar-venta/dominio/ReglasVenta'
 
 type Esquema = 'BASE' | 'MAYOREO' | 'DISTRIBUIDOR'
+
+const HORA_MS = 3_600_000
 
 interface ProductoDemo {
   readonly varianteProductoId: number
@@ -60,12 +61,15 @@ export function crearGatewayVentaDemo(retardoMs = 350): IGestionarVentaGateway {
   const cantidades = new Map<number, number>([[101, 6], [102, 3], [103, 1], [104, 1]])
   const codigos = new Map<number, string>()
   let folio: string | null = null
-  let consecutivo = 128
+  let consecutivo = 132
+  // Pedidos ya registrados de la clienta de prueba (S6 «Mis pedidos»), del más reciente al más antiguo.
+  const registrados: PedidoVentaDTO[] = []
+  let muestrasCreadas = false
 
   const pedido = (): PedidoVentaDTO => {
     const lineas = PRODUCTOS.filter((p) => (cantidades.get(p.varianteProductoId) ?? 0) > 0)
     const totalPiezas = lineas.reduce((suma, p) => suma + (cantidades.get(p.varianteProductoId) ?? 0), 0)
-    const nivel = [...NIVELES].reverse().find((n) => totalPiezas >= n.minPiezas) ?? NIVELES[0]!
+    const nivel = ([...NIVELES].reverse().find((n) => totalPiezas >= n.minPiezas) ?? NIVELES[0]!) as NivelPrecioDTO & { tipoPrecio: Esquema }
     const siguiente = NIVELES[NIVELES.indexOf(nivel) + 1] ?? null
     const detalles: DetallePedidoDTO[] = lineas.map((p, indice) => {
       const cantidad = cantidades.get(p.varianteProductoId) ?? 0
@@ -108,6 +112,7 @@ export function crearGatewayVentaDemo(retardoMs = 350): IGestionarVentaGateway {
       subtotalPrecioBase,
       ahorroPorTipoPrecio: subtotalPrecioBase - totalEsquema,
       totalDescuentos,
+      costoEnvio: 0,
       total: totalEsquema - totalDescuentos,
       datosEntrega: null,
       metodoPago: null,
@@ -116,6 +121,8 @@ export function crearGatewayVentaDemo(retardoMs = 350): IGestionarVentaGateway {
       enlaceWhatsapp: null,
     }
   }
+
+  const muestraBase = pedido()
 
   return {
     async obtenerPedidoVentaEnCurso() { await esperar(retardoMs); return pedido() },
@@ -164,7 +171,7 @@ export function crearGatewayVentaDemo(retardoMs = 350): IGestionarVentaGateway {
       const ahora = new Date()
       const tipoPago = dto.metodoPago?.tipoPago
       const conComprobante = Boolean(dto.metodoPago?.comprobanteRuta)
-      const estadoVenta = tipoPago === 'EFECTIVO' ? 'PENDIENTE_PAGO' : conComprobante ? 'PAGO_EN_REVISION' : 'PENDIENTE_COMPROBANTE'
+      const estadoVenta = tipoPago === 'EFECTIVO' ? 'APARTADO_PENDIENTE_PAGO' : conComprobante ? 'PAGO_EN_REVISION' : 'PENDIENTE_COMPROBANTE'
       const registrado: PedidoVentaDTO = {
         ...pedido(),
         folio: dto.folio,
@@ -172,9 +179,11 @@ export function crearGatewayVentaDemo(retardoMs = 350): IGestionarVentaGateway {
         datosEntrega: dto.datosEntrega,
         metodoPago: dto.metodoPago,
         fechaHoraPedido: ahora.toISOString(),
-        fechaLimitePago: conComprobante ? null : new Date(ahora.getTime() + HORAS_LIMITE_PAGO * 3_600_000).toISOString(),
+        fechaLimitePago: conComprobante ? null : new Date(ahora.getTime() + HORAS_LIMITE_PAGO * HORA_MS).toISOString(),
         enlaceWhatsapp: `https://wa.me/?text=${encodeURIComponent(`Hola, hice el pedido ${dto.folio ?? ''} en FlyStore.`)}`,
       }
+      asegurarMuestras()
+      registrados.unshift(registrado)
       // El carrito queda vacío y el siguiente pedido tendrá otro folio.
       cantidades.clear()
       codigos.clear()
@@ -185,311 +194,80 @@ export function crearGatewayVentaDemo(retardoMs = 350): IGestionarVentaGateway {
 
     async generarComprobantePedidoVenta(folioPedido) {
       await esperar(retardoMs)
-      return crearComprobanteHTML(folioPedido, pedido())
+      return buscarRegistrado(folioPedido)
     },
+
+    async listarPedidosVenta() {
+      await esperar(retardoMs)
+      asegurarMuestras()
+      return [...registrados]
+    },
+
+    async obtenerDatosBancariosPedidoVenta(folioPedido) {
+      await esperar(retardoMs)
+      return { banco: 'Mercado Pago W', titular: 'FLY Store', numeroCuenta: '1234 5678 9012', clabe: '722 969 0101 2345 6789', folio: folioPedido }
+    },
+
+    async subirComprobantePedidoVenta(folioPedido, archivo) {
+      await esperar(retardoMs * 2)
+      const error = validarArchivoComprobante(archivo)
+      if (error) throw new RespuestaValidacionComprobanteException(error)
+      const actual = buscarRegistrado(folioPedido)
+      if (actual.estadoVenta !== 'PENDIENTE_COMPROBANTE') {
+        throw new RespuestaValidacionComprobanteException('Este pedido ya no espera comprobante.')
+      }
+      const actualizado: PedidoVentaDTO = {
+        ...actual,
+        estadoVenta: 'PAGO_EN_REVISION',
+        fechaLimitePago: null,
+        metodoPago: actual.metodoPago
+          ? { ...actual.metodoPago, comprobanteRuta: `comprobantes/${folioPedido}/${archivo.name}`, comprobanteNombre: archivo.name, fechaHoraComprobante: new Date().toISOString() }
+          : null,
+      }
+      registrados.splice(registrados.indexOf(actual), 1, actualizado)
+      return actualizado
+    },
+  }
+
+  /** Los pedidos de muestra se arman una vez, con los productos del carrito inicial. */
+  function asegurarMuestras() {
+    if (!muestrasCreadas) registrados.push(...pedidosDeMuestra(muestraBase))
+    muestrasCreadas = true
+  }
+
+  function buscarRegistrado(folioPedido: string): PedidoVentaDTO {
+    asegurarMuestras()
+    const encontrado = registrados.find((p) => p.folio === folioPedido)
+    if (!encontrado) throw new Error(`No se encontró el pedido ${folioPedido}.`)
+    return encontrado
   }
 }
 
-/** Genera comprobante HTML+CSS para el ticket del pedido. */
-function crearComprobanteHTML(folio: string, pedido: PedidoVentaDTO): ComprobantePedidoDTO {
-  const fechaActual = new Date().toLocaleString('es-MX', {
-    dateStyle: 'long',
-    timeStyle: 'short'
-  })
-
-  const html = `
-    <div class="comprobante">
-      <header class="comprobante-header">
-        <h1 class="comprobante-titulo">FLY Store</h1>
-        <p class="comprobante-subtitulo">Comprobante de Pedido</p>
-      </header>
-
-      <section class="comprobante-info">
-        <div class="info-item">
-          <span class="info-label">Folio:</span>
-          <span class="info-valor">${folio}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Fecha:</span>
-          <span class="info-valor">${fechaActual}</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Estado:</span>
-          <span class="info-valor">${pedido.estadoVenta}</span>
-        </div>
-      </section>
-
-      ${pedido.datosEntrega ? `
-      <section class="comprobante-seccion">
-        <h2 class="seccion-titulo">Datos de Entrega</h2>
-        <p class="seccion-texto"><strong>${pedido.datosEntrega.nombreCompleto}</strong></p>
-        <p class="seccion-texto">${pedido.datosEntrega.direccion}</p>
-        <p class="seccion-texto">${pedido.datosEntrega.ciudad}, ${pedido.datosEntrega.estado}</p>
-        <p class="seccion-texto">Tel: ${pedido.datosEntrega.telefono}</p>
-        ${pedido.datosEntrega.referencias ? `<p class="seccion-texto"><em>${pedido.datosEntrega.referencias}</em></p>` : ''}
-      </section>
-      ` : ''}
-
-      <section class="comprobante-seccion">
-        <h2 class="seccion-titulo">Productos</h2>
-        <table class="comprobante-tabla">
-          <thead>
-            <tr>
-              <th>Cant.</th>
-              <th>Producto</th>
-              <th>Precio Unit.</th>
-              <th>Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${pedido.detalles.map(detalle => `
-              <tr>
-                <td>${detalle.cantidad}</td>
-                <td>
-                  <div class="producto-nombre">${detalle.productoNombre}</div>
-                  <div class="producto-detalle">${detalle.marca} · ${detalle.talla}${detalle.color ? ' · ' + detalle.color : ''}</div>
-                  ${detalle.codigoDescuento ? `<div class="producto-codigo">Código: ${detalle.codigoDescuento.codigo} (${detalle.codigoDescuento.etiquetaValor})</div>` : ''}
-                </td>
-                <td class="tabla-numero">$${detalle.precioUnitario.toFixed(2)}</td>
-                <td class="tabla-numero">$${detalle.subtotal.toFixed(2)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </section>
-
-      <section class="comprobante-totales">
-        <div class="total-linea">
-          <span class="total-label">Total de piezas:</span>
-          <span class="total-valor">${pedido.totalPiezas}</span>
-        </div>
-        ${pedido.ahorroPorTipoPrecio > 0 ? `
-        <div class="total-linea total-ahorro">
-          <span class="total-label">Ahorro por ${pedido.tipoPrecioAplicado}:</span>
-          <span class="total-valor">-$${pedido.ahorroPorTipoPrecio.toFixed(2)}</span>
-        </div>
-        ` : ''}
-        ${pedido.totalDescuentos > 0 ? `
-        <div class="total-linea total-ahorro">
-          <span class="total-label">Descuentos:</span>
-          <span class="total-valor">-$${pedido.totalDescuentos.toFixed(2)}</span>
-        </div>
-        ` : ''}
-        <div class="total-linea total-final">
-          <span class="total-label">TOTAL:</span>
-          <span class="total-valor">$${pedido.total.toFixed(2)} MXN</span>
-        </div>
-      </section>
-
-      ${pedido.metodoPago ? `
-      <section class="comprobante-seccion">
-        <h2 class="seccion-titulo">Método de Pago</h2>
-        <p class="seccion-texto"><strong>${pedido.metodoPago.tipoPago}</strong></p>
-        ${pedido.metodoPago.comprobanteNombre ? `<p class="seccion-texto">Comprobante: ${pedido.metodoPago.comprobanteNombre}</p>` : ''}
-      </section>
-      ` : ''}
-
-      <footer class="comprobante-footer">
-        <p>Gracias por tu compra en FLY Store</p>
-        <p class="footer-nota">Este es un comprobante de prueba generado sin backend</p>
-      </footer>
-    </div>
-  `
-
-  const css = `
-    .comprobante {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 40px;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: white;
-      color: #1a1a1a;
-      line-height: 1.6;
+/** Pedidos registrados de muestra (datos del Figma S6): uno por estado que ve el cliente. */
+function pedidosDeMuestra(base: PedidoVentaDTO): PedidoVentaDTO[] {
+  const ahora = Date.now()
+  const registrado = (numero: number, estadoVenta: string, horasAtras: number, limiteEnHoras: number | null): PedidoVentaDTO => {
+    const folioPedido = `FLY-${String(numero).padStart(6, '0')}`
+    return {
+      ...base,
+      id: numero,
+      folio: folioPedido,
+      estadoVenta,
+      nivelesPrecio: [],
+      siguienteTipoPrecio: null,
+      piezasParaSiguienteNivel: null,
+      datosEntrega: ENTREGA,
+      metodoPago: { tipoPago: 'TRANSFERENCIA', folio: folioPedido },
+      fechaHoraPedido: new Date(ahora - horasAtras * HORA_MS).toISOString(),
+      fechaLimitePago: limiteEnHoras === null ? null : new Date(ahora + limiteEnHoras * HORA_MS).toISOString(),
+      enlaceWhatsapp: `https://wa.me/?text=${encodeURIComponent(`Hola, te escribo por mi pedido ${folioPedido}`)}`,
     }
-
-    .comprobante-header {
-      text-align: center;
-      border-bottom: 3px solid #000;
-      padding-bottom: 20px;
-      margin-bottom: 30px;
-    }
-
-    .comprobante-titulo {
-      font-family: 'Oswald', sans-serif;
-      font-size: 42px;
-      font-weight: 600;
-      margin: 0 0 8px 0;
-      letter-spacing: 2px;
-    }
-
-    .comprobante-subtitulo {
-      font-size: 18px;
-      color: #666;
-      margin: 0;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .comprobante-info {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-bottom: 30px;
-      padding: 20px;
-      background: #f5f5f5;
-      border-radius: 8px;
-    }
-
-    .info-item {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .info-label {
-      font-size: 12px;
-      color: #666;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
-    }
-
-    .info-valor {
-      font-size: 16px;
-      font-weight: 600;
-      color: #000;
-    }
-
-    .comprobante-seccion {
-      margin-bottom: 30px;
-    }
-
-    .seccion-titulo {
-      font-family: 'Oswald', sans-serif;
-      font-size: 20px;
-      font-weight: 600;
-      margin: 0 0 15px 0;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      border-bottom: 2px solid #e0e0e0;
-      padding-bottom: 8px;
-    }
-
-    .seccion-texto {
-      margin: 8px 0;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .comprobante-tabla {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    .comprobante-tabla thead {
-      background: #f5f5f5;
-    }
-
-    .comprobante-tabla th {
-      text-align: left;
-      padding: 12px 8px;
-      font-weight: 600;
-      border-bottom: 2px solid #000;
-      text-transform: uppercase;
-      font-size: 12px;
-      letter-spacing: 0.5px;
-    }
-
-    .comprobante-tabla td {
-      padding: 12px 8px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-
-    .tabla-numero {
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .producto-nombre {
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .producto-detalle {
-      font-size: 12px;
-      color: #666;
-    }
-
-    .producto-codigo {
-      font-size: 12px;
-      color: #22c55e;
-      font-weight: 500;
-      margin-top: 4px;
-    }
-
-    .comprobante-totales {
-      margin-top: 30px;
-      padding-top: 20px;
-      border-top: 2px solid #e0e0e0;
-    }
-
-    .total-linea {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      font-size: 14px;
-    }
-
-    .total-ahorro {
-      color: #22c55e;
-    }
-
-    .total-final {
-      font-size: 20px;
-      font-weight: 700;
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 2px solid #000;
-    }
-
-    .total-label {
-      font-weight: 500;
-    }
-
-    .total-valor {
-      font-variant-numeric: tabular-nums;
-    }
-
-    .comprobante-footer {
-      margin-top: 40px;
-      padding-top: 20px;
-      border-top: 2px solid #e0e0e0;
-      text-align: center;
-      color: #666;
-      font-size: 14px;
-    }
-
-    .footer-nota {
-      font-size: 12px;
-      font-style: italic;
-      margin-top: 8px;
-    }
-
-    @media print {
-      .comprobante {
-        padding: 20px;
-      }
-
-      .comprobante-tabla {
-        page-break-inside: avoid;
-      }
-    }
-  `
-
-  return {
-    folio,
-    fechaEmision: new Date().toISOString(),
-    html,
-    css,
   }
+  return [
+    registrado(131, 'PENDIENTE_COMPROBANTE', 4, 38),
+    registrado(128, 'PAGO_EN_REVISION', 6, null),
+    registrado(119, 'ENVIADO', 24 * 6, null),
+    registrado(102, 'ENTREGADO', 24 * 21, null),
+    registrado(97, 'CANCELADO_VENCIMIENTO', 24 * 25, -24 * 23),
+  ]
 }

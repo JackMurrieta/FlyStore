@@ -1,4 +1,4 @@
-import type { TipoPrecio } from './TipoPrecio'
+import type { TipoPrecio, TipoPrecioAplicado } from './TipoPrecio'
 
 /** Código de descuento aplicado a una línea (se captura en el carrito, aplica al producto). */
 export interface CodigoAplicadoTs {
@@ -37,8 +37,14 @@ export interface SiguienteEsquemaTs {
 }
 
 export interface EsquemaPrecioTs {
-  readonly tipoPrecio: TipoPrecio
+  /** Esquema común a todas las líneas, o «MIXTO» si los productos quedaron en esquemas distintos. */
+  readonly tipoPrecio: TipoPrecioAplicado
   readonly etiqueta: string
+  /**
+   * true con varios productos: el precio se calcula por producto (según sus piezas) y el backend
+   * no informa el siguiente esquema. Cada línea muestra el suyo.
+   */
+  readonly porProducto: boolean
   /** «6–11 pzas», «12+ pzas». */
   readonly rango: string
   readonly siguiente: SiguienteEsquemaTs | null

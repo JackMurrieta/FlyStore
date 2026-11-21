@@ -20,6 +20,10 @@ export const piezas = (n: number, corto = false): string =>
 
 export const productos = (n: number): string => `${n} ${n === 1 ? 'producto' : 'productos'}`
 
+/** «Ahorro por Mayoreo»; con productos en esquemas distintos («Mixto»), «Ahorro por volumen». */
+export const etiquetaAhorro = (etiquetaEsquema: string): string =>
+  etiquetaEsquema === 'Mixto' ? 'Ahorro por volumen' : `Ahorro por ${etiquetaEsquema}`
+
 const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 
@@ -39,6 +43,11 @@ export function formatearFechaLimite(fecha: Date): string {
 export function formatearFechaTicket(fecha: Date): string {
   const mes = (MESES[fecha.getMonth()] ?? '').slice(0, 3)
   return `${fecha.getDate()}/${mes}/${fecha.getFullYear()} · ${hora(fecha)}`
+}
+
+/** «23 oct 2026» (lista de «Mis pedidos») */
+export function formatearFechaCorta(fecha: Date): string {
+  return `${fecha.getDate()} ${(MESES[fecha.getMonth()] ?? '').slice(0, 3)} ${fecha.getFullYear()}`
 }
 
 /** Horas completas que faltan para la fecha límite. */

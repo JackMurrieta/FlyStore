@@ -4,6 +4,7 @@
  */
 
 import { Aviso, Boton, Dialogo, Icono, Texto } from '@compartido/ui'
+import { TIPO_PRECIO_MIXTO, TipoPrecio } from '../../dominio/TipoPrecio'
 import { useCarrito } from '../hooks/useCarrito'
 import { useNavegacionVenta } from '../hooks/useNavegacionVenta'
 import { EstadoCarga, PaginaVenta } from '../componentes/PaginaVenta'
@@ -56,15 +57,23 @@ export default function CarritoView() {
   }
 
   const { esquema } = carrito
-  const esquemaEspecial = esquema.tipoPrecio !== 'BASE'
+  const mixto = esquema.tipoPrecio === TIPO_PRECIO_MIXTO
+  const esquemaEspecial = esquema.tipoPrecio !== TipoPrecio.BASE && !mixto
   return (
     <PaginaVenta titulo="Tu carrito" subtitulo={`${productos(carrito.totalProductos)} · ${piezas(carrito.totalPiezas)}`} paso={1}>
       <div className={estilos.columnas}>
         <div className={estilos.principal}>
           {carritoVm.error && <Aviso tono="error" titulo="Ajusta tu carrito para continuar">{carritoVm.error.mensaje}</Aviso>}
+          {!carritoVm.error && mixto && (
+            <Aviso tono="info" titulo="Precio por producto">
+              Tus productos quedaron en esquemas distintos: cada uno se cobra según las piezas que llevas de él.
+            </Aviso>
+          )}
           {!carritoVm.error && esquemaEspecial && (
             <Aviso tono="exito" titulo={`¡Ya aplicaste el precio ${esquema.etiqueta}!`}>
-              Con {piezas(carrito.totalPiezas)} todo tu pedido se cobra a precio {esquema.etiqueta}.
+              {esquema.porProducto
+                ? `Todos tus productos se cobran a precio ${esquema.etiqueta}.`
+                : `Con ${piezas(carrito.totalPiezas)} todo tu pedido se cobra a precio ${esquema.etiqueta}.`}
               {esquema.siguiente && ` Agrega ${piezas(esquema.siguiente.piezasFaltantes)} más para precio ${esquema.siguiente.etiqueta}.`}
             </Aviso>
           )}

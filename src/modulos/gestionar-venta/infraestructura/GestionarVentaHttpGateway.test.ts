@@ -46,7 +46,7 @@ describe('GestionarVentaHttpGateway', () => {
       .rejects.toBeInstanceOf(ErrorApi)
   })
 
-  it('registra el pedido sin el archivo y pide el ticket como JSON con HTML+CSS', async () => {
+  it('registra el pedido sin el archivo y pide los datos del ticket por folio', async () => {
     const http = httpFalso()
     const dto = { id: 1, metodoPago: { tipoPago: 'TRANSFERENCIA', folio: 'F', comprobantePagoArchivo: new File(['x'], 'c.png'), comprobanteRuta: 'r' } } as unknown as PedidoVentaDTO
     await crear(http).registrarPedidoVenta(dto)
@@ -54,6 +54,28 @@ describe('GestionarVentaHttpGateway', () => {
       id: 1, metodoPago: { tipoPago: 'TRANSFERENCIA', folio: 'F', comprobanteRuta: 'r', comprobanteNombre: null },
     })
     await crear(http).generarComprobantePedidoVenta('FLY-000128')
-    expect(http.get).toHaveBeenCalledWith(endpoints.ventas.comprobantePedido('FLY-000128'))
+    expect(http.get).toHaveBeenCalledWith(endpoints.ventas.pedidoRegistrado('FLY-000128'))
+    expect(endpoints.ventas.pedidoRegistrado('FLY-000128')).toMatch(/\/api\/ventas\/pedidos\/FLY-000128$/)
+  })
+
+  it('S6: lista Mis pedidos, pide la cuenta sin generar folio y sube el comprobante del pedido', async () => {
+    const http = httpFalso()
+    await crear(http).listarPedidosVenta()
+    expect(http.get).toHaveBeenCalledWith(endpoints.ventas.misPedidos())
+    expect(endpoints.ventas.misPedidos()).toMatch(/\/api\/pedidos$/)
+
+    http.get.mockResolvedValueOnce({ banco: 'B', titular: 'T', numeroCuenta: '1', clabe: '2' })
+    expect(await crear(http).obtenerDatosBancariosPedidoVenta('FLY-000131')).toMatchObject({ folio: 'FLY-000131', clabe: '2' })
+    expect(http.post).not.toHaveBeenCalled()
+
+    const archivo = new File(['x'], 'c.png', { type: 'image/png' })
+    await crear(http).subirComprobantePedidoVenta('FLY-000131', archivo)
+    const [url, datos] = http.postMultipart.mock.calls[0]!
+    expect(url).toBe(endpoints.ventas.comprobantePedidoRegistrado('FLY-000131'))
+    expect(url).toMatch(/\/api\/ventas\/pedidos\/FLY-000131\/comprobante$/)
+    expect((datos as FormData).get('archivo')).toBe(archivo)
+
+    http.postMultipart.mockRejectedValueOnce(new ErrorApi('El plazo venció', 'NEGOCIO', 'DATOS_INVALIDOS', undefined, 400))
+    await expect(crear(http).subirComprobantePedidoVenta('FLY-000131', archivo)).rejects.toBeInstanceOf(RespuestaValidacionComprobanteException)
   })
 })

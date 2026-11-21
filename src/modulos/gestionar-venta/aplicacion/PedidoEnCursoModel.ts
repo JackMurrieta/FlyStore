@@ -21,7 +21,6 @@ import { RespuestaValidacionComprobanteException } from '../dominio/RespuestaVal
 import type { PedidoVentaDTO } from './dto/PedidoVentaDTO'
 import type { MetodoPagoDTO } from './dto/MetodoPagoDTO'
 import type { RespuestaValidacionComprobanteDTO } from './dto/RespuestaValidacionComprobanteDTO'
-import type { ComprobantePedidoDTO } from './dto/ComprobantePedidoDTO'
 import { PedidoVentaMapper } from './mappers/PedidoVentaMapper'
 
 export interface EstadoPedidoEnCurso {
@@ -38,9 +37,9 @@ export interface EstadoPedidoEnCurso {
   /** Rechazo del comprobante (A6/Alt5, tipo «validacion») o falla al subirlo (A7, tipo «red»). */
   readonly errorComprobante: ErrorTs | null
   readonly registrando: boolean
+  /** Pedido registrado que pinta B7 y su ticket. Llega al registrar o al pedirlo por folio (recarga de B7). */
   readonly pedidoRegistrado: InformacionPedidoTs | null
   readonly generandoComprobantePedido: boolean
-  readonly comprobantePedidoPDF: ComprobantePedidoDTO | null
   readonly errorComprobantePedido: string | null
   readonly error: ErrorTs | null
 }
@@ -63,7 +62,6 @@ const ESTADO_INICIAL: EstadoPedidoEnCurso = {
   registrando: false,
   pedidoRegistrado: null,
   generandoComprobantePedido: false,
-  comprobantePedidoPDF: null,
   errorComprobantePedido: null,
   error: null,
 }
@@ -256,7 +254,6 @@ export class PedidoEnCursoModel extends ModeloObservable<EstadoPedidoEnCurso> {
         carrito: null,
         informacionPedido: null,
         pedidoRegistrado: PedidoVentaMapper.convertirPedidoVentaDTOaInformacionPedidoTs(registrado),
-        comprobantePedidoPDF: null,
         errorComprobantePedido: null,
       })
     } catch (error) {
@@ -270,19 +267,24 @@ export class PedidoEnCursoModel extends ModeloObservable<EstadoPedidoEnCurso> {
     }
   }
 
-  /** Básico, mensaje 64. Ticket del pedido registrado como JSON con HTML+CSS. */
-  public generarComprobantePedidoVenta = async (folio: string): Promise<ComprobantePedidoDTO | null> => {
+  /**
+   * Básico, mensaje 64. Pide al backend el pedido registrado con ese folio; con esos datos
+   * TicketPedido arma el ticket y el cliente lo imprime o lo guarda como PDF (window.print).
+   * También sirve cuando B7 se abre por URL o se recarga: no depende de lo que haya en memoria.
+   */
+  public generarComprobantePedidoVenta = async (folio: string): Promise<InformacionPedidoTs | null> => {
     this.actualizar({ generandoComprobantePedido: true, errorComprobantePedido: null })
     try {
-      const comprobantePedidoPDF = await this.gateway.generarComprobantePedidoVenta(folio)
-      this.actualizar({ generandoComprobantePedido: false, comprobantePedidoPDF })
-      return comprobantePedidoPDF
+      const dto = await this.gateway.generarComprobantePedidoVenta(folio)
+      const pedidoRegistrado = PedidoVentaMapper.convertirPedidoVentaDTOaInformacionPedidoTs(dto)
+      this.actualizar({ generandoComprobantePedido: false, pedidoRegistrado })
+      return pedidoRegistrado
     } catch (error) {
       this.actualizar({
         generandoComprobantePedido: false,
         errorComprobantePedido: PedidoVentaMapper.convertirErrorAErrorTs(
           error,
-          'No pudimos generar tu ticket. Inténtalo de nuevo.'
+          'No pudimos cargar tu pedido. Inténtalo de nuevo.'
         ).mensaje,
       })
       return null
