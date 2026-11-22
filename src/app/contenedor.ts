@@ -10,7 +10,6 @@ import { CatalogoService } from '@modulos/administrar-catalogo/infraestructura/C
 import { ProductoService } from '@modulos/administrar-catalogo/infraestructura/ProductoService'
 import { BajaProductoModel } from '@modulos/administrar-catalogo/aplicacion/BajaProductoModel'
 import { CatalogoModel } from '@modulos/administrar-catalogo/aplicacion/CatalogoModel'
-import { BajaProductoModel } from '@modulos/administrar-catalogo/aplicacion/BajaProductoModel'
 import type { ISesion } from '@compartido/sesion'
 import { httpClient } from '@infraestructura/http/HttpClient'
 import { AutenticacionHttpService } from '@modulos/iniciar-sesion/infraestructura/AutenticacionHttpService'
@@ -42,7 +41,6 @@ class Contenedor {
   public readonly productoService = new ProductoService(this.http)
   public readonly bajaProductoModel = new BajaProductoModel(this.productoService)
   public readonly catalogoModel = new CatalogoModel(this.catalogoService, this.productoService)
-  public readonly bajaProductoModel = new BajaProductoModel(this.productoService)
   public readonly gestionarVentaGateway = new GestionarVentaHttpGateway(this.http)
   public readonly perfilGateway = new PerfilHttpGateway(this.http)
   public readonly catalogoGateway = new CatalogoHttpGateway(this.http)
