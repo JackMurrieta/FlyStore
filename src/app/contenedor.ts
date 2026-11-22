@@ -19,6 +19,7 @@ import { GestionarVentaHttpGateway } from '@modulos/gestionar-venta/infraestruct
 import { crearModelosVenta, reiniciarModelosVenta, type ModelosVenta } from '@modulos/gestionar-venta/aplicacion/ModelosVenta'
 import { PedidosAdminHttpService } from '@modulos/administrar-pedidos/infraestructura/PedidosAdminHttpService'
 import { PedidosAdminModel } from '@modulos/administrar-pedidos/aplicacion/PedidosAdminModel'
+import { CatalogoHttpGateway, CatalogoEnCursoModel } from '@modulos/consultar-catalogo'
 
 /**
  * Contenedor singleton de dependencias
@@ -35,6 +36,8 @@ class Contenedor {
   public readonly bajaProductoModel = new BajaProductoModel(this.productoService)
   public readonly catalogoModel = new CatalogoModel(this.catalogoService, this.productoService)
   public readonly gestionarVentaGateway = new GestionarVentaHttpGateway(this.http)
+  public readonly consultarCatalogoGateway = new CatalogoHttpGateway(this.http)
+  public readonly catalogoEnCursoModel = new CatalogoEnCursoModel(this.consultarCatalogoGateway)
 
   // Modelos
   public readonly sesionModel: SesionModel

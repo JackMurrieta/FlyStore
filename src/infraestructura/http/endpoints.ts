@@ -180,13 +180,34 @@ export const ventas = {
 } as const
 
 export const catalogoAdmin = {
- producto: (id: string) => API_BASE + '/api/productos/' + encodeURIComponent(id),
- productos: () => API_BASE + '/api/productos',
- filtros: () => API_BASE + '/api/catalogo/filtros',
- tallas: (id: string) => API_BASE + '/api/catalogo/categorias/' + encodeURIComponent(id) + '/tallas',
- buscarProductos: (filtros: {texto:string; idCategoria:string; idSubcategoria:string; idMarca:string; estado:string|null}) => {
- const params = new URLSearchParams()
- for (const [clave, valor] of Object.entries(filtros)) if (valor?.trim()) params.set(clave, valor.trim())
- return API_BASE + '/api/productos/buscar?' + params
- }
+  producto: (id: string) => API_BASE + '/api/productos/' + encodeURIComponent(id),
+  productos: () => API_BASE + '/api/productos',
+  filtros: () => API_BASE + '/api/catalogo/filtros',
+  tallas: (id: string) => API_BASE + '/api/catalogo/categorias/' + encodeURIComponent(id) + '/tallas',
+  buscarProductos: (filtros: { texto: string; idCategoria: string; idSubcategoria: string; idMarca: string; estado: string | null }) => {
+    const params = new URLSearchParams()
+    for (const [clave, valor] of Object.entries(filtros)) if (valor?.trim()) params.set(clave, valor.trim())
+    return API_BASE + '/api/productos/buscar?' + params
+  }
+} as const
+
+/**
+ * Endpoints de consulta de catálogo para clientes (ConsultarCatalogoController)
+ */
+export const catalogo = {
+  /** GET /api/catalogo/inicial → CatalogoRespuestaDTO (incluye opcionesFiltro) */
+  inicial: () => `${API_BASE}/api/catalogo/inicial`,
+
+  /** GET /api/catalogo/buscar?termino=...&idCategoria=... → CatalogoRespuestaDTO */
+  buscar: (filtros: { termino?: string; idCategoria?: string }) => {
+    const params = new URLSearchParams()
+    if (filtros.termino?.trim()) params.set('termino', filtros.termino.trim())
+    if (filtros.idCategoria?.trim()) params.set('idCategoria', filtros.idCategoria.trim())
+    const query = params.toString()
+    return `${API_BASE}/api/catalogo/buscar${query ? `?${query}` : ''}`
+  },
+
+  /** GET /api/catalogo/producto/{id} → ProductoDetalleRespuestaDTO */
+  productoDetalle: (id: string) =>
+    `${API_BASE}/api/catalogo/producto/${encodeURIComponent(id)}`,
 } as const

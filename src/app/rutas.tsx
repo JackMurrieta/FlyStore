@@ -5,7 +5,10 @@
 
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
+import type { ReactNode } from 'react'
 import { RutaProtegida } from '@compartido/sesion'
+import { Header } from '@compartido/layout/Header'
+import { Footer } from '@compartido/layout/Footer'
 import { contenedor } from './contenedor'
 
 // Lazy loading de módulos (se cargan solo cuando se necesitan)
@@ -28,7 +31,12 @@ const AdministrarCatalogoDemo = import.meta.env.DEV
 const GestionarVentaDemo = import.meta.env.DEV
   ? lazy(() => import('./desarrollo/GestionarVentaDemo'))
   : null
-
+const CatalogoView = lazy(() =>
+  import('@modulos/consultar-catalogo').then(m => ({ default: m.CatalogoView }))
+)
+const DetalleProductoView = lazy(() =>
+  import('@modulos/consultar-catalogo').then(m => ({ default: m.DetalleProductoView }))
+)
 /**
  * Componente de carga para rutas lazy
  */
@@ -48,6 +56,16 @@ function CargandoRuta() {
     >
       Cargando...
     </div>
+  )
+}
+
+function LayoutTienda({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <Header />
+      {children}
+      <Footer />
+    </>
   )
 }
 
@@ -94,10 +112,24 @@ export function Rutas() {
           }
         />
 
-        {/* TODO Fase 3+: Otras rutas de módulos */}
+
         {/* Consultar catálogo (público) */}
-        {/* <Route path="/productos" element={<CatalogoVista />} /> */}
-        {/* <Route path="/productos/:id" element={<DetalleProductoVista />} /> */}
+        <Route
+          path="/catalogo"
+          element={
+            <LayoutTienda>
+              <CatalogoView modelo={contenedor.catalogoEnCursoModel} />
+            </LayoutTienda>
+          }
+        />
+        <Route
+          path="/catalogo/producto/:id"
+          element={
+            <LayoutTienda>
+              <DetalleProductoView modelo={contenedor.catalogoEnCursoModel} />
+            </LayoutTienda>
+          }
+        />
 
         {/* Admin (protegido por rol) */}
         {/* <Route */}
