@@ -123,3 +123,11 @@ La capa de presentación agrega `CatalogoAdminLayout` para la barra lateral y su
 Los contratos aprobados no incluyen talla/color en los filtros, imágenes por variante, múltiples imágenes por producto, etiquetas, costo, pedidos afectados, edición ni reactivación. Estas acciones no se simulan: se mantienen los campos y operaciones disponibles. Las miniaturas y la vista previa son dinámicas; la imagen de la gorra de Figma no se usa como sustituto de imágenes reales. El único recurso estático nuevo de producción es el logotipo descargado de Figma en `public/admin/logo-fly.png`.
 
 Se adaptan las columnas a pantallas pequeñas, con navegación desplegable y desplazamiento horizontal contenido dentro de la tabla. El formulario admite teclado, etiquetas accesibles, validación de imagen JPG/PNG/WEBP de hasta 5 MB, liberación de URLs de vista previa y mensajes de error junto a los campos. Después de guardar, regresa al catálogo con una notificación de éxito.
+
+## Paginación en PostgreSQL
+
+La ruta administrativa real solicita páginas de 7 productos mediante `GET /api/productos?pagina=0&tamano=7`. La búsqueda utiliza `/api/productos/buscar` con los mismos parámetros de página y los filtros seleccionados. La respuesta contiene `productos`, `pagina`, `tamano` y `hayMas`.
+
+El DAO aplica el desplazamiento y límite antes de cargar imágenes, precios y variantes. Las colecciones se recuperan en consultas acotadas separadas para evitar N+1 y no paginar sobre un join de colecciones. Se consulta un producto adicional internamente para determinar `hayMas`; el cliente recibe como máximo el tamaño solicitado. No se realiza un COUNT global.
+
+Los botones consultan al servidor y conservan los filtros. Buscar y Limpiar regresan a la primera página. Una baja recarga la página actual; si queda vacía, consulta la anterior. La demostración conserva paginación en memoria. La API mantiene el formato de lista anterior cuando no se envían parámetros de página. No requiere cambios de esquema en Supabase.

@@ -28,15 +28,10 @@ export function PantallaCatalogoAdmin({ catalogoModel, bajaProductoModel, alAgre
   const vm = useCatalogoAdmin(catalogoModel)
   const baja = useBajaProducto(bajaProductoModel)
   const [pestana, setPestana] = useState<'productos' | 'categorias'>('productos')
-  const [pagina, setPagina] = useState(0)
-  const [filtrosActuales, setFiltrosActuales] = useState<FiltrosCatalogoTs | undefined>()
-  const ultimaPagina = Math.max(0, Math.ceil(vm.productos.length / POR_PAGINA) - 1)
-  const paginaVisible = Math.min(pagina, ultimaPagina)
-  const inicio = paginaVisible * POR_PAGINA
-  const visibles = vm.productos.slice(inicio, inicio + POR_PAGINA)
+  const inicio = vm.pagina * POR_PAGINA
+  const visibles = vm.productos
 
   const buscar = async (filtros: FiltrosCatalogoTs) => {
-    if (Object.values(filtros).some(valor => valor?.trim())) { setFiltrosActuales(filtros); setPagina(0) }
     await vm.buscarProductos(filtros)
   }
 
@@ -46,7 +41,7 @@ export function PantallaCatalogoAdmin({ catalogoModel, bajaProductoModel, alAgre
     </div>}
     <header className={estilos.encabezadoPagina}>
       <div><p className={estilos.sobretitulo}>Administrar catálogo</p><h1>Catálogo</h1>
-        <p className={estilos.textoSecundario}>{vm.productos.length} productos · {vm.filtrosDisponibles?.categorias.length ?? 0} categorías · {vm.filtrosDisponibles?.marcas.length ?? 0} marcas</p>
+        <p className={estilos.textoSecundario}>{vm.productos.length} productos en esta página · {vm.filtrosDisponibles?.categorias.length ?? 0} categorías · {vm.filtrosDisponibles?.marcas.length ?? 0} marcas</p>
       </div>
       <Boton icono={<Icono nombre="plus" tamano={18} />} onClick={alAgregar}>Nuevo producto</Boton>
     </header>
@@ -62,7 +57,7 @@ export function PantallaCatalogoAdmin({ catalogoModel, bajaProductoModel, alAgre
     {baja.resultado && <div role="status" className={estilos.mensajeExito}><Icono nombre="check-circle" tamano={18} />
       Producto {baja.resultado.tipoBaja === TipoBaja.ELIMINADO ? 'eliminado' : 'inactivado'} correctamente.</div>}
     <section id="panel-productos" role="tabpanel" aria-labelledby="tab-productos" hidden={pestana !== 'productos'}>
-      <FiltrosCatalogoPanel filtrosDisponibles={vm.filtrosDisponibles} cargando={vm.cargando} alBuscar={buscar} alLimpiar={async()=>{setFiltrosActuales(undefined);setPagina(0);await vm.obtenerCatalogo()}} />
+      <FiltrosCatalogoPanel filtrosDisponibles={vm.filtrosDisponibles} cargando={vm.cargando} alBuscar={buscar} alLimpiar={vm.obtenerCatalogo} />
       {vm.cargando ? <div role="status" className={estilos.estadoVacio}>Cargando catálogo…</div>
         : !vm.productos.length ? <div className={estilos.estadoVacio}><Icono nombre="search-x" tamano={28} />
           <h2>{vm.error ? 'Catálogo no disponible' : 'No encontramos productos'}</h2><p>Revisa los filtros o intenta consultar nuevamente.</p></div>
@@ -83,9 +78,9 @@ export function PantallaCatalogoAdmin({ catalogoModel, bajaProductoModel, alAgre
                 </tr>)}</tbody>
               </table>
             </div>
-            <footer className={estilos.paginacion}><p aria-live="polite">Mostrando {inicio + 1}–{Math.min(inicio + POR_PAGINA, vm.productos.length)} de {vm.productos.length}</p>
-              <div><button type="button" className={estilos.botonIcono} aria-label="Página anterior" disabled={paginaVisible === 0} onClick={() => setPagina(paginaVisible - 1)}><Icono nombre="chevron-left" tamano={16} /></button>
-                <button type="button" className={estilos.botonIcono} aria-label="Página siguiente" disabled={paginaVisible >= ultimaPagina} onClick={() => setPagina(paginaVisible + 1)}><Icono nombre="chevron-right" tamano={16} /></button></div>
+            <footer className={estilos.paginacion}><p aria-live="polite">Mostrando {visibles.length ? inicio + 1 : 0}–{inicio + visibles.length}</p>
+              <div><button type="button" className={estilos.botonIcono} aria-label="Página anterior" disabled={vm.pagina === 0 || vm.cargando} onClick={() => { void vm.cambiarPagina(vm.pagina - 1) }}><Icono nombre="chevron-left" tamano={16} /></button>
+                <button type="button" className={estilos.botonIcono} aria-label="Página siguiente" disabled={!vm.hayMas || vm.cargando} onClick={() => { void vm.cambiarPagina(vm.pagina + 1) }}><Icono nombre="chevron-right" tamano={16} /></button></div>
             </footer>
           </>}
     </section>
@@ -97,7 +92,7 @@ export function PantallaCatalogoAdmin({ catalogoModel, bajaProductoModel, alAgre
     </section>
     <ConfirmarBajaPanel producto={baja.producto} confirmando={baja.confirmando} error={baja.error}
       alCancelar={baja.cancelarBaja} alConfirmar={() => { void baja.confirmarBaja().then(ok => {
-        if (ok) void (filtrosActuales ? vm.buscarProductos(filtrosActuales) : vm.obtenerCatalogo())
+        if (ok) void vm.recargar()
       }) }} />
   </main>
 }

@@ -40,7 +40,7 @@ function backend(tipo = 'FISICA', status = 200, pendiente = false) {
       return respuesta()
     }
     if (ruta.endsWith('/filtros')) return json({ categorias: [], subcategorias: [], marcas: [], colores: [] })
-    return json(baja ? tipo === 'LOGICA' ? [{ ...producto, estado: 'INACTIVO' }] : [] : [producto])
+    return json({productos: baja ? tipo === 'LOGICA' ? [{ ...producto, estado: 'INACTIVO' }] : [] : [producto], pagina:0, tamano:7, hayMas:false})
   }))
   return { llamadas, completar: () => completar() }
 }
@@ -50,7 +50,7 @@ async function abrir() {
   const sesion: ISesion = { obtenerEstado: () => estado, suscribir: () => () => {}, iniciarConGoogle: vi.fn(), cerrarSesion: vi.fn() }
   render(<MemoryRouter initialEntries={['/admin/catalogo']}><SesionProvider sesion={sesion}><Rutas /></SesionProvider></MemoryRouter>)
   const user = userEvent.setup()
-  await user.click(await screen.findByRole('button', { name: 'Dar de baja Gorra de baja' }))
+  await user.click(await screen.findByRole('button', { name: 'Dar de baja Gorra de baja' }, { timeout: 5000 }))
   return { user, dialogo: screen.getByRole('dialog') }
 }
 afterEach(() => vi.unstubAllGlobals())
@@ -70,7 +70,7 @@ describe('Baja por la ruta real', () => {
     const { user, dialogo } = await abrir()
     await user.click(within(dialogo).getByRole('button', { name: 'Dar de baja' }))
     await screen.findByText(tipo === 'FISICA' ? 'Producto eliminado correctamente.' : 'Producto inactivado correctamente.')
-    await waitFor(() => expect(api.llamadas.filter(l => l === 'GET /api/productos')).toHaveLength(2))
+    await waitFor(() => expect(api.llamadas.filter(l => l === 'GET /api/productos?pagina=0&tamano=7')).toHaveLength(2))
     expect(api.llamadas.filter(l => l.startsWith('DELETE'))).toHaveLength(1)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     if (tipo === 'FISICA') await screen.findByText('No encontramos productos')
@@ -91,7 +91,7 @@ describe('Baja por la ruta real', () => {
     await user.click(within(dialogo).getByRole('button', { name: 'Dar de baja' }))
     await within(dialogo).findByText('No se puede eliminar por referencias existentes')
     expect(within(dialogo).getByRole('button', { name: 'Cancelar' })).toBeEnabled()
-    expect(api.llamadas.filter(l => l === 'GET /api/productos')).toHaveLength(1)
+    expect(api.llamadas.filter(l => l === 'GET /api/productos?pagina=0&tamano=7')).toHaveLength(1)
     expect(screen.queryByText(/Producto eliminado correctamente/)).not.toBeInTheDocument()
   })
 
@@ -101,10 +101,10 @@ describe('Baja por la ruta real', () => {
     await user.click(within(dialogo).getByRole('button', { name: 'Cancelar' }))
     await user.type(screen.getByRole('searchbox'), 'Gorra')
     await user.click(screen.getByRole('button', { name: 'Buscar' }))
-    await waitFor(() => expect(api.llamadas.filter(l => l === 'GET /api/productos/buscar?texto=Gorra')).toHaveLength(1))
-    await user.click(await screen.findByRole('button', { name: 'Dar de baja Gorra de baja' }))
+    await waitFor(() => expect(api.llamadas.filter(l => l === 'GET /api/productos/buscar?texto=Gorra&pagina=0&tamano=7')).toHaveLength(1))
+    await user.click(await screen.findByRole('button', { name: 'Dar de baja Gorra de baja' }, { timeout: 5000 }))
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Dar de baja' }))
     await screen.findByText('Producto eliminado correctamente.')
-    await waitFor(() => expect(api.llamadas.filter(l => l === 'GET /api/productos/buscar?texto=Gorra')).toHaveLength(2))
+    await waitFor(() => expect(api.llamadas.filter(l => l === 'GET /api/productos/buscar?texto=Gorra&pagina=0&tamano=7')).toHaveLength(2))
   })
 })

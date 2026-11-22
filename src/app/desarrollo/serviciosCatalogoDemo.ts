@@ -54,12 +54,13 @@ export function crearServiciosCatalogoDemo() {
     async obtenerProductos() { return structuredClone(productos) },
     async buscarProductos(filtros) {
       const texto = filtros.texto.trim().toLocaleLowerCase('es-MX')
-      return structuredClone(productos.filter(producto =>
+      const filtrados = productos.filter(producto =>
         (!texto || `${producto.nombre} ${producto.clave} ${producto.marca}`.toLocaleLowerCase('es-MX').includes(texto)) &&
         (!filtros.idCategoria || producto.categoria === nombreOpcion('categorias', filtros.idCategoria)) &&
         (!filtros.idSubcategoria || producto.subcategoria === nombreOpcion('subcategorias', filtros.idSubcategoria)) &&
         (!filtros.idMarca || producto.marca === nombreOpcion('marcas', filtros.idMarca)) &&
-        (!filtros.estado || producto.estado === filtros.estado)))
+        (!filtros.estado || producto.estado === filtros.estado))
+      return structuredClone(filtrados)
     },
     async crearProducto(datos) {
       if (productos.some(producto => producto.clave.toLocaleLowerCase('es-MX') === datos.clave.toLocaleLowerCase('es-MX'))) {

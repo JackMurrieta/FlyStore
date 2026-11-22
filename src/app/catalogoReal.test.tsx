@@ -18,6 +18,7 @@ vi.mock('@modulos/iniciar-sesion',()=>({IniciarSesionVista:()=> <p>Inicio de ses
 vi.mock('./vistas/InicioVista',()=>({default:()=> <p>Inicio público</p>}))
 const opciones={categorias:[{id:'9223372036854775807',nombre:'Gorras'}],subcategorias:[{id:'2',nombre:'Clásicas'}],marcas:[{id:'3',nombre:'FLY'}],colores:['Rojo','Negro']}
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status})
+const paginaJson=(productos:unknown[])=>json({productos,pagina:0,tamano:7,hayMas:false})
 const blobTexto=(blob:Blob)=>new Promise<string>((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result));r.onerror=reject;r.readAsText(blob)})
 function api(status=201, colores=opciones.colores){
  let terminar=()=>{}
@@ -35,7 +36,7 @@ function api(status=201, colores=opciones.colores){
   }
   if(u.pathname.endsWith('/filtros'))return json({...opciones,colores})
   if(u.pathname.endsWith('/tallas'))return json([{idTalla:'5',nombre:'M'}])
-  return json(guardado?[{idProducto:'42',clave:'NUEVA',nombre:'Gorra nueva',img:'https://example.com/gorra.png',categoria:'Gorras',subcategoria:'Clásicas',marca:'FLY',estado:'BORRADOR',variantes:[{talla:'M',color:'Rojo',stock:7}],preciosProducto:[{tipoPrecio:'BASE',precio:100,minPiezas:1}]}]:[])
+  return paginaJson(guardado?[{idProducto:'42',clave:'NUEVA',nombre:'Gorra nueva',img:'https://example.com/gorra.png',categoria:'Gorras',subcategoria:'Clásicas',marca:'FLY',estado:'BORRADOR',variantes:[{talla:'M',color:'Rojo',stock:7}],preciosProducto:[{tipoPrecio:'BASE',precio:100,minPiezas:1}]}]:[])
  }))
  return {pasos,altas,terminar:()=>terminar()}
 }
@@ -70,11 +71,11 @@ describe('Catálogo real restaurado',()=>{
  })
  it.each(['ADMIN','EMPLEADO'] as const)('consulta con rol %s y rechaza búsqueda vacía sin HTTP',async rol=>{
   const backend=api();const user=abrir(rol);await screen.findByText('No encontramos productos')
-  expect(backend.pasos).toEqual(['GET /api/productos','GET /api/catalogo/filtros'])
+  expect(backend.pasos).toEqual(['GET /api/productos?pagina=0&tamano=7','GET /api/catalogo/filtros'])
   await user.click(screen.getByRole('button',{name:'Buscar'}));await screen.findByText('Selecciona al menos un filtro para buscar.')
   expect(backend.pasos).toHaveLength(2)
   await user.type(screen.getByRole('searchbox'),'Gorra & roja');await user.click(screen.getByRole('button',{name:'Buscar'}))
-  await waitFor(()=>expect(backend.pasos.at(-1)).toBe('GET /api/productos/buscar?texto=Gorra+%26+roja'))
+  await waitFor(()=>expect(backend.pasos.at(-1)).toBe('GET /api/productos/buscar?texto=Gorra+%26+roja&pagina=0&tamano=7'))
   expect(backend.pasos.filter(p=>p.includes('/filtros'))).toHaveLength(1)
  })
  it('selecciona colores y envía una sola alta multipart, recarga tras 201',async()=>{
@@ -83,7 +84,7 @@ describe('Catálogo real restaurado',()=>{
   await screen.findByText('Gorra nueva')
   expect(backend.altas).toHaveLength(1)
   expect(backend.altas[0]).toMatchObject({idCategoria:'9223372036854775807',variantes:[{talla:'M',color:'Rojo',stock:7}],preciosProducto:[{tipoPrecio:'BASE',precio:100,minPiezas:1}]})
-  await waitFor(()=>expect(backend.pasos.filter(p=>p==='GET /api/productos')).toHaveLength(2))
+  await waitFor(()=>expect(backend.pasos.filter(p=>p==='GET /api/productos?pagina=0&tamano=7')).toHaveLength(2))
  })
  it.each([400,409])('conserva formulario y muestra validación del backend %s',async status=>{
   const backend=api(status);const user=abrir();await formulario(user)
@@ -120,7 +121,7 @@ describe('Catálogo real restaurado',()=>{
   vi.stubGlobal('fetch',vi.fn(async(url:string)=>{
    const ruta=new URL(url,'http://localhost');consultas.push(ruta.pathname+ruta.search)
    if(ruta.pathname.endsWith('/filtros'))return json(opciones)
-   return json([{idProducto:'7',clave:'STOCK-BAJO',nombre:'Gorra de stock bajo',img:'',categoria:'Gorras',subcategoria:'Clásicas',marca:'FLY',estado:'STOCK_BAJO',variantes:[{talla:'M',color:'Rojo',stock:1}],preciosProducto:['BASE','EMPRENDEDOR','MAYOREO','DISTRIBUIDOR','SOCIO_COMERCIAL'].map((tipoPrecio,i)=>({tipoPrecio,precio:100-i*10,minPiezas:i+1}))}])
+   return paginaJson([{idProducto:'7',clave:'STOCK-BAJO',nombre:'Gorra de stock bajo',img:'',categoria:'Gorras',subcategoria:'Clásicas',marca:'FLY',estado:'STOCK_BAJO',variantes:[{talla:'M',color:'Rojo',stock:1}],preciosProducto:['BASE','EMPRENDEDOR','MAYOREO','DISTRIBUIDOR','SOCIO_COMERCIAL'].map((tipoPrecio,i)=>({tipoPrecio,precio:100-i*10,minPiezas:i+1}))}])
   }))
   const user=abrir()
   await screen.findByRole('cell',{name:/Stock bajo/})
@@ -128,7 +129,7 @@ describe('Catálogo real restaurado',()=>{
   expect(screen.queryByText('No se pudo cargar el catálogo')).not.toBeInTheDocument()
   await user.selectOptions(screen.getByRole('combobox',{name:'Estado'}),'STOCK_BAJO')
   await user.click(screen.getByRole('button',{name:'Buscar'}))
-  await waitFor(()=>expect(consultas).toContain('/api/productos/buscar?estado=STOCK_BAJO'))
+  await waitFor(()=>expect(consultas).toContain('/api/productos/buscar?estado=STOCK_BAJO&pagina=0&tamano=7'))
   expect(screen.getByRole('cell',{name:/Stock bajo/})).toBeInTheDocument()
  })
 })
