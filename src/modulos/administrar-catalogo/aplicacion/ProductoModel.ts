@@ -13,6 +13,7 @@ export class ProductoModel {
     for (const campo of ['clave', 'nombre', 'descripcion', 'idCategoria', 'idSubcategoria', 'idMarca'] as const) {
       if (!datos[campo].trim()) errores[campo] = 'Este campo es obligatorio'
     }
+    if (datos.estado === 'STOCK_BAJO') errores.estado = 'El stock bajo no es un estado de alta; selecciona publicado, borrador o inactivo'
     if (!datos.imagenes) errores.imagenes = 'Selecciona una imagen'
     else if (!['image/jpeg','image/png','image/webp'].includes(datos.imagenes.type) || !datos.imagenes.size || datos.imagenes.size > 5*1024*1024) errores.imagenes = 'Selecciona una imagen JPG, PNG o WEBP de hasta 5 MB'
     const claves = datos.variantes.map(v => v.talla.trim().toLowerCase() + ':' + v.color.trim().toLowerCase())

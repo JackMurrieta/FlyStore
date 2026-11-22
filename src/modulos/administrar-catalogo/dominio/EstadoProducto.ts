@@ -1,5 +1,6 @@
 export const EstadoProducto = {
   PUBLICADO: 'PUBLICADO',
+  STOCK_BAJO: 'STOCK_BAJO',
   BORRADOR: 'BORRADOR',
   INACTIVO: 'INACTIVO',
 }

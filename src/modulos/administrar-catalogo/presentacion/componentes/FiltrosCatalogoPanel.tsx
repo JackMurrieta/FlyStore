@@ -38,7 +38,7 @@ export function FiltrosCatalogoPanel({ filtrosDisponibles, cargando, alBuscar, a
         <select value={filtros.estado ?? ''} aria-label="Estado" onChange={e => setFiltros({ ...filtros,
           estado: Object.values(EstadoProducto).find(valor => valor === e.target.value) ?? null })}>
           <option value="">Todos</option>{Object.values(EstadoProducto).map(estado => <option key={estado} value={estado}>
-            {estado === 'PUBLICADO' ? 'Publicado' : estado === 'BORRADOR' ? 'Borrador' : 'Inactivo'}</option>)}
+            {estado === 'PUBLICADO' ? 'Publicado' : estado === 'BORRADOR' ? 'Borrador' : estado === 'STOCK_BAJO' ? 'Stock bajo' : 'Inactivo'}</option>)}
         </select>
       </label>
       <Boton type="submit" variante="secundario">Buscar</Boton>

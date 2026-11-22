@@ -64,4 +64,30 @@ describe('Modelos de administrar catálogo', () => {
     vi.mocked(producto.darDeBajaProducto).mockResolvedValue({ idProducto: 'p1', tipoBaja: 'ELIMINADO' })
     expect(await model.darDeBaja('p1')).toEqual({ idProducto: 'p1', tipoBaja: 'ELIMINADO' })
   })
+
+  it('conserva los cinco esquemas del diagrama tanto al listar como al buscar', async () => {
+    const { producto, catalogo } = servicios()
+    const precios = ['BASE', 'EMPRENDEDOR', 'MAYOREO', 'DISTRIBUIDOR', 'SOCIO_COMERCIAL'].map((tipoPrecio, i) => ({tipoPrecio, precio: 100-i*10, minPiezas: i+1}))
+    const dto = {idProducto:'1',clave:'CINCO',nombre:'Gorra',img:'',categoria:'Gorras',subcategoria:'Clásicas',marca:'FLY',estado:'PUBLICADO',variantes:datos().variantes,preciosProducto:precios}
+    vi.mocked(producto.obtenerProductos).mockResolvedValue([dto])
+    vi.mocked(producto.buscarProductos).mockResolvedValue([dto])
+    const modelo = new CatalogoModel(catalogo,producto)
+    expect((await modelo.obtenerCatalogo())[0]?.precios).toEqual(precios)
+    expect((await modelo.buscarProductos({texto:'Gorra',idCategoria:'',idSubcategoria:'',idMarca:'',estado:null}))[0]?.precios).toEqual(precios)
+  })
+
+  it.each(['PUBLICADO', 'STOCK_BAJO', 'INACTIVO', 'BORRADOR'])('preserva el estado %s del backend al listar y buscar', async estado => {
+    const { producto, catalogo } = servicios()
+    const dto = {idProducto:'7',clave:'ESTADO',nombre:'Gorra',img:'',categoria:'Gorras',subcategoria:'Clásicas',marca:'FLY',estado,variantes:datos().variantes,preciosProducto:datos().precios}
+    vi.mocked(producto.obtenerProductos).mockResolvedValue([dto])
+    vi.mocked(producto.buscarProductos).mockResolvedValue([dto])
+    const modelo = new CatalogoModel(catalogo,producto)
+    expect((await modelo.obtenerCatalogo())[0]?.estado).toBe(estado)
+    expect((await modelo.buscarProductos({texto:'Gorra',idCategoria:'',idSubcategoria:'',idMarca:'',estado:null}))[0]?.estado).toBe(estado)
+  })
+
+  it('no permite crear un producto con el estado histórico STOCK_BAJO', () => {
+    const model = new ProductoModel(servicios().producto)
+    expect(model.validarDatosCompletos({...datos(), estado:'STOCK_BAJO'})).toHaveProperty('estado')
+  })
 })

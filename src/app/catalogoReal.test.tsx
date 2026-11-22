@@ -114,4 +114,21 @@ describe('Catálogo real restaurado',()=>{
   expect(screen.getAllByRole('button',{name:'Guardar'})[0]).toBeDisabled()
   expect(backend.altas).toHaveLength(0)
  })
+
+ it('carga stock bajo con los cinco precios, muestra opciones y filtra sin rechazar el contrato', async () => {
+  const consultas:string[]=[]
+  vi.stubGlobal('fetch',vi.fn(async(url:string)=>{
+   const ruta=new URL(url,'http://localhost');consultas.push(ruta.pathname+ruta.search)
+   if(ruta.pathname.endsWith('/filtros'))return json(opciones)
+   return json([{idProducto:'7',clave:'STOCK-BAJO',nombre:'Gorra de stock bajo',img:'',categoria:'Gorras',subcategoria:'Clásicas',marca:'FLY',estado:'STOCK_BAJO',variantes:[{talla:'M',color:'Rojo',stock:1}],preciosProducto:['BASE','EMPRENDEDOR','MAYOREO','DISTRIBUIDOR','SOCIO_COMERCIAL'].map((tipoPrecio,i)=>({tipoPrecio,precio:100-i*10,minPiezas:i+1}))}])
+  }))
+  const user=abrir()
+  await screen.findByRole('cell',{name:/Stock bajo/})
+  await screen.findByRole('option',{name:'FLY'})
+  expect(screen.queryByText('No se pudo cargar el catálogo')).not.toBeInTheDocument()
+  await user.selectOptions(screen.getByRole('combobox',{name:'Estado'}),'STOCK_BAJO')
+  await user.click(screen.getByRole('button',{name:'Buscar'}))
+  await waitFor(()=>expect(consultas).toContain('/api/productos/buscar?estado=STOCK_BAJO'))
+  expect(screen.getByRole('cell',{name:/Stock bajo/})).toBeInTheDocument()
+ })
 })
