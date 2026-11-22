@@ -127,6 +127,18 @@ export function crearGatewayVentaDemo(retardoMs = 350): IGestionarVentaGateway {
   return {
     async obtenerPedidoVentaEnCurso() { await esperar(retardoMs); return pedido() },
 
+    async agregarAlCarrito({ varianteProductoId, cantidad }) {
+      await esperar(retardoMs)
+      const producto = PRODUCTOS.find((p) => p.varianteProductoId === varianteProductoId)
+      if (!producto) throw new Error('Este producto ya no está disponible.')
+      const total = (cantidades.get(varianteProductoId) ?? 0) + cantidad
+      if (total > producto.existencia) {
+        throw new Error(`Solo quedan ${producto.existencia} piezas de ${producto.productoNombre}. Ajusta la cantidad.`)
+      }
+      cantidades.set(varianteProductoId, total)
+      return pedido()
+    },
+
     async actualizarCantidad({ varianteProductoId, cantidad }) {
       await esperar(retardoMs)
       const producto = PRODUCTOS.find((p) => p.varianteProductoId === varianteProductoId)

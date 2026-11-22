@@ -116,7 +116,7 @@ export default function IniciarSesionVista() {
         <footer className={styles.pie}>
           <Texto variante="cuerpo-s" tono="secundario">
             ¿No tienes cuenta?{' '}
-            <Link to="/registro" className={styles.enlace}>
+            <Link to={searchParams.get('redirigir') ? `/registro?redirigir=${encodeURIComponent(searchParams.get('redirigir') ?? '')}` : '/registro'} className={styles.enlace}>
               Regístrate
             </Link>
           </Texto>

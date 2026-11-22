@@ -115,15 +115,6 @@ export const usuarios = {
 } as const
 
 /**
- * Endpoints de productos (CU-01)
- * // SUPUESTO: Rutas pendientes de confirmar con backend
- */
-export const productos = {
-  listar: (filtros?: string) => `${API_BASE}/api/productos${filtros || ''}`,
-  obtener: (id: number) => `${API_BASE}/api/productos/${id}`,
-} as const
-
-/**
  * Endpoints de carrito y pedidos (CU-02)
  * // SUPUESTO: Rutas pendientes de confirmar con backend
  */
@@ -191,6 +182,8 @@ export const adminPedidos = {
 export const ventas = {
   /** GET → PedidoVentaDTO (pedido en estado PENDIENTE = carrito) */
   pedidoEnCurso: () => `${API_BASE}/api/ventas/pedido-en-curso`,
+  /** POST · { varianteProductoId, cantidad } → PedidoVentaDTO. Crea el carrito (PedidoVenta PENDIENTE) si no existe. */
+  detalles: () => `${API_BASE}/api/ventas/pedido-en-curso/detalles`,
   /** PATCH ActualizarCantidadPeticionDTO → PedidoVentaDTO */
   cantidad: () => `${API_BASE}/api/ventas/pedido-en-curso/cantidad`,
   /** POST AplicarCodigoPeticionDTO → PedidoVentaDTO */
@@ -215,6 +208,7 @@ export const ventas = {
 } as const
 
 export const catalogoAdmin = {
+ producto: (id: string) => API_BASE + '/api/productos/' + encodeURIComponent(id),
  productos: () => API_BASE + '/api/productos',
  filtros: () => API_BASE + '/api/catalogo/filtros',
  tallas: (id: string) => API_BASE + '/api/catalogo/categorias/' + encodeURIComponent(id) + '/tallas',
@@ -223,4 +217,18 @@ export const catalogoAdmin = {
  for (const [clave, valor] of Object.entries(filtros)) if (valor?.trim()) params.set(clave, valor.trim())
  return API_BASE + '/api/productos/buscar?' + params
  }
+} as const
+
+/**
+ * CU-01 Consultar catálogo (ConsultarCatalogoController). Rutas públicas; la cookie de sesión, si
+ * existe, solo cambia el precio de referencia al del tipo de cliente.
+ */
+export const catalogo = {
+  /** GET /api/catalogo/{ruta}?texto&marca&subcategoria&talla&color&unidadMedida&precioMin&precioMax&orden&pagina */
+  linea: (ruta: string, consulta = '') =>
+    `${API_BASE}/api/catalogo/${encodeURIComponent(ruta)}${consulta ? `?${consulta}` : ''}`,
+  /** GET /api/catalogo/buscar?texto=…&linea=… (mismos filtros) · búsqueda en toda la tienda */
+  buscar: (consulta: string) => `${API_BASE}/api/catalogo/buscar${consulta ? `?${consulta}` : ''}`,
+  /** GET /api/catalogo/productos/{id} · ficha con variantes y esquemas de precio */
+  producto: (id: number) => `${API_BASE}/api/catalogo/productos/${encodeURIComponent(String(id))}`,
 } as const

@@ -57,6 +57,7 @@ export function gatewayFalso(): IGestionarVentaGateway {
       ...dto, estadoVenta: 'PAGO_EN_REVISION', fechaHoraPedido: '2026-10-23T18:41:00-07:00',
     })),
     generarComprobantePedidoVenta: vi.fn().mockImplementation(async (folio: string) => pedidoRegistrado(folio, 'PAGO_EN_REVISION')),
+    agregarAlCarrito: vi.fn().mockResolvedValue(pedidoFigma()),
     actualizarCantidad: vi.fn().mockResolvedValue(pedidoFigma()),
     aplicarCodigoDescuento: vi.fn().mockResolvedValue(pedidoFigma(true)),
     listarPedidosVenta: vi.fn().mockResolvedValue([

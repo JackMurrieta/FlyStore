@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useLocation } from 'react-router-dom'
 import { SesionProvider, type EstadoSesionTs, type ISesion, type RolTs } from '@compartido/sesion'
 import { Header } from './Header'
 import { Footer } from './Footer'
@@ -19,7 +19,23 @@ function abrir(rol: RolTs | null) {
   return sesion
 }
 
+function Ubicacion() {
+  const { pathname, search } = useLocation()
+  return <output data-testid="ubicacion">{pathname + search}</output>
+}
+
 describe('Header', () => {
+  it('el buscador busca en toda la tienda (CU-01 · S1) y muestra el texto buscado', async () => {
+    render(<MemoryRouter initialEntries={['/buscar?texto=new%20era']}><SesionProvider sesion={sesionCon(null)}><Header /><Ubicacion /></SesionProvider></MemoryRouter>)
+    const campo = screen.getAllByRole('searchbox', { name: 'Buscar productos' })[0]!
+    expect(campo).toHaveValue('new era')
+    await userEvent.clear(campo)
+    await userEvent.type(campo, ' 9forty negra {Enter}')
+    expect(screen.getByTestId('ubicacion').textContent).toBe('/buscar?texto=9forty%20negra')
+    expect(screen.getAllByRole('searchbox', { name: 'Buscar productos' })[0]).toHaveValue('9forty negra')
+  })
+
+
   it('menú de cuenta del cliente: Mi perfil y Mis pedidos; se cierra con Esc y devuelve el foco', async () => {
     abrir('CLIENTE')
     const boton = screen.getByRole('button', { name: /Ana.*abrir menú de tu cuenta/ })

@@ -13,7 +13,7 @@
 
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent as EventoTeclado } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useSesion } from '@compartido/sesion/SesionContext'
 import type { RolTs, UsuarioSesionTs } from '@compartido/sesion/ISesion'
 import { Texto } from '@compartido/ui/Texto'
@@ -108,20 +108,36 @@ export function Header() {
 }
 
 /**
- * Buscador de la tienda. La búsqueda del catálogo (CU-01) aún no existe:
- * por ahora solo conserva el texto escrito.
+ * Buscador de la tienda (CU-01 · S1). Busca en toda la tienda: lleva a /buscar?texto=…, donde la
+ * página de resultados permite acotar por línea. Sin texto abre la búsqueda en blanco (A1), que
+ * explica qué escribir y sugiere términos. En /buscar muestra el texto buscado.
  */
 function Buscador({ className, alBuscar }: { readonly className?: string; readonly alBuscar?: () => void }) {
   const id = useId()
-  const enviar = (evento: FormEvent) => {
+  const navegar = useNavigate()
+  const { pathname, search } = useLocation()
+  const textoActual = pathname === '/buscar' ? new URLSearchParams(search).get('texto') ?? '' : ''
+  const enviar = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault()
+    const texto = String(new FormData(evento.currentTarget).get('texto') ?? '').trim()
+    navegar(texto ? `/buscar?texto=${encodeURIComponent(texto)}` : '/buscar')
     alBuscar?.()
   }
   return (
     <form role="search" className={`${styles.buscador} ${className ?? ''}`.trim()} onSubmit={enviar}>
       <label htmlFor={id} className={styles.oculto}>Buscar productos</label>
       <Icono nombre="search" tamano={18} />
-      <input id={id} type="search" placeholder="Buscar gorra, perfume, marca…" className={styles.campoBuscar} />
+      <input
+        key={textoActual}
+        id={id}
+        name="texto"
+        type="search"
+        defaultValue={textoActual}
+        maxLength={80}
+        enterKeyHint="search"
+        placeholder="Buscar gorra, perfume, marca…"
+        className={styles.campoBuscar}
+      />
     </form>
   )
 }
@@ -241,7 +257,7 @@ function PanelNavegacion({ id, usuario, alCerrar, alSalir }: {
           </button>
         </div>
 
-        <Buscador />
+        <Buscador alBuscar={alCerrar} />
 
         <nav aria-label="Categorías" className={styles.panelSeccion}>
           <Texto variante="sobretitulo" tono="secundario">Tienda</Texto>

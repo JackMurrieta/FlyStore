@@ -20,6 +20,12 @@ describe('GestionarVentaHttpGateway', () => {
     expect(http.get).toHaveBeenCalledWith(endpoints.ventas.pedidoEnCurso())
   })
 
+  it('agregar al carrito desde la ficha (CU-01) envía la variante y la cantidad', async () => {
+    const http = httpFalso()
+    await crear(http).agregarAlCarrito({ varianteProductoId: 101, cantidad: 6 })
+    expect(http.post).toHaveBeenCalledWith(endpoints.ventas.detalles(), { varianteProductoId: 101, cantidad: 6 })
+  })
+
   it('une los datos de la cuenta con el folio que genera el backend', async () => {
     const http = httpFalso()
     http.get.mockResolvedValue({ banco: 'Mercado Pago W', titular: 'FLY Store', numeroCuenta: '1', clabe: '2' })

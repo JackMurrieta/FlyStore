@@ -24,6 +24,8 @@ const TerminosVista = lazy(() => import('./vistas/informacion/TerminosVista'))
 const PreguntasFrecuentesVista = lazy(() => import('./vistas/informacion/PreguntasFrecuentesVista'))
 const GestionarVenta = lazy(() => import('@modulos/gestionar-venta').then(m => ({ default: m.GestionarVenta })))
 const MisPedidos = lazy(() => import('@modulos/gestionar-venta').then(m => ({ default: m.MisPedidos })))
+// CU-01 Consultar catálogo (público)
+const CatalogoTienda = lazy(() => import('@modulos/consultar-catalogo').then(m => ({ default: m.CatalogoTienda })))
 
 // CU-04 Administrar Pedidos (solo ADMIN y EMPLEADO)
 const PedidosAdminVista = lazy(() => import('@modulos/administrar-pedidos').then(m => ({ default: m.PedidosAdminVista })))
@@ -54,6 +56,14 @@ export function Rutas() {
         <Route path="/admin/catalogo" element={<RutaProtegida roles={['ADMIN', 'EMPLEADO']}><CatalogoAdminVista /></RutaProtegida>} />
         {AdministrarCatalogoDemo && <Route path="/dev/administrar-catalogo" element={<AdministrarCatalogoDemo />} />}
         {GestionarVentaDemo && <Route path="/dev/gestionar-venta/*" element={<GestionarVentaDemo />} />}
+
+        {/* CU-01 Consultar catálogo (público): marcas de la línea → catálogo → ficha; búsqueda en toda la tienda */}
+        <Route path="/categoria/:linea" element={<CatalogoTienda modelos={contenedor.modelosCatalogo} vista="marcas" />} />
+        <Route path="/categoria/:linea/productos" element={<CatalogoTienda modelos={contenedor.modelosCatalogo} vista="catalogo" />} />
+        <Route path="/buscar" element={<CatalogoTienda modelos={contenedor.modelosCatalogo} vista="busqueda" />} />
+        <Route path="/producto/:id" element={<CatalogoTienda modelos={contenedor.modelosCatalogo} vista="detalle" />} />
+        <Route path="/catalogo" element={<Navigate to="/categoria/caps" replace />} />
+        <Route path="/productos" element={<Navigate to="/categoria/caps" replace />} />
 
         {/* CU-02 Gestionar venta (protegido): carrito → entrega → pago → confirmación → pedido registrado */}
         <Route
@@ -116,10 +126,6 @@ export function Rutas() {
         />
 
         {/* TODO Fase 3+: Otras rutas de módulos */}
-        {/* Consultar catálogo (público) */}
-        {/* <Route path="/productos" element={<CatalogoVista />} /> */}
-        {/* <Route path="/productos/:id" element={<DetalleProductoVista />} /> */}
-
         {/* Admin (protegido por rol) */}
         {/* <Route */}
         {/*   path="/admin/*" */}

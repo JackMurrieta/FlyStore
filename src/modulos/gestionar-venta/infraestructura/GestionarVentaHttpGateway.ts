@@ -17,6 +17,7 @@ import type { MetodoPagoDTO } from '../aplicacion/dto/MetodoPagoDTO'
 import type { RespuestaValidacionComprobanteDTO } from '../aplicacion/dto/RespuestaValidacionComprobanteDTO'
 import type { ActualizarCantidadPeticionDTO } from '../aplicacion/dto/ActualizarCantidadPeticionDTO'
 import type { AplicarCodigoPeticionDTO } from '../aplicacion/dto/AplicarCodigoPeticionDTO'
+import type { AgregarAlCarritoPeticionDTO } from '../aplicacion/dto/AgregarAlCarritoPeticionDTO'
 
 export class GestionarVentaHttpGateway implements IGestionarVentaGateway {
   private readonly http: HttpClient
@@ -85,6 +86,11 @@ export class GestionarVentaHttpGateway implements IGestionarVentaGateway {
   /** gestionarVentaGenerarComprobante. El ticket se arma en el front con los datos del pedido registrado. */
   generarComprobantePedidoVenta(folio: string): Promise<PedidoVentaDTO> {
     return this.http.get<PedidoVentaDTO>(endpoints.ventas.pedidoRegistrado(folio))
+  }
+
+  /** Agregar al carrito desde la ficha del producto (CU-01). Crea el pedido PENDIENTE si no existe. */
+  agregarAlCarrito(dto: AgregarAlCarritoPeticionDTO): Promise<PedidoVentaDTO> {
+    return this.http.post<PedidoVentaDTO>(endpoints.ventas.detalles(), dto)
   }
 
   /** gestionarVentaActualizarCantidad (Alt1) */

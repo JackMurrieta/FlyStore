@@ -11,6 +11,10 @@ export interface DialogoSesionRequeridaProps {
   readonly abierto: boolean
   readonly alCerrar: () => void
   readonly mensaje?: string
+  /** Ruta a la que volver después de iniciar sesión o crear la cuenta. Por defecto, la página actual. */
+  readonly rutaRegreso?: string
+  /** Texto del aviso final (por defecto «Tu carrito se conserva»). */
+  readonly nota?: string
 }
 
 /**
@@ -29,12 +33,14 @@ export function DialogoSesionRequerida({
   abierto,
   alCerrar,
   mensaje = 'Inicia sesión para continuar',
+  rutaRegreso,
+  nota = 'Tu carrito se conserva',
 }: DialogoSesionRequeridaProps) {
   const navegar = useNavigate()
   const ubicacion = useLocation()
   const { iniciarConGoogle } = useSesion()
 
-  const rutaActual = ubicacion.pathname + ubicacion.search
+  const rutaActual = rutaRegreso ?? ubicacion.pathname + ubicacion.search
 
   const irAIniciarSesion = () => {
     alCerrar()
@@ -84,12 +90,12 @@ export function DialogoSesionRequerida({
         >
           ¿No tienes cuenta?{' '}
           <a
-            href="/registro"
+            href={`/registro?redirigir=${encodeURIComponent(rutaActual)}`}
             style={{ color: 'var(--fly-texto)', textDecoration: 'underline' }}
             onClick={(e) => {
               e.preventDefault()
               alCerrar()
-              navegar('/registro')
+              navegar(`/registro?redirigir=${encodeURIComponent(rutaActual)}`)
             }}
           >
             Regístrate
@@ -99,7 +105,7 @@ export function DialogoSesionRequerida({
         <Aviso tono="neutro">
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--fly-espacio-2)' }}>
             <Icono nombre="cart" tamano={16} />
-            <Texto variante="mini">Tu carrito se conserva</Texto>
+            <Texto variante="mini">{nota}</Texto>
           </div>
         </Aviso>
       </div>

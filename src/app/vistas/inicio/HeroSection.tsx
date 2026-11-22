@@ -70,7 +70,7 @@ export function HeroSection() {
         <Texto variante="cuerpo" tono="secundario" className={styles.subtitulo}>
           Encuentra productos de calidad para tu estilo
         </Texto>
-        <Link to="/productos" className={styles.cta}>
+        <Link to="/categoria/caps" className={styles.cta}>
           <Boton variante="primario">Ver productos</Boton>
         </Link>
       </div>

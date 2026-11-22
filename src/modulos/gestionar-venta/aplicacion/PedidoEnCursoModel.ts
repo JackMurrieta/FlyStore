@@ -107,6 +107,15 @@ export class PedidoEnCursoModel extends ModeloObservable<EstadoPedidoEnCurso> {
     }
   }
 
+  /**
+   * Entrada desde el CU-01 (ficha del producto). El backend crea el pedido PENDIENTE si el cliente
+   * aún no tiene carrito. El error se relanza: lo muestra la ficha (401 pide sesión, 403 cuenta de personal).
+   */
+  public agregarAlCarrito = async (varianteProductoId: number, cantidad: number): Promise<CarritoTs> => {
+    const dto = await this.gateway.agregarAlCarrito({ varianteProductoId, cantidad })
+    return this.aplicarPedido(dto, { error: null })
+  }
+
   /** Alt1, mensaje 3. Cantidad 0 quita la línea (S1). */
   public actualizarCantidad = async (varianteProductoId: number, cantidad: number): Promise<CarritoTs | null> => {
     if (!Number.isInteger(cantidad) || cantidad < 0) {

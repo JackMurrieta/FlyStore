@@ -10,7 +10,7 @@ Alta: selecciona categoría, talla y un color exacto de la BD. Conserva archivo 
 
 Configura VITE_API_URL según .env.example, o utiliza el proxy /api de Vite hacia localhost:8080. Las credenciales secretas y el bucket se configuran exclusivamente en el backend (ver su STORAGE.md). Si se pierde la respuesta después de guardar, consulta el catálogo antes de repetir: no se puede garantizar el resultado de una petición interrumpida.
 
-La baja de la ruta real queda pendiente de su flujo aprobado; el botón permanece deshabilitado. La demostración conserva su baja local.
+La baja de la ruta real está conectada: PantallaCatalogoAdmin → ConfirmarBajaPanel → useBajaProducto → BajaProductoModel → ProductoService → DELETE /api/productos/{id}. Cancelar no envía peticiones. Durante la confirmación se bloquean nuevos envíos y cancelación. El backend consulta ventas: con ventas cambia a INACTIVO y devuelve LOGICA; sin ventas elimina y devuelve FISICA. El modelo adapta esos resultados a INACTIVADO/ELIMINADO para presentación. Después se recarga la búsqueda activa o el catálogo completo. Un error conserva el diálogo y no anuncia éxito. No se eliminan objetos de Storage en este flujo, conforme al alcance de los diagramas.
 
 
 Para probar la presentación sin backend: ejecutar `npm run dev` y abrir `/dev/administrar-catalogo` en la dirección que indique Vite (normalmente `http://localhost:5173/dev/administrar-catalogo`). Esta ruta solo existe en desarrollo y usa adaptadores en memoria ubicados en `src/app/desarrollo`. Permite filtrar, registrar productos con una imagen local y dar de baja; una recarga reinicia los datos. No modifica la sesión ni los servicios reales.

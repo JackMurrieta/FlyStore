@@ -18,13 +18,33 @@ export const MARCA = {
   telefonoWhatsapp: '',
 } as const
 
-/** Categorías de la tienda (tabla categoria). Las rutas son del catálogo (CU-01). */
+import imagenGorras from '../../assets/index/gorras.webp'
+import imagenEssence from '../../assets/index/essentials.webp'
+import imagenRopa from '../../assets/index/clothes.webp'
+import imagenTenis from '../../assets/index/tenis.webp'
+
+/**
+ * Líneas de la tienda (tabla categoria). {@code clave} es el segmento de la ruta del catálogo (CU-01):
+ * /categoria/{clave} muestra sus marcas y /categoria/{clave}/productos su catálogo.
+ */
 export const CATEGORIAS = [
-  { nombre: 'CAPS', ruta: '/categoria/caps' },
-  { nombre: 'ESSENCE', ruta: '/categoria/essence' },
-  { nombre: 'CLOTHES', ruta: '/categoria/clothes' },
-  { nombre: 'SHOES', ruta: '/categoria/shoes' },
+  { nombre: 'CAPS', clave: 'caps', ruta: '/categoria/caps', titulo: 'Gorras', imagen: imagenGorras,
+    descripcion: 'Elige una marca para ver sus modelos o mira todas las gorras disponibles.', tipo: 'Tipo de gorra' },
+  { nombre: 'ESSENCE', clave: 'essence', ruta: '/categoria/essence', titulo: 'Perfumes', imagen: imagenEssence,
+    descripcion: 'Elige una marca para ver sus fragancias o mira todos los perfumes disponibles.', tipo: 'Tipo' },
+  { nombre: 'CLOTHES', clave: 'clothes', ruta: '/categoria/clothes', titulo: 'Ropa', imagen: imagenRopa,
+    descripcion: 'Elige una marca para ver sus prendas o mira toda la ropa disponible.', tipo: 'Tipo de prenda' },
+  { nombre: 'SHOES', clave: 'shoes', ruta: '/categoria/shoes', titulo: 'Tenis', imagen: imagenTenis,
+    descripcion: 'Elige una marca para ver sus modelos o mira todos los tenis disponibles.', tipo: 'Tipo' },
 ] as const
+
+export type CategoriaTienda = (typeof CATEGORIAS)[number]
+
+/** Datos de presentación de una línea por su ruta (caps, essence…); undefined si no es una de las cuatro. */
+export function categoriaPorClave(clave: string | null | undefined): CategoriaTienda | undefined {
+  const buscada = (clave ?? '').trim().toLowerCase()
+  return CATEGORIAS.find(c => c.clave === buscada)
+}
 
 /** Rutas públicas de ayuda y legales. */
 export const RUTAS_AYUDA = {

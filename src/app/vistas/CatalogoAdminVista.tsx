@@ -12,6 +12,6 @@ export default function CatalogoAdminVista() {
  return <CatalogoAdminLayout nuevoProducto={alta!==null} usuario={usuario??undefined} alVerCatalogo={()=>setError(null)} alCerrarSesion={()=>{void cerrarSesion().catch(e=>setError(e instanceof Error?e.message:'No se pudo cerrar sesión'))}}>
  {error&&<Aviso tono="error">{error}</Aviso>}
  {alta ? <PantallaNuevoProducto catalogoModel={contenedor.catalogoModel} productoModel={alta} alRegresar={()=>setAlta(null)} alRegistrado={texto=>{setMensaje(texto);setAlta(null)}}/>
- : <PantallaCatalogoAdmin catalogoModel={contenedor.catalogoModel} mensaje={mensaje} alCerrarMensaje={()=>setMensaje(null)} alAgregar={()=>{setMensaje(null);setAlta(new ProductoModel(contenedor.productoService))}}/>}
+ : <PantallaCatalogoAdmin bajaProductoModel={contenedor.bajaProductoModel} catalogoModel={contenedor.catalogoModel} mensaje={mensaje} alCerrarMensaje={()=>setMensaje(null)} alAgregar={()=>{setMensaje(null);setAlta(new ProductoModel(contenedor.productoService))}}/>}
  </CatalogoAdminLayout>
 }

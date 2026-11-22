@@ -8,13 +8,14 @@ import styles from './CategoryCard.module.css'
 
 interface CategoryCardProps {
   readonly nombre: string
-  readonly slug: string
+  /** Ruta de la línea (CU-01 · B2: primero las marcas de la línea). */
+  readonly ruta: string
   readonly imagen: string
 }
 
-export function CategoryCard({ nombre, slug, imagen }: CategoryCardProps) {
+export function CategoryCard({ nombre, ruta, imagen }: CategoryCardProps) {
   return (
-    <Link to={`/productos?categoria=${slug}`} className={styles.card}>
+    <Link to={ruta} className={styles.card}>
       {/* Imagen de fondo de categoría */}
       <div
         className={styles.imagenCategoria}

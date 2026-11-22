@@ -5,6 +5,7 @@ import type { MetodoPagoDTO } from '../../aplicacion/dto/MetodoPagoDTO'
 import type { RespuestaValidacionComprobanteDTO } from '../../aplicacion/dto/RespuestaValidacionComprobanteDTO'
 import type { ActualizarCantidadPeticionDTO } from '../../aplicacion/dto/ActualizarCantidadPeticionDTO'
 import type { AplicarCodigoPeticionDTO } from '../../aplicacion/dto/AplicarCodigoPeticionDTO'
+import type { AgregarAlCarritoPeticionDTO } from '../../aplicacion/dto/AgregarAlCarritoPeticionDTO'
 
 /**
  * Puerto único del CU-02 hacia el backend (los controllers del backend funcionan como BFF).
@@ -27,6 +28,11 @@ export interface IGestionarVentaGateway {
    * El front lo pinta con TicketPedido y el cliente lo imprime o guarda como PDF (window.print).
    */
   generarComprobantePedidoVenta(folio: string): Promise<PedidoVentaDTO>
+  /**
+   * Entrada desde el CU-01 (ficha del producto). Crea el pedido PENDIENTE si no existe y
+   * responde el carrito actualizado. Solo clientes con sesión (401 sin sesión, 403 cuenta de personal).
+   */
+  agregarAlCarrito(dto: AgregarAlCarritoPeticionDTO): Promise<PedidoVentaDTO>
   /** Alt1, mensaje 4. */
   actualizarCantidad(dto: ActualizarCantidadPeticionDTO): Promise<PedidoVentaDTO>
   /** Alt2, mensaje 4. */

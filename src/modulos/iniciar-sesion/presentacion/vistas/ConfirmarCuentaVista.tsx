@@ -4,7 +4,9 @@
  * al backend, que lo verifica y abre la sesión en cookies; el front nunca habla con Supabase.
  */
 
+import { useState } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
+import { consultarRutaPendiente, tomarRutaPendiente } from '@compartido/sesion'
 import { contenedor } from '@app/contenedor'
 import { Aviso, CargaPagina, Texto } from '@compartido/ui'
 import { useConfirmarCuenta } from '../hooks/useCuentaPorCorreo'
@@ -12,6 +14,8 @@ import styles from './IniciarSesionVista.module.css'
 
 export default function ConfirmarCuentaVista() {
   const [parametros] = useSearchParams()
+  // Ruta guardada al registrarse (ej. la ficha del producto que quería agregar al carrito).
+  const [rutaPendiente] = useState(() => consultarRutaPendiente())
   const estado = useConfirmarCuenta(contenedor.autenticacionService, contenedor.sesionModel,
     parametros.get('token_hash'), parametros.get('type'))
 
@@ -49,7 +53,9 @@ export default function ConfirmarCuentaVista() {
               <Aviso tono={confirmacion?.acceso ? 'exito' : 'info'}>{confirmacion?.mensaje}</Aviso>
               {confirmacion?.tipo === 'email_change'
                 ? <Link to="/perfil/seguridad" className={styles.botonEnlace}>Ir a mi perfil</Link>
-                : <Link to="/" className={styles.botonEnlace}>Empezar a comprar</Link>}
+                : rutaPendiente && confirmacion?.acceso
+                  ? <Link to={rutaPendiente} onClick={() => tomarRutaPendiente()} className={styles.botonEnlace}>Continuar con tu compra</Link>
+                  : <Link to="/" className={styles.botonEnlace}>Empezar a comprar</Link>}
             </>
           )}
         </div>

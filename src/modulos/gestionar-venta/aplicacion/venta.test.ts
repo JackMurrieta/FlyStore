@@ -77,6 +77,17 @@ describe('Modelos de gestionar venta', () => {
     expect(oyente).toHaveBeenCalledTimes(2)
   })
 
+  it('agregar desde la ficha (CU-01) deja el carrito al día y relanza el error para la ficha', async () => {
+    const gateway = gatewayFalso()
+    const { pedidoEnCurso } = crearModelosVenta(gateway)
+    const carrito = await pedidoEnCurso.agregarAlCarrito(101, 6)
+    expect(gateway.agregarAlCarrito).toHaveBeenCalledWith({ varianteProductoId: 101, cantidad: 6 })
+    expect(carrito.totalPiezas).toBe(11)
+    expect(pedidoEnCurso.obtenerEstado().carrito?.total).toBe(4210)
+    vi.mocked(gateway.agregarAlCarrito).mockRejectedValueOnce(new Error('Sin existencia'))
+    await expect(pedidoEnCurso.agregarAlCarrito(101, 99)).rejects.toThrow('Sin existencia')
+  })
+
   it('cambia la cantidad (Alt1) y no llama al backend con cantidades inválidas', async () => {
     const gateway = gatewayFalso()
     const { pedidoEnCurso } = crearModelosVenta(gateway)
