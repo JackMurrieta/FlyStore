@@ -70,14 +70,6 @@ export class PedidosAdminHttpService implements IPedidosAdminService {
     )
     return PedidoAdminMapper.aResultadoTs(respuesta)
   }
-
-  async cancelarPedido(folio: string, motivo: string): Promise<ResultadoAccionTs> {
-    const respuesta = await this.http.post<ResultadoAccionDTO>(
-      endpoints.adminPedidos.cancelar(folio),
-      PedidoAdminMapper.aPeticionCancelacion(motivo)
-    )
-    return PedidoAdminMapper.aResultadoTs(respuesta)
-  }
 }
 
 /** Convierte la petición de búsqueda en query string (omite los campos vacíos) */

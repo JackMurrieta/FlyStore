@@ -4,7 +4,9 @@
  *
  * Muestra el detalle y el historial, y según el estado del pedido ofrece:
  * - Front 3: aprobar el pago o rechazar el comprobante (pago en revisión)
- * - Front 4: actualizar el estado (pagado → enviado → entregado) y cancelar
+ * - Front 4: actualizar el estado (efectivo: pagado → entregado;
+ *   transferencia: en preparación → enviado → entregado)
+ * El personal no cancela pedidos: solo el cliente, desde «Mis pedidos», antes de pagar.
  */
 
 import { useCallback, useState } from 'react'
@@ -21,19 +23,36 @@ import { ETIQUETA_ESTADO, type EstadoPedidoTs } from '../../dominio/EstadoPedido
 import { ETIQUETA_METODO_PAGO } from '../../dominio/MetodoPagoTs'
 import { MOTIVOS_RECHAZO, estaCancelado, puedeValidarPago } from '../../dominio/ReglasPedido'
 import { formatearFecha, formatearMoneda, tonoEstado } from '../formato'
-import { advertenciaCancelacion, descripcionCambioDeEstado } from '../mensajes'
+import { descripcionCambioDeEstado } from '../mensajes'
 import { DialogoConfirmarAprobacion } from './DialogoConfirmarAprobacion'
 import { DialogoRechazarComprobante } from './DialogoRechazarComprobante'
 import { DialogoActualizarEstado } from './DialogoActualizarEstado'
-import { DialogoCancelarPedido } from './DialogoCancelarPedido'
 import styles from './DetallePedidoVista.module.css'
 
-/** Diálogo abierto y los datos con los que se abrió */
-type DialogoAbierto =
+/**
+ * Diálogo abierto, los datos con los que se abrió y el estado que tenía el pedido. Si el pedido
+ * cambia de estado (lo aplicó el backend o se recargó tras un 409), el diálogo ya no corresponde
+ * y deja de mostrarse.
+ */
+type DialogoAbierto = { readonly estadoAlAbrir: EstadoPedidoTs } & (
   | { readonly tipo: 'aprobar' }
   | { readonly tipo: 'rechazar'; readonly motivos: readonly string[] }
   | { readonly tipo: 'estado'; readonly estadoActual: EstadoPedidoTs; readonly siguiente: EstadoPedidoTs }
-  | { readonly tipo: 'cancelar'; readonly advertencia: string }
+)
+
+/** Texto de la tarjeta «Acciones» cuando el estado del pedido no admite ninguna */
+function sinAcciones(estado: EstadoPedidoTs): string {
+  switch (estado) {
+    case 'APARTADO_PENDIENTE_PAGO':
+      return 'Cuando el cliente pague en la tienda, registra el pago desde la lista de pedidos.'
+    case 'PENDIENTE_COMPROBANTE':
+      return 'Esperando a que el cliente suba su comprobante de transferencia.'
+    case 'ENTREGADO':
+      return 'El pedido ya se entregó.'
+    default:
+      return 'Este pedido no tiene acciones disponibles en su estado actual.'
+  }
+}
 
 export default function DetallePedidoVista() {
   const { folio = '' } = useParams<{ folio: string }>()
@@ -47,19 +66,16 @@ export default function DetallePedidoVista() {
     estadoAnterior,
     cargar,
     siguienteEstadoPermitido,
-    puedeCancelar,
     validarMotivo,
     validarTransicion,
     enlaceWhatsApp,
     aprobarPago,
     rechazarComprobante,
     actualizarEstado,
-    cancelarPedido,
     limpiarAvisos,
   } = useDetallePedido(contenedor.pedidosAdminModel, folio)
 
   const [dialogo, setDialogo] = useState<DialogoAbierto | null>(null)
-  const [avisoNoCancelable, setAvisoNoCancelable] = useState(false)
 
   // Referencia estable: Dialogo vuelve a tomar el foco cada vez que cambia alCerrar
   const cerrarDialogo = useCallback(() => setDialogo(null), [])
@@ -68,33 +84,29 @@ export default function DetallePedidoVista() {
   const validable = detalle !== null && puedeValidarPago(detalle.estado)
   const cancelado = detalle !== null && estaCancelado(detalle.estado)
   const enlaceNotificacion = notificacionPendiente ? enlaceWhatsApp() : null
+  const sinAccionesDisponibles = detalle !== null && !validable && !siguiente && !cancelado && estadoAnterior !== 'PAGO_EN_REVISION'
+  // Un diálogo abierto para otro estado ya no aplica (el pedido cambió mientras estaba abierto)
+  const dialogoVigente = detalle && dialogo?.estadoAlAbrir === detalle.estado ? dialogo : null
+  // Reintentar solo sirve si falló la conexión; un 404 o un 409 se explican con el mensaje
+  const puedeReintentar = error !== null && error.tipo !== 'negocio' && error.tipo !== 'validacion'
 
   // ---------- Front 3 · validar pago ----------
 
   const abrirAprobarPago = () => {
-    setDialogo({ tipo: 'aprobar' })
+    if (!detalle) return
+    setDialogo({ tipo: 'aprobar', estadoAlAbrir: detalle.estado })
   }
 
   const abrirRechazarComprobante = () => {
-    setDialogo({ tipo: 'rechazar', motivos: MOTIVOS_RECHAZO })
+    if (!detalle) return
+    setDialogo({ tipo: 'rechazar', motivos: MOTIVOS_RECHAZO, estadoAlAbrir: detalle.estado })
   }
 
-  // ---------- Front 4 · estado y cancelación ----------
+  // ---------- Front 4 · estado ----------
 
   const abrirActualizarEstado = () => {
     if (!detalle || !siguiente) return
-    setDialogo({ tipo: 'estado', estadoActual: detalle.estado, siguiente })
-  }
-
-  const abrirCancelarPedido = () => {
-    if (!detalle) return
-    if (!puedeCancelar()) {
-      // Enviado o entregado: se avisa y no se abre el diálogo
-      setAvisoNoCancelable(true)
-      return
-    }
-    setAvisoNoCancelable(false)
-    setDialogo({ tipo: 'cancelar', advertencia: advertenciaCancelacion(detalle) })
+    setDialogo({ tipo: 'estado', estadoActual: detalle.estado, siguiente, estadoAlAbrir: detalle.estado })
   }
 
   /** Abre WhatsApp con el mensaje ya escrito cuando el backend no pudo notificar al cliente */
@@ -117,14 +129,16 @@ export default function DetallePedidoVista() {
         {error && (
           <div className={styles.avisoConAcciones}>
             <Aviso tono="error">{error.mensaje}</Aviso>
-            <Boton
-              variante="secundario"
-              icono={<Icono nombre="refresh" tamano={16} />}
-              onClick={() => void cargar()}
-              disabled={cargando}
-            >
-              Reintentar
-            </Boton>
+            {puedeReintentar && (
+              <Boton
+                variante="secundario"
+                icono={<Icono nombre="refresh" tamano={16} />}
+                onClick={() => void cargar()}
+                disabled={cargando}
+              >
+                Reintentar
+              </Boton>
+            )}
           </div>
         )}
 
@@ -255,15 +269,22 @@ export default function DetallePedidoVista() {
                       {formatearFecha(detalle.comprobante.fecha)}
                       {detalle.comprobante.concepto && ` · ${detalle.comprobante.concepto}`}
                     </Texto>
-                    <a
-                      className={styles.enlace}
-                      href={detalle.comprobante.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Icono nombre="file" tamano={16} />
-                      {detalle.comprobante.nombreArchivo}
-                    </a>
+                    {detalle.comprobante.url ? (
+                      <a
+                        className={styles.enlace}
+                        href={detalle.comprobante.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Icono nombre="file" tamano={16} />
+                        {detalle.comprobante.nombreArchivo}
+                      </a>
+                    ) : (
+                      // El backend manda el enlace vacío cuando Storage no pudo generarlo (dura 5 minutos).
+                      <Texto variante="cuerpo-s" tono="secundario" como="p">
+                        No se pudo cargar el archivo. Recarga el pedido para intentarlo de nuevo.
+                      </Texto>
+                    )}
                   </section>
                 )}
 
@@ -316,24 +337,16 @@ export default function DetallePedidoVista() {
                       </>
                     )}
 
-                    {cancelado ? (
+                    {cancelado && (
                       <Texto variante="cuerpo-s" tono="secundario" como="p">
                         El pedido está cancelado y ya no admite acciones.
                       </Texto>
-                    ) : (
-                      <Boton
-                        variante="fantasma"
-                        anchoCompleto
-                        icono={<Icono nombre="ban" tamano={18} />}
-                        onClick={abrirCancelarPedido}
-                        disabled={cargando}
-                      >
-                        Cancelar pedido
-                      </Boton>
                     )}
 
-                    {avisoNoCancelable && !cancelado && (
-                      <Aviso tono="advertencia">El pedido ya salió de la tienda y no se puede cancelar.</Aviso>
+                    {sinAccionesDisponibles && (
+                      <Texto variante="cuerpo-s" tono="secundario" como="p">
+                        {sinAcciones(detalle.estado)}
+                      </Texto>
                     )}
 
                     {estadoAnterior && (
@@ -378,7 +391,7 @@ export default function DetallePedidoVista() {
       </div>
 
       {/* Abrir un diálogo es montarlo: su estado local empieza limpio en cada apertura */}
-      {detalle && dialogo?.tipo === 'aprobar' && (
+      {detalle && dialogoVigente?.tipo === 'aprobar' && (
         <DialogoConfirmarAprobacion
           detalle={detalle}
           cargando={cargando}
@@ -388,10 +401,10 @@ export default function DetallePedidoVista() {
         />
       )}
 
-      {detalle && dialogo?.tipo === 'rechazar' && (
+      {detalle && dialogoVigente?.tipo === 'rechazar' && (
         <DialogoRechazarComprobante
           detalle={detalle}
-          motivos={dialogo.motivos}
+          motivos={dialogoVigente.motivos}
           cargando={cargando}
           error={error}
           validarMotivo={validarMotivo}
@@ -400,27 +413,15 @@ export default function DetallePedidoVista() {
         />
       )}
 
-      {detalle && dialogo?.tipo === 'estado' && (
+      {detalle && dialogoVigente?.tipo === 'estado' && (
         <DialogoActualizarEstado
           detalle={detalle}
-          estadoActual={dialogo.estadoActual}
-          siguiente={dialogo.siguiente}
+          estadoActual={dialogoVigente.estadoActual}
+          siguiente={dialogoVigente.siguiente}
           cargando={cargando}
           error={error}
           validarTransicion={validarTransicion}
           actualizarEstado={actualizarEstado}
-          alCerrar={cerrarDialogo}
-        />
-      )}
-
-      {detalle && dialogo?.tipo === 'cancelar' && (
-        <DialogoCancelarPedido
-          detalle={detalle}
-          advertencia={dialogo.advertencia}
-          cargando={cargando}
-          error={error}
-          validarMotivo={validarMotivo}
-          cancelarPedido={cancelarPedido}
           alCerrar={cerrarDialogo}
         />
       )}

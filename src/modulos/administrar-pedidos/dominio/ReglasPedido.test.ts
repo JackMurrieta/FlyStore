@@ -1,51 +1,83 @@
 import { describe, expect, it } from 'vitest'
 import {
   MOTIVOS_RECHAZO,
-  SECUENCIA_ESTADOS,
   calcularCambio,
   contarPiezas,
   estaCancelado,
   estaVencido,
-  puedeCancelar,
   puedeValidarPago,
-  requiereDevolucion,
+  secuenciaEstados,
   siguienteEstadoPermitido,
   validarMotivo,
   validarTransicion,
 } from './ReglasPedido'
+import type { EstadoPedidoTs } from './EstadoPedidoTs'
+import type { MetodoPagoTs } from './MetodoPagoTs'
 
-describe('ReglasPedido · secuencia de estados', () => {
-  it('de pagado se pasa a enviado y de enviado a entregado', () => {
-    expect(siguienteEstadoPermitido('PAGADO')).toBe('ENVIADO')
-    expect(siguienteEstadoPermitido('ENVIADO')).toBe('ENTREGADO')
-    expect(siguienteEstadoPermitido('ENTREGADO')).toBeNull()
-    expect(siguienteEstadoPermitido('PAGO_EN_REVISION')).toBeNull()
+describe('ReglasPedido · recorrido según la forma de pago', () => {
+  it('en efectivo, de pagado se pasa directo a entregado', () => {
+    expect(siguienteEstadoPermitido('PAGADO', 'EFECTIVO')).toBe('ENTREGADO')
+    expect(siguienteEstadoPermitido('ENTREGADO', 'EFECTIVO')).toBeNull()
+    expect(siguienteEstadoPermitido('APARTADO_PENDIENTE_PAGO', 'EFECTIVO')).toBeNull()
+  })
+
+  it('por transferencia, de en preparación a enviado y de enviado a entregado', () => {
+    expect(siguienteEstadoPermitido('PREPARACION', 'TRANSFERENCIA')).toBe('ENVIADO')
+    expect(siguienteEstadoPermitido('ENVIADO', 'TRANSFERENCIA')).toBe('ENTREGADO')
+    expect(siguienteEstadoPermitido('ENTREGADO', 'TRANSFERENCIA')).toBeNull()
+    expect(siguienteEstadoPermitido('PAGO_EN_REVISION', 'TRANSFERENCIA')).toBeNull()
+  })
+
+  it('los pedidos de la regla anterior también avanzan', () => {
+    expect(siguienteEstadoPermitido('PAGADO', 'TRANSFERENCIA')).toBe('PREPARACION')
+    expect(siguienteEstadoPermitido('ENVIADO', 'EFECTIVO')).toBe('ENTREGADO')
   })
 
   it('rechaza saltarse la secuencia', () => {
-    const resultado = validarTransicion('PAGADO', 'ENTREGADO', null)
+    const resultado = validarTransicion('PREPARACION', 'TRANSFERENCIA', 'ENTREGADO', null)
     expect(resultado.valido).toBe(false)
     expect(resultado.siguientePermitido).toBe('ENVIADO')
     expect(resultado.errores).toHaveLength(1)
+    expect(validarTransicion('PAGADO', 'EFECTIVO', 'ENVIADO', null).errores[0]).toBe(
+      'Desde «Pagado» solo se puede pasar a «Entregado».'
+    )
   })
 
   it('enviado exige paquetería y guía o entrega local', () => {
-    expect(validarTransicion('PAGADO', 'ENVIADO', null).valido).toBe(false)
-    expect(validarTransicion('PAGADO', 'ENVIADO', { paqueteria: 'DHL', guia: '', entregaLocal: false }).valido).toBe(false)
-    expect(validarTransicion('PAGADO', 'ENVIADO', { paqueteria: 'DHL', guia: '123', entregaLocal: false }).valido).toBe(true)
-    expect(validarTransicion('PAGADO', 'ENVIADO', { paqueteria: '', guia: '', entregaLocal: true }).valido).toBe(true)
+    expect(validarTransicion('PREPARACION', 'TRANSFERENCIA', 'ENVIADO', null).valido).toBe(false)
+    expect(
+      validarTransicion('PREPARACION', 'TRANSFERENCIA', 'ENVIADO', { paqueteria: 'DHL', guia: '', entregaLocal: false }).valido
+    ).toBe(false)
+    expect(
+      validarTransicion('PREPARACION', 'TRANSFERENCIA', 'ENVIADO', { paqueteria: 'DHL', guia: '123', entregaLocal: false }).valido
+    ).toBe(true)
+    expect(
+      validarTransicion('PREPARACION', 'TRANSFERENCIA', 'ENVIADO', { paqueteria: '', guia: '', entregaLocal: true }).valido
+    ).toBe(true)
   })
 })
 
 describe('ReglasPedido · actualizar estado', () => {
-  it('los pasos del diálogo siguen la misma secuencia que siguienteEstadoPermitido', () => {
-    SECUENCIA_ESTADOS.forEach((estado, indice) => {
-      expect(siguienteEstadoPermitido(estado)).toBe(SECUENCIA_ESTADOS[indice + 1] ?? null)
+  it.each<[MetodoPagoTs, EstadoPedidoTs]>([
+    ['EFECTIVO', 'PAGADO'],
+    ['EFECTIVO', 'ENVIADO'],
+    ['TRANSFERENCIA', 'PREPARACION'],
+    ['TRANSFERENCIA', 'PAGADO'],
+  ])('los pasos del diálogo (%s desde %s) siguen la misma secuencia que siguienteEstadoPermitido', (metodo, actual) => {
+    const pasos = secuenciaEstados(metodo, actual)
+    expect(pasos).toContain(actual)
+    pasos.slice(pasos.indexOf(actual)).forEach((estado, indice, resto) => {
+      expect(siguienteEstadoPermitido(estado, metodo)).toBe(resto[indice + 1] ?? null)
     })
   })
 
+  it('efectivo muestra dos pasos y transferencia tres', () => {
+    expect(secuenciaEstados('EFECTIVO', 'PAGADO')).toEqual(['PAGADO', 'ENTREGADO'])
+    expect(secuenciaEstados('TRANSFERENCIA', 'PREPARACION')).toEqual(['PREPARACION', 'ENVIADO', 'ENTREGADO'])
+  })
+
   it('entregado no pide datos de envío', () => {
-    expect(validarTransicion('ENVIADO', 'ENTREGADO', null)).toEqual({
+    expect(validarTransicion('ENVIADO', 'TRANSFERENCIA', 'ENTREGADO', null)).toEqual({
       valido: true,
       errores: [],
       siguientePermitido: 'ENTREGADO',
@@ -53,14 +85,14 @@ describe('ReglasPedido · actualizar estado', () => {
   })
 
   it('reporta a la vez el estado fuera de secuencia y los datos de envío faltantes', () => {
-    const resultado = validarTransicion('ENVIADO', 'ENVIADO', { paqueteria: ' ', guia: '123', entregaLocal: false })
+    const resultado = validarTransicion('ENVIADO', 'TRANSFERENCIA', 'ENVIADO', { paqueteria: ' ', guia: '123', entregaLocal: false })
     expect(resultado.valido).toBe(false)
     expect(resultado.siguientePermitido).toBe('ENTREGADO')
     expect(resultado.errores).toHaveLength(2)
   })
 
   it('un pedido que no está pagado ni enviado no admite cambio de estado', () => {
-    const resultado = validarTransicion('PAGO_EN_REVISION', 'PAGADO', null)
+    const resultado = validarTransicion('PAGO_EN_REVISION', 'TRANSFERENCIA', 'PREPARACION', null)
     expect(resultado.valido).toBe(false)
     expect(resultado.siguientePermitido).toBeNull()
     expect(resultado.errores[0]).toMatch(/no admite cambio de estado/)
@@ -88,30 +120,16 @@ describe('ReglasPedido · validar pago', () => {
 })
 
 describe('ReglasPedido · cancelación y plazos', () => {
-  it('distingue los pedidos cancelados a mano o por vencimiento', () => {
+  it('distingue los pedidos cancelados por el cliente o por vencimiento', () => {
     expect(estaCancelado('CANCELADO')).toBe(true)
     expect(estaCancelado('CANCELADO_VENCIMIENTO')).toBe(true)
     expect(estaCancelado('ENTREGADO')).toBe(false)
-  })
-
-  it('solo hay devolución cuando el pedido ya estaba pagado', () => {
-    expect(requiereDevolucion('PAGADO')).toBe(true)
-    expect(requiereDevolucion('APARTADO_PENDIENTE_PAGO')).toBe(false)
-    expect(requiereDevolucion('PAGO_EN_REVISION')).toBe(false)
   })
 
   it('cuenta las piezas de todas las líneas', () => {
     const linea = { producto: 'Gorra', talla: null, precioUnitario: 100, subtotal: 100 }
     expect(contarPiezas([])).toBe(0)
     expect(contarPiezas([{ ...linea, cantidad: 6 }, { ...linea, cantidad: 3 }, { ...linea, cantidad: 2 }])).toBe(11)
-  })
-
-  it('no se cancela lo que ya salió de la tienda ni lo ya cancelado', () => {
-    expect(puedeCancelar('ENVIADO')).toBe(false)
-    expect(puedeCancelar('ENTREGADO')).toBe(false)
-    expect(puedeCancelar('CANCELADO')).toBe(false)
-    expect(puedeCancelar('PAGADO')).toBe(true)
-    expect(puedeCancelar('APARTADO_PENDIENTE_PAGO')).toBe(true)
   })
 
   it('detecta el apartado vencido', () => {

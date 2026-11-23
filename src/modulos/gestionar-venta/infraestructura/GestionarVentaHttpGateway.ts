@@ -121,4 +121,9 @@ export class GestionarVentaHttpGateway implements IGestionarVentaGateway {
       throw error
     }
   }
+
+  /** S6 · El cliente cancela su pedido (apartado o esperando comprobante). Un 409 llega como ErrorApi. */
+  cancelarPedidoVenta(folio: string, motivo: string | null): Promise<PedidoVentaDTO> {
+    return this.http.post<PedidoVentaDTO>(endpoints.ventas.cancelarPedido(folio), { motivo })
+  }
 }

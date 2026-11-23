@@ -1,6 +1,8 @@
 /**
  * Vista de la lista de pedidos del administrador (Front 1 y 2 del diseño)
  * Ruta: /admin/pedidos (RutaProtegida roles ADMIN y EMPLEADO)
+ * Búsqueda por folio, nombre o teléfono; filtros por estado, método de pago y rango de fechas;
+ * 50 pedidos por página (como los devuelve el backend).
  */
 
 import { useState, type FormEvent } from 'react'
@@ -21,45 +23,74 @@ import { formatearFecha, formatearMoneda, tonoEstado } from '../formato'
 import { DialogoRegistrarPagoEfectivo } from './DialogoRegistrarPagoEfectivo'
 import styles from './PedidosAdminVista.module.css'
 
+/** Valor de un campo de fecha (AAAA-MM-DD) como fecha local; null si está vacío */
+function aFechaLocal(valor: string): Date | null {
+  const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(valor)
+  return partes ? new Date(Number(partes[1]), Number(partes[2]) - 1, Number(partes[3])) : null
+}
+
+/** Filtros que se capturan en la vista antes de buscar */
+interface Filtros {
+  readonly texto: string
+  readonly estado: EstadoPedidoTs | null
+  readonly metodoPago: MetodoPagoTs | null
+  readonly desde: string
+  readonly hasta: string
+}
+
+const FILTROS_VACIOS: Filtros = { texto: '', estado: null, metodoPago: null, desde: '', hasta: '' }
+
 export default function PedidosAdminVista() {
   const model = contenedor.pedidosAdminModel
-  const { pedidos, totalEncontrado, hayFiltros, cargando, error, mensaje, buscar, limpiarFiltros, limpiarAvisos, irADetalle } =
-    usePedidosAdmin(model)
+  const {
+    pedidos,
+    totalEncontrado,
+    pagina,
+    totalPaginas,
+    hayFiltros,
+    cargando,
+    error,
+    mensaje,
+    buscar,
+    limpiarFiltros,
+    irAPagina,
+    limpiarAvisos,
+    irADetalle,
+  } = usePedidosAdmin(model)
 
-  const [texto, setTexto] = useState('')
-  const [estado, setEstado] = useState<EstadoPedidoTs | null>(null)
-  const [metodoPago, setMetodoPago] = useState<MetodoPagoTs | null>(null)
+  const [filtros, setFiltros] = useState<Filtros>(FILTROS_VACIOS)
   const [pedidoPago, setPedidoPago] = useState<PedidoResumenTs | null>(null)
+  const { texto, estado, metodoPago, desde, hasta } = filtros
 
-  const ejecutarBusqueda = (
-    nuevoTexto: string,
-    nuevoEstado: EstadoPedidoTs | null,
-    nuevoMetodo: MetodoPagoTs | null
-  ) => {
-    void buscar({ ...CRITERIOS_VACIOS, texto: nuevoTexto, estado: nuevoEstado, metodoPago: nuevoMetodo })
+  /** Cambia los filtros y busca desde la primera página */
+  const ejecutarBusqueda = (cambios: Partial<Filtros>) => {
+    const nuevos = { ...filtros, ...cambios }
+    setFiltros(nuevos)
+    void buscar({
+      ...CRITERIOS_VACIOS,
+      texto: nuevos.texto,
+      estado: nuevos.estado,
+      metodoPago: nuevos.metodoPago,
+      desde: aFechaLocal(nuevos.desde),
+      hasta: aFechaLocal(nuevos.hasta),
+    })
   }
 
   const manejarSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    ejecutarBusqueda(texto, estado, metodoPago)
+    ejecutarBusqueda({})
   }
 
   const alternarEstado = (valor: EstadoPedidoTs) => {
-    const nuevo = estado === valor ? null : valor
-    setEstado(nuevo)
-    ejecutarBusqueda(texto, nuevo, metodoPago)
+    ejecutarBusqueda({ estado: estado === valor ? null : valor })
   }
 
   const alternarMetodo = (valor: MetodoPagoTs) => {
-    const nuevo = metodoPago === valor ? null : valor
-    setMetodoPago(nuevo)
-    ejecutarBusqueda(texto, estado, nuevo)
+    ejecutarBusqueda({ metodoPago: metodoPago === valor ? null : valor })
   }
 
   const manejarLimpiar = () => {
-    setTexto('')
-    setEstado(null)
-    setMetodoPago(null)
+    setFiltros(FILTROS_VACIOS)
     void limpiarFiltros()
   }
 
@@ -87,7 +118,7 @@ export default function PedidosAdminVista() {
             <Campo
               type="search"
               value={texto}
-              onChange={(e) => setTexto(e.target.value)}
+              onChange={(e) => setFiltros({ ...filtros, texto: e.target.value })}
               placeholder="Buscar por folio, nombre o teléfono"
               aria-label="Buscar pedidos"
             />
@@ -102,6 +133,26 @@ export default function PedidosAdminVista() {
                 {ETIQUETA_ESTADO[valor]}
               </Chip>
             ))}
+          </div>
+
+          <div className={styles.fechas} role="group" aria-label="Filtrar por fecha del pedido">
+            {/* Días completos en la hora de la tienda; «hasta» no puede quedar antes de «desde» */}
+            <Campo
+              etiqueta="Desde"
+              type="date"
+              value={desde}
+              max={hasta || undefined}
+              onChange={(e) => ejecutarBusqueda({ desde: e.target.value })}
+              disabled={cargando}
+            />
+            <Campo
+              etiqueta="Hasta"
+              type="date"
+              value={hasta}
+              min={desde || undefined}
+              onChange={(e) => ejecutarBusqueda({ hasta: e.target.value })}
+              disabled={cargando}
+            />
           </div>
 
           <div className={styles.chips} role="group" aria-label="Filtrar por método de pago">
@@ -213,6 +264,29 @@ export default function PedidosAdminVista() {
               </tbody>
             </table>
           </div>
+        )}
+
+        {totalPaginas > 1 && pedidos.length > 0 && (
+          <nav className={styles.paginacion} aria-label="Páginas de pedidos">
+            <Boton
+              variante="secundario"
+              icono={<Icono nombre="chevron-left" tamano={16} />}
+              onClick={() => void irAPagina(pagina - 1)}
+              disabled={cargando || pagina <= 1}
+            >
+              Anterior
+            </Boton>
+            <Texto variante="cuerpo-s" tono="secundario" aria-live="polite">
+              Página {pagina} de {totalPaginas}
+            </Texto>
+            <Boton
+              variante="secundario"
+              onClick={() => void irAPagina(pagina + 1)}
+              disabled={cargando || pagina >= totalPaginas}
+            >
+              Siguiente
+            </Boton>
+          </nav>
         )}
       </div>
 

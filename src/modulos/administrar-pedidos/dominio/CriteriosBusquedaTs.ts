@@ -15,6 +15,9 @@ export interface CriteriosBusquedaTs {
   readonly pagina: number
 }
 
+/** Pedidos por página: el mismo valor que CriteriosBusquedaPedidos.TAMANO_PAGINA del backend */
+export const TAMANO_PAGINA = 50
+
 export const CRITERIOS_VACIOS: CriteriosBusquedaTs = {
   texto: '',
   estado: null,

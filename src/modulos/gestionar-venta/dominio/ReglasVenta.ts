@@ -18,6 +18,19 @@ export function plazoPagoVencido(estadoVenta: string, fechaLimitePago: Date | nu
   return esperaPago && fechaLimitePago !== null && fechaLimitePago.getTime() <= ahora.getTime()
 }
 
+/**
+ * El cliente puede cancelar su pedido mientras está apartado (efectivo) o esperando su
+ * comprobante (transferencia) y el plazo sigue vigente. Ya pagado, en revisión o vencido, no.
+ * El personal nunca cancela pedidos.
+ */
+export function puedeCancelarPedido(estadoVenta: string, fechaLimitePago: Date | null, ahora: Date): boolean {
+  const cancelable = estadoVenta === EstadoVenta.APARTADO_PENDIENTE_PAGO || estadoVenta === EstadoVenta.PENDIENTE_COMPROBANTE
+  return cancelable && !plazoPagoVencido(estadoVenta, fechaLimitePago, ahora)
+}
+
+/** Largo máximo del motivo de cancelación (CancelarPedidoPeticionDTO del backend). */
+export const MAX_MOTIVO_CANCELACION = 300
+
 /** Formatos aceptados para el comprobante de transferencia. */
 export const TIPOS_COMPROBANTE = ['image/jpeg', 'image/png', 'application/pdf'] as const
 export const EXTENSIONES_COMPROBANTE = ['jpg', 'jpeg', 'png', 'pdf'] as const

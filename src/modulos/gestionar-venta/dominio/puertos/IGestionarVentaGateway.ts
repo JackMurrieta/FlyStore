@@ -45,4 +45,9 @@ export interface IGestionarVentaGateway {
   obtenerDatosBancariosPedidoVenta(folio: string): Promise<DatosBancariosDTO>
   /** Sube el comprobante de un pedido PENDIENTE_COMPROBANTE; responde el pedido en PAGO_EN_REVISION. */
   subirComprobantePedidoVenta(folio: string, archivo: File): Promise<PedidoVentaDTO>
+  /**
+   * El cliente cancela su pedido mientras está APARTADO_PENDIENTE_PAGO o PENDIENTE_COMPROBANTE y no
+   * ha vencido; el motivo es opcional. Responde el pedido en CANCELADO; 409 si ya no se puede cancelar.
+   */
+  cancelarPedidoVenta(folio: string, motivo: string | null): Promise<PedidoVentaDTO>
 }

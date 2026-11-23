@@ -2,7 +2,8 @@
  * MisPedidosView «ViewComponent» · S6 Mis pedidos · Subir comprobante, A10 Pedido con plazo vencido.
  * Fuente: Figma CU02 · S6 (155:3576) y CU02 · A10 (156:4441).
  * Lista los pedidos registrados del cliente; el detalle del elegido muestra artículos y, si espera
- * comprobante, la fecha límite, los datos para transferir y la carga del comprobante.
+ * comprobante, la fecha límite, los datos para transferir y la carga del comprobante. Mientras no
+ * ha pagado (apartado o esperando comprobante) el cliente puede cancelar su pedido.
  */
 
 import { useNavigate } from 'react-router-dom'
@@ -16,6 +17,7 @@ import { useMisPedidos } from '../hooks/useMisPedidos'
 import { useCopiar } from '../hooks/useCopiar'
 import { EstadoCarga, PaginaVenta } from '../componentes/PaginaVenta'
 import { ComprobantePago } from '../componentes/ComprobantePago'
+import { DialogoCancelarPedido } from '../componentes/DialogoCancelarPedido'
 import { Divisor, FilaResumen, FotoProducto, InsigniaEstado } from '../componentes/Elementos'
 import {
   formatearFechaCorta, formatearFechaLimite, formatearMonto, formatearMontoExacto, formatearTotal, piezas, productos,
@@ -172,7 +174,7 @@ function DetallePedido({ vm, pedido }: { readonly vm: VistaModelo; readonly pedi
               <FilaResumen etiqueta="Total" valor={formatearTotal(pedido.total)} tipo="total" />
             </>
           )}
-          <AvisoEstado estado={estado} vencido={vencido} recibido={vm.comprobanteRecibido} />
+          <AvisoEstado estado={estado} vencido={vencido} recibido={vm.comprobanteRecibido} cancelado={vm.pedidoCancelado} />
           {(vencido || estado === EstadoVenta.CANCELADO) && (
             <div className={estilos.acciones}>
               <Boton variante="primario" icono={<Icono nombre="cart" tamano={18} />} onClick={() => navegar('/')}>
@@ -187,16 +189,44 @@ function DetallePedido({ vm, pedido }: { readonly vm: VistaModelo; readonly pedi
           )}
         </>
       )}
+
+      {vm.puedeCancelar && (
+        <div className={estilos.acciones}>
+          <Boton variante="peligro" icono={<Icono nombre="ban" tamano={18} />} onClick={vm.abrirCancelar}
+            disabled={vm.subiendo || vm.cancelando}>
+            Cancelar pedido
+          </Boton>
+        </div>
+      )}
+
+      {vm.dialogoCancelarAbierto && pedido.folio && (
+        <DialogoCancelarPedido folio={pedido.folio} esperaEfectivo={estado === EstadoVenta.APARTADO_PENDIENTE_PAGO}
+          puedeCancelar={vm.puedeCancelar} cancelando={vm.cancelando} error={vm.errorCancelacion}
+          alConfirmar={(motivo) => void vm.cancelarPedido(motivo)} alCerrar={vm.cerrarCancelar} />
+      )}
     </section>
   )
 }
 
 /** Aviso del estado del pedido cuando ya no admite comprobante. */
-function AvisoEstado({ estado, vencido, recibido }: { readonly estado: string | undefined; readonly vencido: boolean; readonly recibido: boolean }) {
+function AvisoEstado({ estado, vencido, recibido, cancelado }: {
+  readonly estado: string | undefined
+  readonly vencido: boolean
+  readonly recibido: boolean
+  /** El cliente lo acaba de cancelar en esta pantalla. */
+  readonly cancelado: boolean
+}) {
   if (vencido) {
     return (
       <Aviso tono="error" titulo="Este pedido se canceló por vencimiento">
         El plazo de {HORAS_LIMITE_PAGO} horas terminó sin que se registrara el pago. Para comprar, haz un nuevo pedido.
+      </Aviso>
+    )
+  }
+  if (cancelado) {
+    return (
+      <Aviso tono="exito" titulo="Cancelaste tu pedido">
+        Ya no tienes que pagarlo. Si quieres los productos, haz un nuevo pedido.
       </Aviso>
     )
   }
@@ -213,7 +243,7 @@ function AvisoEstado({ estado, vencido, recibido }: { readonly estado: string | 
     case EstadoVenta.APARTADO_PENDIENTE_PAGO:
       return <Aviso tono="info" titulo="Pago en efectivo">Te escribimos por WhatsApp para acordar la entrega y el pago.</Aviso>
     case EstadoVenta.CANCELADO:
-      return <Aviso tono="error" titulo="Este pedido fue cancelado">Si tienes dudas, escríbenos por WhatsApp.</Aviso>
+      return <Aviso tono="error" titulo="Cancelaste este pedido">Si quieres los productos, haz un nuevo pedido.</Aviso>
     default:
       return null
   }

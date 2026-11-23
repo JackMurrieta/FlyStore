@@ -20,6 +20,19 @@ describe('GestionarVentaHttpGateway', () => {
     expect(http.get).toHaveBeenCalledWith(endpoints.ventas.pedidoEnCurso())
   })
 
+  it('el cliente cancela su pedido en /api/ventas con el motivo (o null) y el 409 llega como ErrorApi', async () => {
+    const http = httpFalso()
+    await crear(http).cancelarPedidoVenta('FLY-000131', 'Ya no lo necesito')
+    expect(http.post).toHaveBeenCalledWith('/api/ventas/pedidos/FLY-000131/cancelar', { motivo: 'Ya no lo necesito' })
+    expect(endpoints.ventas.cancelarPedido('FLY-000131')).toBe('/api/ventas/pedidos/FLY-000131/cancelar')
+
+    await crear(http).cancelarPedidoVenta('FLY-000131', null)
+    expect(http.post).toHaveBeenLastCalledWith(endpoints.ventas.cancelarPedido('FLY-000131'), { motivo: null })
+
+    http.post.mockRejectedValueOnce(new ErrorApi('Ya no se puede cancelar', 'NEGOCIO', 'CONFLICTO_DE_DATOS', undefined, 409))
+    await expect(crear(http).cancelarPedidoVenta('FLY-000128', null)).rejects.toBeInstanceOf(ErrorApi)
+  })
+
   it('agregar al carrito desde la ficha (CU-01) envía la variante y la cantidad', async () => {
     const http = httpFalso()
     await crear(http).agregarAlCarrito({ varianteProductoId: 101, cantidad: 6 })

@@ -1,6 +1,6 @@
 /**
  * Hook (ViewModel) del detalle de un pedido y sus acciones
- * (aprobar pago, rechazar comprobante, actualizar estado, cancelar)
+ * (aprobar pago, rechazar comprobante, actualizar estado). El personal no cancela pedidos.
  */
 
 import { useEffect, useSyncExternalStore } from 'react'
@@ -30,14 +30,12 @@ export function useDetallePedido(model: PedidosAdminModel, folio: string) {
   const cargar = (): Promise<void> => model.cargarDetalle(folio)
 
   const siguienteEstadoPermitido = (): EstadoPedidoTs | null =>
-    detalle ? model.siguienteEstadoPermitido(detalle.estado) : null
-
-  const puedeCancelar = (): boolean => (detalle ? model.puedeCancelar(detalle.estado) : false)
+    detalle ? model.siguienteEstadoPermitido(detalle.estado, detalle.metodoPago) : null
 
   const validarMotivo = (motivo: string): boolean => reglas.validarMotivo(motivo)
 
   const validarTransicion = (nuevo: EstadoPedidoTs, envio: DatosEnvioTs | null): ResultadoValidacionTs | null =>
-    detalle ? model.validarTransicion(detalle.estado, nuevo, envio) : null
+    detalle ? model.validarTransicion(detalle.estado, detalle.metodoPago, nuevo, envio) : null
 
   /** Enlace wa.me para notificar a mano cuando el backend no pudo hacerlo */
   const enlaceWhatsApp = (): string | null =>
@@ -51,10 +49,6 @@ export function useDetallePedido(model: PedidosAdminModel, folio: string) {
   const actualizarEstado = (nuevo: EstadoPedidoTs, envio: DatosEnvioTs | null): Promise<boolean> =>
     model.actualizarEstado(folio, nuevo, envio)
 
-  /** Sin motivo no se llama al modelo: el diálogo pide indicarlo */
-  const cancelarPedido = (motivo: string): Promise<boolean> =>
-    validarMotivo(motivo) ? model.cancelarPedido(folio, motivo) : Promise.resolve(false)
-
   return {
     detalle,
     cargando: estado.cargando,
@@ -64,14 +58,12 @@ export function useDetallePedido(model: PedidosAdminModel, folio: string) {
     estadoAnterior,
     cargar,
     siguienteEstadoPermitido,
-    puedeCancelar,
     validarMotivo,
     validarTransicion,
     enlaceWhatsApp,
     aprobarPago: (): Promise<boolean> => model.aprobarPago(folio),
     rechazarComprobante,
     actualizarEstado,
-    cancelarPedido,
     limpiarAvisos: (): void => model.limpiarAvisos(),
   }
 }

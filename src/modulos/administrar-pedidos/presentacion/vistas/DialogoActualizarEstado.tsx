@@ -1,7 +1,9 @@
 /**
  * Diálogo «Actualizar estado del pedido» (Front 4 del diseño)
- * Propone el siguiente estado permitido y, para «Enviado», pide paquetería y guía
- * o entrega local. El modelo valida la transición antes de llamar al backend.
+ * Muestra el recorrido de su forma de pago (efectivo: pagado → entregado; transferencia:
+ * en preparación → enviado → entregado), propone el siguiente estado permitido y, para
+ * «Enviado», pide paquetería y guía o entrega local. El modelo valida la transición antes de
+ * llamar al backend.
  * DetallePedidoVista lo monta al abrirlo, así cada apertura empieza limpia.
  */
 
@@ -18,7 +20,7 @@ import type { DetallePedidoAdminTs } from '../../dominio/DetallePedidoAdminTs'
 import { ETIQUETA_ESTADO, type EstadoPedidoTs } from '../../dominio/EstadoPedidoTs'
 import { ENVIO_VACIO, type DatosEnvioTs } from '../../dominio/DatosEnvioTs'
 import type { ResultadoValidacionTs } from '../../dominio/ResultadoValidacionTs'
-import { SECUENCIA_ESTADOS, requiereDatosEnvio } from '../../dominio/ReglasPedido'
+import { requiereDatosEnvio, secuenciaEstados } from '../../dominio/ReglasPedido'
 import estilos from './DialogosPedido.module.css'
 
 /** Sugerencias para el campo «Paquetería» (se puede escribir cualquier otra) */
@@ -58,7 +60,8 @@ export function DialogoActualizarEstado({
 
   const pideEnvio = requiereDatosEnvio(estado)
   const envioCapturado = pideEnvio ? envio : null
-  const indiceActual = SECUENCIA_ESTADOS.indexOf(estadoActual)
+  const pasos = secuenciaEstados(detalle.metodoPago, estadoActual)
+  const indiceActual = pasos.indexOf(estadoActual)
   const cliente = detalle.cliente.nombre
 
   // Tras el primer intento la validación se recalcula mientras el administrador corrige
@@ -104,7 +107,7 @@ export function DialogoActualizarEstado({
         </Texto>
 
         <ol className={estilos.pasos} aria-label="Estados del pedido">
-          {SECUENCIA_ESTADOS.map((paso, indice) => (
+          {pasos.map((paso, indice) => (
             <li key={paso} className={estilos.paso}>
               {indice > 0 && <span className={estilos.conector} aria-hidden="true" />}
               {indice <= indiceActual ? (

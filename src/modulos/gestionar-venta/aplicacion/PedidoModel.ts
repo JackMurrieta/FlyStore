@@ -2,19 +2,21 @@
  * PedidoModel · Experto en información de los pedidos ya registrados del cliente (GRASP).
  * Pantalla S6 «Mis pedidos»: lista los pedidos, muestra el detalle del elegido y, si espera
  * comprobante, los datos para transferir y la carga del comprobante (PENDIENTE_COMPROBANTE →
- * PAGO_EN_REVISION). El carrito sigue en PedidoEnCursoModel: este modelo nunca lo toca.
+ * PAGO_EN_REVISION). Mientras no ha pagado, el cliente puede cancelar su pedido.
+ * El carrito sigue en PedidoEnCursoModel: este modelo nunca lo toca.
  *
  * Patrón Observador: los hooks se suscriben con useSyncExternalStore.
  */
 
 import { ModeloObservable } from '@compartido/modelo/ModeloObservable'
 import type { ErrorTs } from '@compartido/tipos/ErrorTs'
+import { ErrorApi } from '@infraestructura/http/ErrorApi'
 import type { IGestionarVentaGateway } from '../dominio/puertos/IGestionarVentaGateway'
 import type { InformacionPedidoTs } from '../dominio/InformacionPedidoTs'
 import type { DatosBancariosTs } from '../dominio/DatosBancariosTs'
 import type { EstadoPedidoTs } from '../dominio/EstadoVenta'
 import { EstadoVenta } from '../dominio/EstadoVenta'
-import { plazoPagoVencido, validarArchivoComprobante } from '../dominio/ReglasVenta'
+import { plazoPagoVencido, puedeCancelarPedido, validarArchivoComprobante } from '../dominio/ReglasVenta'
 import { RespuestaValidacionComprobanteException } from '../dominio/RespuestaValidacionComprobanteException'
 import type { DatosBancariosDTO } from './dto/DatosBancariosDTO'
 import { PedidoVentaMapper } from './mappers/PedidoVentaMapper'
@@ -35,6 +37,11 @@ export interface EstadoPedidos {
   readonly errorComprobante: ErrorTs | null
   /** Folio cuyo comprobante se acaba de recibir (para el aviso de éxito). */
   readonly comprobanteRecibido: string | null
+  readonly cancelando: boolean
+  /** El backend no canceló (ya no se podía, o falló la conexión). */
+  readonly errorCancelacion: ErrorTs | null
+  /** Folio que el cliente acaba de cancelar (para el aviso de éxito). */
+  readonly pedidoCancelado: string | null
 }
 
 const ESTADO_INICIAL: EstadoPedidos = {
@@ -48,6 +55,9 @@ const ESTADO_INICIAL: EstadoPedidos = {
   subiendoComprobante: false,
   errorComprobante: null,
   comprobanteRecibido: null,
+  cancelando: false,
+  errorCancelacion: null,
+  pedidoCancelado: null,
 }
 
 export class PedidoModel extends ModeloObservable<EstadoPedidos> {
@@ -91,7 +101,7 @@ export class PedidoModel extends ModeloObservable<EstadoPedidos> {
     const cambio = folio !== this.obtenerEstado().folioSeleccionado
     this.actualizar({
       folioSeleccionado: folio,
-      ...(cambio ? { errorComprobante: null, comprobanteRecibido: null } : {}),
+      ...(cambio ? { errorComprobante: null, comprobanteRecibido: null, errorCancelacion: null, pedidoCancelado: null } : {}),
     })
     const pedido = this.obtenerPedidoSeleccionado()
     if (pedido && this.puedeSubirComprobante(pedido)) void this.obtenerDatosBancariosPedidoVenta(pedido.folio ?? '')
@@ -106,6 +116,10 @@ export class PedidoModel extends ModeloObservable<EstadoPedidos> {
   /** Solo un pedido «Pendiente de comprobante» con el plazo vigente admite subir el comprobante. */
   public puedeSubirComprobante = (pedido: InformacionPedidoTs): boolean =>
     pedido.estado?.valor === EstadoVenta.PENDIENTE_COMPROBANTE && !this.plazoVencido(pedido)
+
+  /** Apartado o esperando comprobante, con el plazo vigente: el cliente aún puede cancelarlo. */
+  public puedeCancelar = (pedido: InformacionPedidoTs): boolean =>
+    puedeCancelarPedido(pedido.estado?.valor ?? '', pedido.fechaLimitePago, this.reloj())
 
   public plazoVencido = (pedido: InformacionPedidoTs): boolean =>
     plazoPagoVencido(pedido.estado?.valor ?? '', pedido.fechaLimitePago, this.reloj())
@@ -190,6 +204,36 @@ export class PedidoModel extends ModeloObservable<EstadoPedidos> {
       })
       return null
     }
+  }
+
+  /**
+   * El cliente cancela su pedido (motivo opcional). Si el backend lo cancela, se reemplaza en la
+   * lista. Si responde 409 (ya pagó, subió su comprobante o venció mientras tanto), se recarga la
+   * lista para mostrar el estado real y se deja el mensaje del backend.
+   */
+  public cancelarPedidoVenta = async (folio: string, motivo: string): Promise<InformacionPedidoTs | null> => {
+    this.actualizar({ cancelando: true, errorCancelacion: null, pedidoCancelado: null })
+    const motivoLimpio = motivo.trim()
+    try {
+      const dto = await this.gateway.cancelarPedidoVenta(folio, motivoLimpio === '' ? null : motivoLimpio)
+      const actualizado = PedidoVentaMapper.convertirPedidoVentaDTOaInformacionPedidoTs(dto)
+      const pedidos = (this.obtenerEstado().pedidos ?? []).map((pedido) => (pedido.folio === folio ? actualizado : pedido))
+      this.actualizar({ cancelando: false, pedidos, pedidoCancelado: folio, datosBancarios: null })
+      return actualizado
+    } catch (error) {
+      const errorCancelacion = PedidoVentaMapper.convertirErrorAErrorTs(
+        error,
+        'No pudimos cancelar tu pedido; inténtalo de nuevo.'
+      )
+      if (error instanceof ErrorApi && error.statusHTTP === 409) await this.listarPedidosVenta(folio)
+      this.actualizar({ cancelando: false, errorCancelacion })
+      return null
+    }
+  }
+
+  /** El cliente cierra el diálogo de cancelación: se descarta el error anterior. */
+  public limpiarErrorCancelacion = (): void => {
+    if (this.obtenerEstado().errorCancelacion) this.actualizar({ errorCancelacion: null })
   }
 
   /** Al cerrar sesión: no deja pedidos del cliente anterior en memoria. */

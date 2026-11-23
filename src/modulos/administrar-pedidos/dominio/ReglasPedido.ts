@@ -1,30 +1,35 @@
 /**
  * Reglas del pedido que el front aplica para la experiencia de uso
- * (siguiente estado, validación de pago, cancelación, plazo y cambio en efectivo).
- * La autoridad final es el backend (PoliticaEstadosPedido / PoliticaPlazos).
+ * (siguiente estado, validación de pago, plazo y cambio en efectivo).
+ * La autoridad final es el backend (PedidoVentaBO). El personal no cancela pedidos:
+ * solo el cliente cancela el suyo, desde «Mis pedidos».
  */
 
 import { ETIQUETA_ESTADO, type EstadoPedidoTs } from './EstadoPedidoTs'
+import type { MetodoPagoTs } from './MetodoPagoTs'
 import type { DatosEnvioTs } from './DatosEnvioTs'
 import type { LineaPedidoTs } from './LineaPedidoTs'
 import type { ResultadoValidacionTs } from './ResultadoValidacionTs'
 import type { CambioTs } from './CambioTs'
 
-/** Secuencia de estados que el administrador avanza a mano */
-const SIGUIENTE_ESTADO: Partial<Record<EstadoPedidoTs, EstadoPedidoTs>> = {
-  PAGADO: 'ENVIADO',
+/**
+ * Efectivo cobrado en la tienda: Pagado → Entregado.
+ * Enviado → Entregado queda para los pedidos en efectivo que se enviaron con la regla anterior.
+ */
+const SIGUIENTE_EFECTIVO: Partial<Record<EstadoPedidoTs, EstadoPedidoTs>> = {
+  PAGADO: 'ENTREGADO',
   ENVIADO: 'ENTREGADO',
 }
 
-/** Recorrido completo de un pedido ya pagado (para mostrar los pasos en «Actualizar estado») */
-export const SECUENCIA_ESTADOS: readonly EstadoPedidoTs[] = ['PAGADO', 'ENVIADO', 'ENTREGADO']
-
-const NO_CANCELABLES: readonly EstadoPedidoTs[] = [
-  'ENVIADO',
-  'ENTREGADO',
-  'CANCELADO',
-  'CANCELADO_VENCIMIENTO',
-]
+/**
+ * Transferencia: al aprobar el pago entra a En preparación → Enviado → Entregado.
+ * Pagado → En preparación queda para las transferencias aprobadas con la regla anterior.
+ */
+const SIGUIENTE_TRANSFERENCIA: Partial<Record<EstadoPedidoTs, EstadoPedidoTs>> = {
+  PAGADO: 'PREPARACION',
+  PREPARACION: 'ENVIADO',
+  ENVIADO: 'ENTREGADO',
+}
 
 const CANCELADOS: readonly EstadoPedidoTs[] = ['CANCELADO', 'CANCELADO_VENCIMIENTO']
 
@@ -36,8 +41,22 @@ export const MOTIVOS_RECHAZO: readonly string[] = [
   'Otro motivo',
 ]
 
-export function siguienteEstadoPermitido(actual: EstadoPedidoTs): EstadoPedidoTs | null {
-  return SIGUIENTE_ESTADO[actual] ?? null
+export function siguienteEstadoPermitido(actual: EstadoPedidoTs, metodoPago: MetodoPagoTs): EstadoPedidoTs | null {
+  const recorrido = metodoPago === 'TRANSFERENCIA' ? SIGUIENTE_TRANSFERENCIA : SIGUIENTE_EFECTIVO
+  return recorrido[actual] ?? null
+}
+
+/**
+ * Pasos que muestra «Actualizar estado» según la forma de pago. Incluye el estado actual
+ * cuando el pedido viene de la regla anterior (transferencia en Pagado, efectivo en Enviado).
+ */
+export function secuenciaEstados(metodoPago: MetodoPagoTs, actual: EstadoPedidoTs): readonly EstadoPedidoTs[] {
+  if (metodoPago === 'EFECTIVO') {
+    return actual === 'ENVIADO' ? ['PAGADO', 'ENVIADO', 'ENTREGADO'] : ['PAGADO', 'ENTREGADO']
+  }
+  return actual === 'PAGADO'
+    ? ['PAGADO', 'PREPARACION', 'ENVIADO', 'ENTREGADO']
+    : ['PREPARACION', 'ENVIADO', 'ENTREGADO']
 }
 
 export function requiereDatosEnvio(estado: EstadoPedidoTs): boolean {
@@ -52,11 +71,12 @@ export function envioCompleto(envio: DatosEnvioTs | null): boolean {
 
 export function validarTransicion(
   actual: EstadoPedidoTs,
+  metodoPago: MetodoPagoTs,
   nuevo: EstadoPedidoTs,
   envio: DatosEnvioTs | null
 ): ResultadoValidacionTs {
   const errores: string[] = []
-  const siguiente = siguienteEstadoPermitido(actual)
+  const siguiente = siguienteEstadoPermitido(actual, metodoPago)
 
   if (siguiente !== nuevo) {
     errores.push(
@@ -73,10 +93,6 @@ export function validarTransicion(
   return { valido: errores.length === 0, errores, siguientePermitido: siguiente }
 }
 
-export function puedeCancelar(estado: EstadoPedidoTs): boolean {
-  return !NO_CANCELABLES.includes(estado)
-}
-
 /** El pedido ya terminó en cancelación (manual o por vencimiento) */
 export function estaCancelado(estado: EstadoPedidoTs): boolean {
   return CANCELADOS.includes(estado)
@@ -87,17 +103,12 @@ export function puedeValidarPago(estado: EstadoPedidoTs): boolean {
   return estado === 'PAGO_EN_REVISION'
 }
 
-/** Cancelar un pedido ya pagado obliga a devolver el dinero al cliente */
-export function requiereDevolucion(estado: EstadoPedidoTs): boolean {
-  return estado === 'PAGADO'
-}
-
-/** El motivo (de rechazo o de cancelación) no puede ir en blanco */
+/** El motivo del rechazo no puede ir en blanco */
 export function validarMotivo(motivo: string): boolean {
   return motivo.trim() !== ''
 }
 
-/** Total de piezas del pedido (las que se descuentan o regresan al inventario) */
+/** Total de piezas del pedido (las que se descuentan del inventario al aprobar el pago) */
 export function contarPiezas(lineas: readonly LineaPedidoTs[]): number {
   return lineas.reduce((total, linea) => total + linea.cantidad, 0)
 }

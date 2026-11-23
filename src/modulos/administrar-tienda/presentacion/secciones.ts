@@ -29,7 +29,7 @@ export const SECCIONES_PANEL: readonly SeccionPanel[] = [
   { clave: 'inicio', etiqueta: 'Inicio', ruta: RUTA_PANEL, icono: 'grid', disponible: true, roles: PERSONAL,
     descripcion: 'Pendientes del día y accesos rápidos.' },
   { clave: 'pedidos', etiqueta: 'Pedidos', ruta: `${RUTA_PANEL}/pedidos`, icono: 'clipboard', disponible: true, roles: PERSONAL,
-    descripcion: 'Pagos por validar, estados de envío y cancelaciones.' },
+    descripcion: 'Pagos por validar y estados de entrega y envío.' },
   { clave: 'catalogo', etiqueta: 'Catálogo', ruta: `${RUTA_PANEL}/catalogo`, icono: 'tag', disponible: true, roles: PERSONAL,
     descripcion: 'Productos, variantes, fotos por color y precios.' },
   { clave: 'inventario', etiqueta: 'Inventario', ruta: `${RUTA_PANEL}/inventario`, icono: 'package', disponible: false, roles: PERSONAL,

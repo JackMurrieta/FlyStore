@@ -48,6 +48,19 @@
   gap: var(--fly-espacio-3);
 }
 
+.fechas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 200px));
+  gap: var(--fly-espacio-3);
+}
+
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--fly-espacio-4);
+}
+
 .avisoConCierre {
   display: flex;
   align-items: flex-start;
@@ -150,5 +163,13 @@
 
   .busqueda {
     grid-template-columns: 1fr;
+  }
+
+  .fechas {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .paginacion {
+    justify-content: space-between;
   }
 }

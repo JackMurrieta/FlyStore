@@ -30,8 +30,3 @@ export interface ActualizarEstadoPeticionDTO {
   readonly guia: string | null
   readonly entrega_local: boolean
 }
-
-/** Body de POST /api/admin/pedidos/{folio}/cancelar */
-export interface CancelarPedidoPeticionDTO {
-  readonly motivo: string
-}

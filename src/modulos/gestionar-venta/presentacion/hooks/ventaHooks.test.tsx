@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { act, render, renderHook, screen, waitFor } from '@testing-library/react'
+import { act, render, renderHook, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { SesionProvider, type EstadoSesionTs, type ISesion } from '@compartido/sesion'
@@ -232,5 +232,40 @@ describe('Mis pedidos (S6, A10)', () => {
     expect(screen.getByRole('button', { name: /Hacer un nuevo pedido/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Escribir por WhatsApp/ })).toHaveAttribute('href', expect.stringContaining('wa.me'))
     expect(screen.getByTestId('ruta').textContent).toBe('/mis-pedidos')
+    expect(screen.queryByRole('button', { name: 'Cancelar pedido' })).not.toBeInTheDocument()
+  })
+
+  it('el cliente cancela su pedido pendiente de comprobante con un motivo opcional', async () => {
+    const gateway = gatewayFalso()
+    renderizarMisPedidos(crearModelosVenta(gateway, () => AHORA), '/mis-pedidos?folio=FLY-000131')
+    await screen.findByRole('heading', { name: 'FLY-000131' })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar pedido' }))
+    const dialogo = within(screen.getByRole('dialog'))
+    expect(dialogo.getByText('¿Cancelar el pedido FLY-000131?')).toBeInTheDocument()
+    expect(dialogo.getByText(/Ya no podrás subir tu comprobante/)).toBeInTheDocument()
+    await userEvent.type(dialogo.getByLabelText('Motivo (opcional)'), 'Ya no lo necesito')
+    await userEvent.click(dialogo.getByRole('button', { name: 'Cancelar pedido' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(gateway.cancelarPedidoVenta).toHaveBeenCalledWith('FLY-000131', 'Ya no lo necesito')
+    expect(screen.getByText('Cancelaste tu pedido')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Cancelar pedido' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Sube tu comprobante antes de')).not.toBeInTheDocument()
+  })
+
+  it('«Volver» cierra el diálogo sin cancelar y un pedido en revisión ya no se cancela', async () => {
+    const gateway = gatewayFalso()
+    renderizarMisPedidos(crearModelosVenta(gateway, () => AHORA), '/mis-pedidos?folio=FLY-000131')
+    await screen.findByRole('heading', { name: 'FLY-000131' })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar pedido' }))
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Volver' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(gateway.cancelarPedidoVenta).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByRole('button', { name: /FLY-000128/ }))
+    expect(screen.getByRole('heading', { name: 'FLY-000128' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Cancelar pedido' })).not.toBeInTheDocument()
   })
 })

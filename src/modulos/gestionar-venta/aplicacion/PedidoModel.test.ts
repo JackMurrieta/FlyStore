@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
+import { ErrorApi } from '@infraestructura/http/ErrorApi'
 import { RespuestaValidacionComprobanteException } from '../dominio/RespuestaValidacionComprobanteException'
+import { pedidoRegistrado } from '../pruebas/fixturesVenta'
 import { crearModelosVenta } from './ModelosVenta'
 import { gatewayFalso } from '../pruebas/fixturesVenta'
 
@@ -69,6 +71,65 @@ describe('PedidoModel (S6 Mis pedidos)', () => {
     await pedidos.subirComprobantePedidoVenta('FLY-000131', png())
     expect(pedidos.obtenerEstado().errorComprobante).toEqual({ mensaje: 'Sin conexión', tipo: 'red' })
     expect(pedidos.obtenerEstado().pedidos?.[0]?.estado?.valor).toBe('PENDIENTE_COMPROBANTE')
+  })
+
+  it('solo un pedido apartado o esperando comprobante, sin vencer, se puede cancelar', async () => {
+    const { pedidos } = crearModelosVenta(gatewayFalso(), () => AHORA)
+    await pedidos.listarPedidosVenta()
+    const [pendiente, enRevision, vencido] = pedidos.obtenerEstado().pedidos!
+    expect(pedidos.puedeCancelar(pendiente!)).toBe(true)
+    expect(pedidos.puedeCancelar(enRevision!)).toBe(false)
+    expect(pedidos.puedeCancelar(vencido!)).toBe(false)
+
+    const { pedidos: despues } = crearModelosVenta(gatewayFalso(), () => new Date('2026-10-26T00:00:00-07:00'))
+    await despues.listarPedidosVenta()
+    expect(despues.puedeCancelar(despues.obtenerEstado().pedidos![0]!)).toBe(false)
+  })
+
+  it('cancela el pedido con el motivo limpio (vacío = sin motivo) y lo reemplaza en la lista', async () => {
+    const gateway = gatewayFalso()
+    const { pedidos } = crearModelosVenta(gateway, () => AHORA)
+    await pedidos.listarPedidosVenta()
+
+    const cancelado = await pedidos.cancelarPedidoVenta('FLY-000131', '  Ya no lo necesito ')
+
+    expect(gateway.cancelarPedidoVenta).toHaveBeenCalledWith('FLY-000131', 'Ya no lo necesito')
+    expect(cancelado?.estado?.valor).toBe('CANCELADO')
+    expect(pedidos.obtenerEstado()).toMatchObject({ pedidoCancelado: 'FLY-000131', cancelando: false, errorCancelacion: null, datosBancarios: null })
+    expect(pedidos.obtenerEstado().pedidos?.[0]?.estado?.valor).toBe('CANCELADO')
+
+    await pedidos.cancelarPedidoVenta('FLY-000131', '   ')
+    expect(gateway.cancelarPedidoVenta).toHaveBeenLastCalledWith('FLY-000131', null)
+  })
+
+  it('si el backend ya no lo deja cancelar (409) recarga la lista y deja su mensaje', async () => {
+    const gateway = gatewayFalso()
+    const mensaje = 'Este pedido ya no se puede cancelar: solo se cancela mientras está apartado o esperando tu comprobante.'
+    vi.mocked(gateway.cancelarPedidoVenta).mockRejectedValue(new ErrorApi(mensaje, 'NEGOCIO', 'CONFLICTO_DE_DATOS', undefined, 409))
+    const { pedidos } = crearModelosVenta(gateway, () => AHORA)
+    await pedidos.listarPedidosVenta()
+    vi.mocked(gateway.listarPedidosVenta).mockResolvedValue([pedidoRegistrado('FLY-000131', 'PAGO_EN_REVISION')])
+
+    expect(await pedidos.cancelarPedidoVenta('FLY-000131', '')).toBeNull()
+
+    expect(gateway.listarPedidosVenta).toHaveBeenCalledTimes(2)
+    expect(pedidos.obtenerEstado()).toMatchObject({ cancelando: false, pedidoCancelado: null, errorCancelacion: { mensaje, tipo: 'negocio' } })
+    expect(pedidos.obtenerPedidoSeleccionado()?.estado?.valor).toBe('PAGO_EN_REVISION')
+    expect(pedidos.puedeCancelar(pedidos.obtenerPedidoSeleccionado()!)).toBe(false)
+  })
+
+  it('una falla de conexión al cancelar no recarga la lista', async () => {
+    const gateway = gatewayFalso()
+    vi.mocked(gateway.cancelarPedidoVenta).mockRejectedValue(ErrorApi.red())
+    const { pedidos } = crearModelosVenta(gateway, () => AHORA)
+    await pedidos.listarPedidosVenta()
+
+    expect(await pedidos.cancelarPedidoVenta('FLY-000131', 'x')).toBeNull()
+    expect(gateway.listarPedidosVenta).toHaveBeenCalledTimes(1)
+    expect(pedidos.obtenerEstado().errorCancelacion?.tipo).toBe('red')
+
+    pedidos.limpiarErrorCancelacion()
+    expect(pedidos.obtenerEstado().errorCancelacion).toBeNull()
   })
 
   it('se limpia al cerrar sesión', async () => {

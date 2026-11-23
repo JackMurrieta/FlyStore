@@ -23,7 +23,7 @@ export interface IPedidosAdminService {
   /** POST /api/admin/pedidos/{folio}/pago-efectivo */
   registrarPagoEfectivo(folio: string, montoRecibido: number): Promise<ResultadoAccionTs>
 
-  /** POST /api/admin/pedidos/{folio}/aprobar-pago */
+  /** POST /api/admin/pedidos/{folio}/aprobar-pago — la transferencia pasa a En preparación */
   aprobarPago(folio: string): Promise<ResultadoAccionTs>
 
   /** POST /api/admin/pedidos/{folio}/rechazar-comprobante */
@@ -31,7 +31,4 @@ export interface IPedidosAdminService {
 
   /** PATCH /api/admin/pedidos/{folio}/estado */
   actualizarEstado(folio: string, estado: EstadoPedidoTs, envio: DatosEnvioTs | null): Promise<ResultadoAccionTs>
-
-  /** POST /api/admin/pedidos/{folio}/cancelar */
-  cancelarPedido(folio: string, motivo: string): Promise<ResultadoAccionTs>
 }

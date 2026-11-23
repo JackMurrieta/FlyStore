@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useSyncExternalStore } from 'react'
-import type { PedidosAdminModel } from '../../aplicacion/PedidosAdminModel'
+import { totalPaginas, type PedidosAdminModel } from '../../aplicacion/PedidosAdminModel'
 import type { CriteriosBusquedaTs } from '../../dominio/CriteriosBusquedaTs'
 import { hayCriterios } from '../../dominio/CriteriosBusquedaTs'
 import { useNavegacionPedidos } from './useNavegacionPedidos'
@@ -22,18 +22,24 @@ export function usePedidosAdmin(model: PedidosAdminModel) {
 
   const limpiarFiltros = (): Promise<void> => model.limpiarFiltros()
 
+  /** Página anterior o siguiente con los mismos filtros */
+  const irAPagina = (pagina: number): Promise<void> => model.irAPagina(pagina)
+
   const limpiarAvisos = (): void => model.limpiarAvisos()
 
   return {
     pedidos: estado.pedidos,
     totalEncontrado: estado.totalEncontrado,
     criterios: estado.criterios,
+    pagina: estado.criterios.pagina,
+    totalPaginas: totalPaginas(estado.totalEncontrado),
     hayFiltros: hayCriterios(estado.criterios),
     cargando: estado.cargando,
     error: estado.error,
     mensaje: estado.mensaje,
     buscar,
     limpiarFiltros,
+    irAPagina,
     limpiarAvisos,
     irADetalle,
   }

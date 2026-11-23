@@ -29,6 +29,7 @@ export function tonoEstado(estado: EstadoPedidoTs): TonoInsignia {
     case 'PENDIENTE_COMPROBANTE':
       return 'advertencia'
     case 'PAGO_EN_REVISION':
+    case 'PREPARACION':
     case 'ENVIADO':
       return 'info'
     case 'PAGADO':

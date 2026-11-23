@@ -127,16 +127,17 @@ export const pedidos = {
 } as const
 
 /**
- * Endpoints de administración de pedidos (CU-04)
- * Rutas protegidas por rol ADMIN o EMPLEADO (JWT en cookie)
- * // SUPUESTO: Rutas pendientes de confirmar con backend
+ * Endpoints de administración de pedidos (CU-04 · AdministrarPedidosController del backend)
+ * Rutas protegidas por rol ADMIN o EMPLEADO (JWT en cookie). El JSON de estas rutas usa snake_case.
+ * Errores: 404 folio inexistente · 409 el pedido ya no está en el estado que la acción necesita ·
+ * 400 falta un dato o es inválido. El personal no cancela pedidos: solo el cliente (ventas.cancelarPedido).
  */
 const ADMIN_PEDIDOS = `${API_BASE}/api/admin/pedidos`
 
 export const adminPedidos = {
   /**
    * GET /api/admin/pedidos?texto=&estado=&metodo_pago=&desde=&hasta=&pagina=
-   * Response: PaginaPedidosDTO
+   * Response: PaginaPedidosDTO (50 por página; desde y hasta en AAAA-MM-DD, días completos)
    */
   listar: (consulta?: string) => `${ADMIN_PEDIDOS}${consulta ? `?${consulta}` : ''}`,
 
@@ -153,28 +154,23 @@ export const adminPedidos = {
   pagoEfectivo: (folio: string) => `${ADMIN_PEDIDOS}/${encodeURIComponent(folio)}/pago-efectivo`,
 
   /**
-   * POST /api/admin/pedidos/{folio}/aprobar-pago
-   * Response: ResultadoAccionDTO · 409 si ya no está en pago_en_revision
+   * POST /api/admin/pedidos/{folio}/aprobar-pago → la transferencia pasa a PREPARACION
+   * Response: ResultadoAccionDTO · 409 si ya no está en PAGO_EN_REVISION o no alcanza el stock
    */
   aprobarPago: (folio: string) => `${ADMIN_PEDIDOS}/${encodeURIComponent(folio)}/aprobar-pago`,
 
   /**
    * POST /api/admin/pedidos/{folio}/rechazar-comprobante
-   * Body: RechazarComprobantePeticionDTO · Response: ResultadoAccionDTO
+   * Body: RechazarComprobantePeticionDTO · Response: ResultadoAccionDTO · vuelve a PENDIENTE_COMPROBANTE con 42 h nuevas
    */
   rechazarComprobante: (folio: string) => `${ADMIN_PEDIDOS}/${encodeURIComponent(folio)}/rechazar-comprobante`,
 
   /**
    * PATCH /api/admin/pedidos/{folio}/estado
-   * Body: ActualizarEstadoPeticionDTO · Response: ResultadoAccionDTO · 400 si la transición no es válida
+   * Body: ActualizarEstadoPeticionDTO · Response: ResultadoAccionDTO · 409 si la transición no es válida ·
+   * 400 si faltan los datos de envío. Efectivo: PAGADO → ENTREGADO; transferencia: PREPARACION → ENVIADO → ENTREGADO
    */
   estado: (folio: string) => `${ADMIN_PEDIDOS}/${encodeURIComponent(folio)}/estado`,
-
-  /**
-   * POST /api/admin/pedidos/{folio}/cancelar
-   * Body: CancelarPedidoPeticionDTO · Response: ResultadoAccionDTO · 409 si ya salió de la tienda
-   */
-  cancelar: (folio: string) => `${ADMIN_PEDIDOS}/${encodeURIComponent(folio)}/cancelar`,
 } as const
 
 /**
@@ -205,6 +201,11 @@ export const ventas = {
   /** POST multipart (archivo) → PedidoVentaDTO · S6: PENDIENTE_COMPROBANTE → PAGO_EN_REVISION */
   comprobantePedidoRegistrado: (folio: string) =>
     `${API_BASE}/api/ventas/pedidos/${encodeURIComponent(folio)}/comprobante`,
+  /**
+   * POST { motivo } (opcional) → PedidoVentaDTO en CANCELADO. Solo el cliente cancela, y solo
+   * APARTADO_PENDIENTE_PAGO o PENDIENTE_COMPROBANTE sin vencer · 409 si ya no se puede.
+   */
+  cancelarPedido: (folio: string) => `${API_BASE}/api/ventas/pedidos/${encodeURIComponent(folio)}/cancelar`,
   /** GET → PedidoVentaDTO[] · «Mis pedidos»: pedidos registrados del cliente (sin el carrito) */
   misPedidos: () => `${API_BASE}/api/pedidos`,
 } as const

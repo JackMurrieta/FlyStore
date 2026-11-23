@@ -47,9 +47,21 @@ const detalleEnRevision: DetallePedidoAdminTs = {
   historial: [],
 }
 
-const detallePagado: DetallePedidoAdminTs = { ...detalleEnRevision, estado: 'PAGADO' }
+// Una transferencia aprobada pasa directo a «En preparación»
+const detallePreparacion: DetallePedidoAdminTs = {
+  ...detalleEnRevision,
+  estado: 'PREPARACION',
+  comprobante: detalleEnRevision.comprobante && { ...detalleEnRevision.comprobante, estado: 'COMPLETADO' },
+}
 const envio = { paqueteria: 'Estafeta', guia: '7210 4455 0193', entregaLocal: false }
-const detalleEnviado: DetallePedidoAdminTs = { ...detallePagado, estado: 'ENVIADO', envio }
+const detalleEnviado: DetallePedidoAdminTs = { ...detallePreparacion, estado: 'ENVIADO', envio }
+const detalleEfectivoPagado: DetallePedidoAdminTs = {
+  ...detalleEnRevision,
+  folio: FOLIO,
+  estado: 'PAGADO',
+  metodoPago: 'EFECTIVO',
+  comprobante: null,
+}
 
 const resumenEnRevision: PedidoResumenTs = {
   folio: FOLIO,
@@ -67,16 +79,12 @@ function crearServicio(sobrescribir: Partial<IPedidosAdminService> = {}): IPedid
     listar: vi.fn().mockResolvedValue({ pedidos: [resumenEnRevision], totalEncontrado: 1 }),
     obtenerDetalle: vi.fn().mockResolvedValue(detalleEnRevision),
     registrarPagoEfectivo: vi.fn(),
-    aprobarPago: vi.fn().mockResolvedValue({ pedido: detallePagado, notificacionEnviada: true }),
+    aprobarPago: vi.fn().mockResolvedValue({ pedido: detallePreparacion, notificacionEnviada: true }),
     rechazarComprobante: vi.fn().mockResolvedValue({
       pedido: { ...detalleEnRevision, estado: 'PENDIENTE_COMPROBANTE' },
       notificacionEnviada: true,
     }),
     actualizarEstado: vi.fn().mockResolvedValue({ pedido: detalleEnviado, notificacionEnviada: true }),
-    cancelarPedido: vi.fn().mockResolvedValue({
-      pedido: { ...detallePagado, estado: 'CANCELADO' },
-      notificacionEnviada: true,
-    }),
     ...sobrescribir,
   }
 }
@@ -105,30 +113,31 @@ afterEach(() => {
 })
 
 describe('DetallePedidoVista · Front 3 · validar pago', () => {
-  it('ofrece aprobar, rechazar y cancelar cuando el pago está en revisión', async () => {
+  it('ofrece aprobar y rechazar cuando el pago está en revisión; el personal no cancela', async () => {
     await abrirDetalle(crearServicio())
 
     expect(boton('Aprobar pago')).toBeEnabled()
     expect(boton('Rechazar comprobante')).toBeEnabled()
-    expect(boton('Cancelar pedido')).toBeEnabled()
+    expect(screen.queryByRole('button', { name: 'Cancelar pedido' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Actualizar estado' })).not.toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('aprueba el pago tras confirmar y muestra el pedido como pagado', async () => {
+  it('aprueba el pago tras confirmar y el pedido pasa a «En preparación»', async () => {
     const servicio = crearServicio()
     const { usuario } = await abrirDetalle(servicio)
 
     await usuario.click(boton('Aprobar pago'))
     expect(dialogo().getByText(`¿Aprobar el pago de ${FOLIO}?`)).toBeInTheDocument()
-    expect(dialogo().getByText(/se descontarán de forma definitiva las 11 piezas reservadas/)).toBeInTheDocument()
+    expect(dialogo().getByText(/El pedido pasará a «En preparación», se descontarán de forma definitiva las 11 piezas reservadas/)).toBeInTheDocument()
     expect(servicio.aprobarPago).not.toHaveBeenCalled()
 
     await usuario.click(dialogo().getByRole('button', { name: 'Aprobar pago' }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(servicio.aprobarPago).toHaveBeenCalledWith(FOLIO)
-    expect(screen.getByText('Pago aprobado. El pedido quedó como pagado.')).toBeInTheDocument()
+    expect(screen.getByText('Pago aprobado. El pedido pasó a «En preparación».')).toBeInTheDocument()
+    expect(screen.getAllByText('En preparación').length).toBeGreaterThan(0)
     expect(boton('Actualizar estado')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Aprobar pago' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Notificar por WhatsApp' })).not.toBeInTheDocument()
@@ -148,7 +157,7 @@ describe('DetallePedidoVista · Front 3 · validar pago', () => {
   it('si no se pudo notificar ofrece «Notificar por WhatsApp» con el mensaje ya escrito', async () => {
     const abrir = vi.spyOn(window, 'open').mockImplementation(() => null)
     const servicio = crearServicio({
-      aprobarPago: vi.fn().mockResolvedValue({ pedido: detallePagado, notificacionEnviada: false }),
+      aprobarPago: vi.fn().mockResolvedValue({ pedido: detallePreparacion, notificacionEnviada: false }),
     })
     const { usuario } = await abrirDetalle(servicio)
 
@@ -160,26 +169,56 @@ describe('DetallePedidoVista · Front 3 · validar pago', () => {
     expect(abrir).toHaveBeenCalledTimes(1)
     const [url, destino] = abrir.mock.calls[0] ?? []
     expect(String(url)).toMatch(/^https:\/\/wa\.me\/526441234567\?text=/)
-    expect(decodeURIComponent(String(url))).toContain(`Confirmamos el pago de tu pedido ${FOLIO}`)
+    expect(decodeURIComponent(String(url))).toContain(`Confirmamos el pago de tu pedido ${FOLIO} y ya lo estamos preparando`)
     expect(destino).toBe('_blank')
   })
 
-  it('si el backend responde 409 muestra el error en el diálogo y permite reintentar', async () => {
+  it('si otra persona ya cambió el pedido (409) lo recarga, cierra el diálogo y muestra el motivo', async () => {
+    const mensaje = 'El pedido FLY-000128 ya no está en «Pago en revisión»: ahora está en «En preparación». Vuelve a cargarlo.'
+    const obtenerDetalle = vi.fn().mockResolvedValueOnce(detalleEnRevision).mockResolvedValueOnce(detallePreparacion)
+    const aprobarPago = vi.fn().mockRejectedValue(new ErrorApi(mensaje, 'NEGOCIO', 'CONFLICTO_DE_DATOS', undefined, 409))
+    const { usuario } = await abrirDetalle(crearServicio({ obtenerDetalle, aprobarPago }))
+
+    await usuario.click(boton('Aprobar pago'))
+    await usuario.click(dialogo().getByRole('button', { name: 'Aprobar pago' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(obtenerDetalle).toHaveBeenCalledTimes(2)
+    expect(screen.getByText(mensaje)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Aprobar pago' })).not.toBeInTheDocument()
+    expect(boton('Actualizar estado')).toBeInTheDocument()
+    // Un 409 no se arregla reintentando: el pedido ya muestra su estado real
+    expect(screen.queryByRole('button', { name: 'Reintentar' })).not.toBeInTheDocument()
+  })
+
+  it('si el 409 no cambió el estado (sin stock) el diálogo sigue abierto y permite reintentar', async () => {
+    const mensaje = 'No hay piezas suficientes de Gorra 9FORTY: el pedido necesita 6 y hay 3.'
     const aprobarPago = vi
       .fn()
-      .mockRejectedValueOnce(new ErrorApi('El pedido ya no está en revisión', 'NEGOCIO', 'ESTADO_CAMBIO', undefined, 409))
-      .mockResolvedValueOnce({ pedido: detallePagado, notificacionEnviada: true })
+      .mockRejectedValueOnce(new ErrorApi(mensaje, 'NEGOCIO', 'CONFLICTO_DE_DATOS', undefined, 409))
+      .mockResolvedValueOnce({ pedido: detallePreparacion, notificacionEnviada: true })
     const { usuario } = await abrirDetalle(crearServicio({ aprobarPago }))
 
     await usuario.click(boton('Aprobar pago'))
     await usuario.click(dialogo().getByRole('button', { name: 'Aprobar pago' }))
 
-    expect(await dialogo().findByText('El pedido ya no está en revisión')).toBeInTheDocument()
+    expect(await dialogo().findByText(mensaje)).toBeInTheDocument()
     await usuario.click(dialogo().getByRole('button', { name: 'Reintentar' }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(aprobarPago).toHaveBeenCalledTimes(2)
-    expect(screen.queryByText('El pedido ya no está en revisión')).not.toBeInTheDocument()
+    expect(screen.queryByText(mensaje)).not.toBeInTheDocument()
+  })
+
+  it('si el comprobante llega sin enlace lo explica en vez de mostrar un enlace roto', async () => {
+    const sinEnlace: DetallePedidoAdminTs = {
+      ...detalleEnRevision,
+      comprobante: detalleEnRevision.comprobante && { ...detalleEnRevision.comprobante, url: '' },
+    }
+    await abrirDetalle(crearServicio({ obtenerDetalle: vi.fn().mockResolvedValue(sinEnlace) }))
+
+    expect(screen.getByText('No se pudo cargar el archivo. Recarga el pedido para intentarlo de nuevo.')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /comprobante_ana_torres/ })).not.toBeInTheDocument()
   })
 
   it('no rechaza sin motivo: pide indicarlo y lo quita al elegir uno', async () => {
@@ -212,41 +251,39 @@ describe('DetallePedidoVista · Front 3 · validar pago', () => {
   })
 
   it('si el pedido salió de revisión mientras tanto lo avisa y deshabilita aprobar y rechazar', async () => {
-    const cancelado: DetallePedidoAdminTs = {
-      ...detalleEnRevision,
-      estado: 'CANCELADO',
+    const aprobado: DetallePedidoAdminTs = {
+      ...detallePreparacion,
       historial: [
         {
           fechaHora: new Date('2026-10-23T18:50:00'),
           usuario: 'Luis Castillo',
           estadoAnterior: 'PAGO_EN_REVISION',
-          estadoNuevo: 'CANCELADO',
+          estadoNuevo: 'PREPARACION',
           motivo: null,
         },
       ],
     }
-    const servicio = crearServicio({ obtenerDetalle: vi.fn().mockResolvedValue(cancelado) })
+    const servicio = crearServicio({ obtenerDetalle: vi.fn().mockResolvedValue(aprobado) })
     const model = new PedidosAdminModel(servicio)
     await model.cargarPedidos()
     const { usuario } = await abrirDetalle(servicio, model)
 
     expect(screen.getByText('Este pedido ya no está en «Pago en revisión»')).toBeInTheDocument()
-    expect(screen.getByText(/Luis Castillo lo pasó a «Cancelado»/)).toBeInTheDocument()
+    expect(screen.getByText(/Luis Castillo lo pasó a «En preparación»/)).toBeInTheDocument()
     expect(boton('Aprobar pago')).toBeDisabled()
     expect(boton('Rechazar comprobante')).toBeDisabled()
-    expect(screen.queryByRole('button', { name: 'Cancelar pedido' })).not.toBeInTheDocument()
 
     await usuario.click(boton('Volver a pedidos'))
     expect(screen.getByText('Lista de pedidos')).toBeInTheDocument()
   })
 })
 
-describe('DetallePedidoVista · Front 4 · actualizar estado y cancelar', () => {
-  const servicioPagado = (sobrescribir: Partial<IPedidosAdminService> = {}) =>
-    crearServicio({ obtenerDetalle: vi.fn().mockResolvedValue(detallePagado), ...sobrescribir })
+describe('DetallePedidoVista · Front 4 · actualizar estado', () => {
+  const servicioEnPreparacion = (sobrescribir: Partial<IPedidosAdminService> = {}) =>
+    crearServicio({ obtenerDetalle: vi.fn().mockResolvedValue(detallePreparacion), ...sobrescribir })
 
-  it('en un pedido pagado propone «Enviado» y no envía sin paquetería ni guía', async () => {
-    const servicio = servicioPagado()
+  it('una transferencia en preparación propone «Enviado» y no envía sin paquetería ni guía', async () => {
+    const servicio = servicioEnPreparacion()
     const { usuario } = await abrirDetalle(servicio)
 
     await usuario.click(boton('Actualizar estado'))
@@ -262,7 +299,7 @@ describe('DetallePedidoVista · Front 4 · actualizar estado y cancelar', () => 
   })
 
   it('marca como enviado con paquetería y guía', async () => {
-    const servicio = servicioPagado()
+    const servicio = servicioEnPreparacion()
     const { usuario } = await abrirDetalle(servicio)
 
     await usuario.click(boton('Actualizar estado'))
@@ -277,7 +314,7 @@ describe('DetallePedidoVista · Front 4 · actualizar estado y cancelar', () => 
   })
 
   it('marca como enviado por entrega local sin pedir guía', async () => {
-    const servicio = servicioPagado()
+    const servicio = servicioEnPreparacion()
     const { usuario } = await abrirDetalle(servicio)
 
     await usuario.click(boton('Actualizar estado'))
@@ -294,19 +331,19 @@ describe('DetallePedidoVista · Front 4 · actualizar estado y cancelar', () => 
   })
 
   it('no deja saltarse la secuencia: indica el siguiente estado válido', async () => {
-    const servicio = servicioPagado()
+    const servicio = servicioEnPreparacion()
     const { usuario } = await abrirDetalle(servicio)
 
     await usuario.click(boton('Actualizar estado'))
     await usuario.click(dialogo().getByRole('button', { name: /Entregado/ }))
     await usuario.click(dialogo().getByRole('button', { name: 'Marcar como entregado' }))
 
-    expect(dialogo().getByText('Desde «Pagado» solo se puede pasar a «Enviado».')).toBeInTheDocument()
+    expect(dialogo().getByText('Desde «En preparación» solo se puede pasar a «Enviado».')).toBeInTheDocument()
     expect(servicio.actualizarEstado).not.toHaveBeenCalled()
 
     // Al corregir el estado el error desaparece y vuelve el formulario de envío
     await usuario.click(dialogo().getByRole('button', { name: /Enviado/ }))
-    expect(dialogo().queryByText('Desde «Pagado» solo se puede pasar a «Enviado».')).not.toBeInTheDocument()
+    expect(dialogo().queryByText('Desde «En preparación» solo se puede pasar a «Enviado».')).not.toBeInTheDocument()
     expect(dialogo().getByLabelText('Paquetería')).toBeInTheDocument()
   })
 
@@ -327,57 +364,54 @@ describe('DetallePedidoVista · Front 4 · actualizar estado y cancelar', () => 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(servicio.actualizarEstado).toHaveBeenCalledWith(FOLIO, 'ENTREGADO', null)
     expect(screen.queryByRole('button', { name: 'Actualizar estado' })).not.toBeInTheDocument()
+    expect(screen.getByText('El pedido ya se entregó.')).toBeInTheDocument()
   })
 
-  it('un pedido enviado no se puede cancelar: avisa y no abre el diálogo', async () => {
-    const servicio = crearServicio({ obtenerDetalle: vi.fn().mockResolvedValue(detalleEnviado) })
+  it('un pedido en efectivo pagado pasa directo a entregado, sin envío', async () => {
+    const servicio = crearServicio({
+      obtenerDetalle: vi.fn().mockResolvedValue(detalleEfectivoPagado),
+      actualizarEstado: vi.fn().mockResolvedValue({
+        pedido: { ...detalleEfectivoPagado, estado: 'ENTREGADO' },
+        notificacionEnviada: true,
+      }),
+    })
     const { usuario } = await abrirDetalle(servicio)
 
-    await usuario.click(boton('Cancelar pedido'))
-
-    expect(screen.getByText('El pedido ya salió de la tienda y no se puede cancelar.')).toBeInTheDocument()
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(servicio.cancelarPedido).not.toHaveBeenCalled()
-  })
-
-  it('cancela un pedido pagado advirtiendo la devolución y exigiendo el motivo', async () => {
-    const servicio = servicioPagado()
-    const { usuario } = await abrirDetalle(servicio)
-
-    await usuario.click(boton('Cancelar pedido'))
-    expect(dialogo().getByText('El pedido ya estaba «Pagado»')).toBeInTheDocument()
-    expect(dialogo().getByText(/Las 11 piezas regresarán al inventario y deberás devolver/)).toBeInTheDocument()
-
-    await usuario.click(dialogo().getByRole('button', { name: 'Cancelar pedido' }))
-    expect(dialogo().getByText('Indica el motivo de la cancelación.')).toBeInTheDocument()
-    expect(servicio.cancelarPedido).not.toHaveBeenCalled()
-
-    await usuario.type(dialogo().getByLabelText(/Motivo de la cancelación/), 'Cambio de talla')
-    await usuario.click(dialogo().getByRole('button', { name: 'Cancelar pedido' }))
+    await usuario.click(boton('Actualizar estado'))
+    expect(dialogo().getByText('Siguiente estado permitido: Entregado')).toBeInTheDocument()
+    expect(dialogo().queryByRole('button', { name: /Enviado/ })).not.toBeInTheDocument()
+    expect(dialogo().queryByRole('button', { name: /En preparación/ })).not.toBeInTheDocument()
+    expect(dialogo().queryByRole('radiogroup')).not.toBeInTheDocument()
+    await usuario.click(dialogo().getByRole('button', { name: 'Marcar como entregado' }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(servicio.cancelarPedido).toHaveBeenCalledWith(FOLIO, 'Cambio de talla')
-    expect(screen.getByText(/Pedido cancelado/)).toBeInTheDocument()
-    expect(screen.getByText('El pedido está cancelado y ya no admite acciones.')).toBeInTheDocument()
+    expect(servicio.actualizarEstado).toHaveBeenCalledWith(FOLIO, 'ENTREGADO', null)
+  })
+
+  it('un apartado en efectivo no tiene acciones aquí: el pago se registra desde la lista', async () => {
+    const apartado: DetallePedidoAdminTs = { ...detalleEfectivoPagado, estado: 'APARTADO_PENDIENTE_PAGO' }
+    await abrirDetalle(crearServicio({ obtenerDetalle: vi.fn().mockResolvedValue(apartado) }))
+
+    expect(
+      screen.getByText('Cuando el cliente pague en la tienda, registra el pago desde la lista de pedidos.')
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Actualizar estado' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Cancelar pedido' })).not.toBeInTheDocument()
   })
 
-  it('«Volver» cierra el diálogo de cancelación sin cancelar', async () => {
-    const servicio = servicioPagado()
-    const { usuario } = await abrirDetalle(servicio)
+  it('un pedido cancelado por el cliente ya no admite acciones', async () => {
+    const cancelado: DetallePedidoAdminTs = { ...detalleEnRevision, estado: 'CANCELADO' }
+    await abrirDetalle(crearServicio({ obtenerDetalle: vi.fn().mockResolvedValue(cancelado) }))
 
-    await usuario.click(boton('Cancelar pedido'))
-    await usuario.click(dialogo().getByRole('button', { name: 'Volver' }))
-
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(servicio.cancelarPedido).not.toHaveBeenCalled()
+    expect(screen.getByText('El pedido está cancelado y ya no admite acciones.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Cancelar pedido' })).not.toBeInTheDocument()
   })
 
   it('si falla la carga del detalle muestra el error y «Reintentar» vuelve a pedirlo', async () => {
     const obtenerDetalle = vi
       .fn()
       .mockRejectedValueOnce(ErrorApi.red())
-      .mockResolvedValueOnce(detallePagado)
+      .mockResolvedValueOnce(detallePreparacion)
     referencia.model = new PedidosAdminModel(crearServicio({ obtenerDetalle }))
     const usuario = userEvent.setup()
     render(

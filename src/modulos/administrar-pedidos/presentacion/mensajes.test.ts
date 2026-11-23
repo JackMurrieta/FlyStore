@@ -1,19 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import {
-  advertenciaCancelacion,
   construirEnlaceWhatsApp,
   descripcionCambioDeEstado,
   mensajeParaCliente,
   ultimoCambio,
 } from './mensajes'
-import { formatearFecha, formatearMoneda } from './formato'
+import { formatearFecha } from './formato'
 import type { DetallePedidoAdminTs } from '../dominio/DetallePedidoAdminTs'
 
 const linea = { producto: 'Gorra 9FORTY', talla: null, precioUnitario: 210, subtotal: 210 }
 
 const detalle: DetallePedidoAdminTs = {
   folio: 'FLY-000128',
-  estado: 'PAGADO',
+  estado: 'PREPARACION',
   fechaCreacion: new Date('2026-10-23T18:41:00'),
   fechaLimite: null,
   cliente: { id: 7, nombre: 'Ana Torres', telefono: '644 123 4567' },
@@ -29,24 +28,6 @@ const detalle: DetallePedidoAdminTs = {
   historial: [],
 }
 
-describe('mensajes · advertencia de cancelación', () => {
-  it('si el pedido ya estaba pagado avisa de la devolución', () => {
-    const texto = advertenciaCancelacion(detalle)
-    expect(texto).toContain('Las 11 piezas regresarán al inventario')
-    expect(texto).toContain(`deberás devolver ${formatearMoneda(4210)} a Ana Torres`)
-  })
-
-  it('si no se ha pagado solo avisa que se liberan las piezas', () => {
-    const texto = advertenciaCancelacion({ ...detalle, estado: 'APARTADO_PENDIENTE_PAGO' })
-    expect(texto).toBe('Las 11 piezas regresarán al inventario.')
-  })
-
-  it('usa el singular cuando es una sola pieza', () => {
-    const unaPieza = { ...detalle, estado: 'PENDIENTE_COMPROBANTE' as const, lineas: [{ ...linea, cantidad: 1 }] }
-    expect(advertenciaCancelacion(unaPieza)).toBe('La pieza regresará al inventario.')
-  })
-})
-
 describe('mensajes · historial', () => {
   const antigua = {
     fechaHora: new Date('2026-10-23T18:41:00'),
@@ -57,10 +38,10 @@ describe('mensajes · historial', () => {
   }
   const reciente = {
     fechaHora: new Date('2026-10-23T18:50:00'),
-    usuario: 'Luis Castillo',
-    estadoAnterior: 'PAGO_EN_REVISION' as const,
+    usuario: 'Ana Torres (cliente)',
+    estadoAnterior: 'PENDIENTE_COMPROBANTE' as const,
     estadoNuevo: 'CANCELADO' as const,
-    motivo: 'El cliente lo solicitó',
+    motivo: 'Ya no lo necesito',
   }
 
   it('toma la entrada más reciente sin importar el orden en que llegue', () => {
@@ -72,25 +53,31 @@ describe('mensajes · historial', () => {
   it('describe quién movió el pedido al estado actual', () => {
     const cancelado = { ...detalle, estado: 'CANCELADO' as const, historial: [antigua, reciente] }
     expect(descripcionCambioDeEstado(cancelado)).toBe(
-      `Luis Castillo lo pasó a «Cancelado» el ${formatearFecha(reciente.fechaHora)}.`
+      `Ana Torres (cliente) lo pasó a «Cancelado» el ${formatearFecha(reciente.fechaHora)}.`
     )
   })
 
   it('si el historial no explica el estado actual solo lo menciona', () => {
-    expect(descripcionCambioDeEstado({ ...detalle, historial: [antigua] })).toBe('Ahora está en «Pagado».')
+    expect(descripcionCambioDeEstado({ ...detalle, historial: [antigua] })).toBe('Ahora está en «En preparación».')
   })
 
-  it('incluye el motivo de la cancelación en el mensaje al cliente', () => {
+  it('incluye el motivo de la cancelación del cliente si se consulta un pedido cancelado', () => {
     const cancelado = { ...detalle, estado: 'CANCELADO' as const, historial: [antigua, reciente] }
-    expect(mensajeParaCliente(cancelado)).toContain('Cancelamos tu pedido FLY-000128: El cliente lo solicitó.')
+    expect(mensajeParaCliente(cancelado)).toContain('Tu pedido FLY-000128 está cancelado: Ya no lo necesito.')
   })
 })
 
 describe('mensajes · mensaje para el cliente', () => {
-  it('confirma el pago aprobado', () => {
+  it('confirma la transferencia aprobada y avisa que ya se prepara', () => {
     const texto = mensajeParaCliente(detalle)
     expect(texto).toContain('Hola Ana Torres')
-    expect(texto).toContain('Confirmamos el pago de tu pedido FLY-000128')
+    expect(texto).toContain('Confirmamos el pago de tu pedido FLY-000128 y ya lo estamos preparando')
+  })
+
+  it('confirma el pago en efectivo', () => {
+    expect(mensajeParaCliente({ ...detalle, estado: 'PAGADO', metodoPago: 'EFECTIVO' })).toContain(
+      'Confirmamos el pago de tu pedido FLY-000128. ¡Gracias por tu compra!'
+    )
   })
 
   it('tras un rechazo indica el motivo y la nueva fecha límite', () => {

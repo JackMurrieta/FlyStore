@@ -41,21 +41,30 @@ describe('PedidoAdminMapper · petición', () => {
     expect(PedidoAdminMapper.aPeticionBusqueda(CRITERIOS_VACIOS)).toEqual({ pagina: 1 })
   })
 
-  it('manda texto, estado y método con los nombres del backend', () => {
+  it('manda texto, estado, método y fechas con los nombres del backend', () => {
+    // La vista arma las fechas como día local (medianoche) a partir del campo de fecha
     const peticion = PedidoAdminMapper.aPeticionBusqueda({
       ...CRITERIOS_VACIOS,
       texto: '  Ana ',
-      estado: 'PAGO_EN_REVISION',
+      estado: 'PREPARACION',
       metodoPago: 'TRANSFERENCIA',
-      desde: new Date('2026-11-01T00:00:00Z'),
+      desde: new Date(2026, 10, 1),
+      hasta: new Date(2026, 10, 30),
+      pagina: 2,
     })
     expect(peticion).toEqual({
       texto: 'Ana',
-      estado: 'PAGO_EN_REVISION',
+      estado: 'PREPARACION',
       metodo_pago: 'TRANSFERENCIA',
       desde: '2026-11-01',
-      pagina: 1,
+      hasta: '2026-11-30',
+      pagina: 2,
     })
+  })
+
+  it('la fecha no cambia de día aunque sea tarde en la noche', () => {
+    const peticion = PedidoAdminMapper.aPeticionBusqueda({ ...CRITERIOS_VACIOS, desde: new Date(2026, 10, 20, 23, 59) })
+    expect(peticion.desde).toBe('2026-11-20')
   })
 
   it('arma la petición de estado según el tipo de envío', () => {

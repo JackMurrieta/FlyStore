@@ -39,7 +39,6 @@ function crearServicio(sobrescribir: Partial<IPedidosAdminService> = {}): IPedid
     aprobarPago: vi.fn().mockResolvedValue({ pedido: detallePagado, notificacionEnviada: false }),
     rechazarComprobante: vi.fn(),
     actualizarEstado: vi.fn(),
-    cancelarPedido: vi.fn(),
     ...sobrescribir,
   }
 }
@@ -87,22 +86,71 @@ describe('PedidosAdminModel', () => {
     const servicio = crearServicio({
       registrarPagoEfectivo: vi
         .fn()
-        .mockRejectedValue(new ErrorApi('El apartado venció', 'NEGOCIO', 'APARTADO_VENCIDO', undefined, 409)),
+        .mockRejectedValue(new ErrorApi('El monto recibido es menor al total', 'VALIDACION', 'DATOS_INVALIDOS', undefined, 400)),
     })
     const model = new PedidosAdminModel(servicio)
 
     const exitoso = await model.registrarPagoEfectivo('FLY-0001', 600)
 
     expect(exitoso).toBe(false)
-    expect(model.obtenerEstado().error).toEqual({ mensaje: 'El apartado venció', tipo: 'negocio' })
+    expect(model.obtenerEstado().error).toEqual({ mensaje: 'El monto recibido es menor al total', tipo: 'validacion' })
     expect(model.obtenerEstado().cargando).toBe(false)
+    expect(servicio.obtenerDetalle).not.toHaveBeenCalled()
   })
 
-  it('calcula el cambio con las reglas del dominio', () => {
+  it('con 409 en la lista recarga el pedido y pone su renglón al día', async () => {
+    const vencido: DetallePedidoAdminTs = { ...detallePagado, estado: 'CANCELADO_VENCIMIENTO', fechaLimite: null }
+    const servicio = crearServicio({
+      obtenerDetalle: vi.fn().mockResolvedValue(vencido),
+      registrarPagoEfectivo: vi
+        .fn()
+        .mockRejectedValue(new ErrorApi('El apartado venció', 'NEGOCIO', 'CONFLICTO_DE_DATOS', undefined, 409)),
+    })
+    const model = new PedidosAdminModel(servicio)
+    await model.cargarPedidos()
+
+    const exitoso = await model.registrarPagoEfectivo('FLY-0001', 600)
+
+    expect(exitoso).toBe(false)
+    expect(servicio.obtenerDetalle).toHaveBeenCalledWith('FLY-0001')
+    const estado = model.obtenerEstado()
+    expect(estado.error).toEqual({ mensaje: 'El apartado venció', tipo: 'negocio' })
+    expect(estado.pedidos[0]?.estado).toBe('CANCELADO_VENCIMIENTO')
+    expect(estado.pedidos[0]?.fechaLimite).toBeNull()
+    expect(estado.cargando).toBe(false)
+  })
+
+  it('calcula el cambio y el siguiente estado con las reglas del dominio', () => {
     const model = new PedidosAdminModel(crearServicio())
     expect(model.calcularCambio(500, 700)).toEqual({ cambio: 200, faltante: 0, suficiente: true })
-    expect(model.siguienteEstadoPermitido('PAGADO')).toBe('ENVIADO')
-    expect(model.puedeCancelar('ENTREGADO')).toBe(false)
+    expect(model.siguienteEstadoPermitido('PAGADO', 'EFECTIVO')).toBe('ENTREGADO')
+    expect(model.siguienteEstadoPermitido('PREPARACION', 'TRANSFERENCIA')).toBe('ENVIADO')
+  })
+
+  it('pagina con los mismos filtros y no se sale del rango', async () => {
+    const servicio = crearServicio({ listar: vi.fn().mockResolvedValue({ pedidos: [resumen], totalEncontrado: 120 }) })
+    const model = new PedidosAdminModel(servicio)
+    await model.buscarPedidos({ texto: 'ana', estado: 'PAGADO', metodoPago: null, desde: null, hasta: null, pagina: 1 })
+
+    await model.irAPagina(2)
+    expect(servicio.listar).toHaveBeenLastCalledWith(expect.objectContaining({ texto: 'ana', estado: 'PAGADO', pagina: 2 }))
+    expect(model.obtenerEstado().criterios.pagina).toBe(2)
+
+    await model.irAPagina(9)
+    expect(servicio.listar).toHaveBeenLastCalledWith(expect.objectContaining({ pagina: 3 }))
+    await model.irAPagina(0)
+    expect(servicio.listar).toHaveBeenLastCalledWith(expect.objectContaining({ pagina: 1 }))
+  })
+
+  it('buscar con otros filtros regresa a la primera página', async () => {
+    const servicio = crearServicio({ listar: vi.fn().mockResolvedValue({ pedidos: [resumen], totalEncontrado: 120 }) })
+    const model = new PedidosAdminModel(servicio)
+    await model.cargarPedidos()
+    await model.irAPagina(3)
+
+    await model.buscarPedidos({ ...model.obtenerEstado().criterios, metodoPago: 'EFECTIVO' })
+
+    expect(servicio.listar).toHaveBeenLastCalledWith(expect.objectContaining({ metodoPago: 'EFECTIVO', pagina: 1 }))
   })
 })
 
@@ -114,11 +162,13 @@ describe('PedidosAdminModel · validar pago (Front 3)', () => {
     fechaLimite: new Date('2026-11-12T12:00:00Z'),
   }
 
-  it('al aprobar el pago deja el pedido como pagado en el detalle y en la lista', async () => {
+  const detallePreparacion: DetallePedidoAdminTs = { ...detalleEnRevision, estado: 'PREPARACION' }
+
+  it('al aprobar el pago deja el pedido en preparación en el detalle y en la lista', async () => {
     const servicio = crearServicio({
       listar: vi.fn().mockResolvedValue({ pedidos: [{ ...resumen, estado: 'PAGO_EN_REVISION' }], totalEncontrado: 1 }),
       obtenerDetalle: vi.fn().mockResolvedValue(detalleEnRevision),
-      aprobarPago: vi.fn().mockResolvedValue({ pedido: detallePagado, notificacionEnviada: true }),
+      aprobarPago: vi.fn().mockResolvedValue({ pedido: detallePreparacion, notificacionEnviada: true }),
     })
     const model = new PedidosAdminModel(servicio)
     await model.cargarPedidos()
@@ -129,9 +179,9 @@ describe('PedidosAdminModel · validar pago (Front 3)', () => {
     expect(exitoso).toBe(true)
     expect(servicio.aprobarPago).toHaveBeenCalledWith('FLY-0001')
     const estado = model.obtenerEstado()
-    expect(estado.detalle?.estado).toBe('PAGADO')
-    expect(estado.pedidos[0]?.estado).toBe('PAGADO')
-    expect(estado.mensaje).toMatch(/aprobado/i)
+    expect(estado.detalle?.estado).toBe('PREPARACION')
+    expect(estado.pedidos[0]?.estado).toBe('PREPARACION')
+    expect(estado.mensaje).toBe('Pago aprobado. El pedido pasó a «En preparación».')
     expect(estado.notificacionPendiente).toBe(false)
     expect(estado.error).toBeNull()
   })
@@ -156,12 +206,12 @@ describe('PedidosAdminModel · validar pago (Front 3)', () => {
     expect(estado.notificacionPendiente).toBe(true)
   })
 
-  it('si el pedido ya no está en revisión (409) conserva el detalle y deja el error para la vista', async () => {
+  it('si otra persona ya cambió el pedido (409) lo recarga y deja el error para la vista', async () => {
     const servicio = crearServicio({
-      obtenerDetalle: vi.fn().mockResolvedValue(detalleEnRevision),
+      obtenerDetalle: vi.fn().mockResolvedValueOnce(detalleEnRevision).mockResolvedValueOnce(detallePreparacion),
       aprobarPago: vi
         .fn()
-        .mockRejectedValue(new ErrorApi('El pedido ya no está en revisión', 'NEGOCIO', 'ESTADO_CAMBIO', undefined, 409)),
+        .mockRejectedValue(new ErrorApi('El pedido ya no está en revisión', 'NEGOCIO', 'CONFLICTO_DE_DATOS', undefined, 409)),
     })
     const model = new PedidosAdminModel(servicio)
     await model.cargarDetalle('FLY-0001')
@@ -169,22 +219,25 @@ describe('PedidosAdminModel · validar pago (Front 3)', () => {
     const exitoso = await model.aprobarPago('FLY-0001')
 
     expect(exitoso).toBe(false)
+    expect(servicio.obtenerDetalle).toHaveBeenCalledTimes(2)
     const estado = model.obtenerEstado()
     expect(estado.error).toEqual({ mensaje: 'El pedido ya no está en revisión', tipo: 'negocio' })
-    expect(estado.detalle?.estado).toBe('PAGO_EN_REVISION')
+    expect(estado.detalle?.estado).toBe('PREPARACION')
     expect(estado.mensaje).toBeNull()
     expect(estado.notificacionPendiente).toBe(false)
     expect(estado.cargando).toBe(false)
   })
 })
 
-describe('PedidosAdminModel · actualizar estado y cancelar (Front 4)', () => {
+describe('PedidosAdminModel · actualizar estado (Front 4)', () => {
   const envio = { paqueteria: 'Estafeta', guia: '7210 4455 0193', entregaLocal: false }
-  const detalleEnviado: DetallePedidoAdminTs = { ...detallePagado, estado: 'ENVIADO', envio }
-  const detalleCancelado: DetallePedidoAdminTs = { ...detallePagado, estado: 'CANCELADO' }
+  const detallePreparacion: DetallePedidoAdminTs = { ...detallePagado, estado: 'PREPARACION', metodoPago: 'TRANSFERENCIA' }
+  const detalleEnviado: DetallePedidoAdminTs = { ...detallePreparacion, estado: 'ENVIADO', envio }
+  const detalleEntregado: DetallePedidoAdminTs = { ...detallePagado, estado: 'ENTREGADO' }
 
-  it('marca como enviado un pedido pagado cuando la transición es válida', async () => {
+  it('marca como enviada una transferencia en preparación cuando la transición es válida', async () => {
     const servicio = crearServicio({
+      obtenerDetalle: vi.fn().mockResolvedValue(detallePreparacion),
       actualizarEstado: vi.fn().mockResolvedValue({ pedido: detalleEnviado, notificacionEnviada: true }),
     })
     const model = new PedidosAdminModel(servicio)
@@ -198,8 +251,23 @@ describe('PedidosAdminModel · actualizar estado y cancelar (Front 4)', () => {
     expect(model.obtenerEstado().mensaje).toMatch(/actualizado/i)
   })
 
+  it('un pedido en efectivo pagado pasa directo a entregado', async () => {
+    const servicio = crearServicio({
+      actualizarEstado: vi.fn().mockResolvedValue({ pedido: detalleEntregado, notificacionEnviada: true }),
+    })
+    const model = new PedidosAdminModel(servicio)
+    await model.cargarDetalle('FLY-0001')
+
+    expect(await model.actualizarEstado('FLY-0001', 'ENVIADO', envio)).toBe(false)
+    expect(servicio.actualizarEstado).not.toHaveBeenCalled()
+
+    expect(await model.actualizarEstado('FLY-0001', 'ENTREGADO', null)).toBe(true)
+    expect(servicio.actualizarEstado).toHaveBeenCalledWith('FLY-0001', 'ENTREGADO', null)
+    expect(model.obtenerEstado().detalle?.estado).toBe('ENTREGADO')
+  })
+
   it('no llama al backend si el estado está fuera de secuencia', async () => {
-    const servicio = crearServicio()
+    const servicio = crearServicio({ obtenerDetalle: vi.fn().mockResolvedValue(detallePreparacion) })
     const model = new PedidosAdminModel(servicio)
     await model.cargarDetalle('FLY-0001')
 
@@ -207,12 +275,12 @@ describe('PedidosAdminModel · actualizar estado y cancelar (Front 4)', () => {
 
     expect(exitoso).toBe(false)
     expect(servicio.actualizarEstado).not.toHaveBeenCalled()
-    expect(model.obtenerEstado().detalle?.estado).toBe('PAGADO')
+    expect(model.obtenerEstado().detalle?.estado).toBe('PREPARACION')
     expect(model.obtenerEstado().error).toBeNull()
   })
 
   it('no llama al backend si «Enviado» va sin datos de envío', async () => {
-    const servicio = crearServicio()
+    const servicio = crearServicio({ obtenerDetalle: vi.fn().mockResolvedValue(detallePreparacion) })
     const model = new PedidosAdminModel(servicio)
     await model.cargarDetalle('FLY-0001')
 
@@ -236,11 +304,12 @@ describe('PedidosAdminModel · actualizar estado y cancelar (Front 4)', () => {
     expect(servicio.actualizarEstado).toHaveBeenCalledTimes(1)
   })
 
-  it('muestra el error del backend cuando rechaza la transición (400)', async () => {
+  it('muestra el error del backend cuando faltan datos (400) sin recargar', async () => {
     const servicio = crearServicio({
+      obtenerDetalle: vi.fn().mockResolvedValue(detallePreparacion),
       actualizarEstado: vi
         .fn()
-        .mockRejectedValue(new ErrorApi('Transición no válida', 'VALIDACION', 'TRANSICION_INVALIDA', undefined, 400)),
+        .mockRejectedValue(new ErrorApi('La guía es demasiado larga', 'VALIDACION', 'DATOS_INVALIDOS', undefined, 400)),
     })
     const model = new PedidosAdminModel(servicio)
     await model.cargarDetalle('FLY-0001')
@@ -248,35 +317,17 @@ describe('PedidosAdminModel · actualizar estado y cancelar (Front 4)', () => {
     const exitoso = await model.actualizarEstado('FLY-0001', 'ENVIADO', envio)
 
     expect(exitoso).toBe(false)
-    expect(model.obtenerEstado().error).toEqual({ mensaje: 'Transición no válida', tipo: 'validacion' })
-    expect(model.obtenerEstado().detalle?.estado).toBe('PAGADO')
-  })
-
-  it('al cancelar envía el motivo y deja el pedido cancelado en el detalle y en la lista', async () => {
-    const servicio = crearServicio({
-      cancelarPedido: vi.fn().mockResolvedValue({ pedido: detalleCancelado, notificacionEnviada: false }),
-    })
-    const model = new PedidosAdminModel(servicio)
-    await model.cargarPedidos()
-    await model.cargarDetalle('FLY-0001')
-
-    const exitoso = await model.cancelarPedido('FLY-0001', 'El cliente lo solicitó')
-
-    expect(exitoso).toBe(true)
-    expect(servicio.cancelarPedido).toHaveBeenCalledWith('FLY-0001', 'El cliente lo solicitó')
-    const estado = model.obtenerEstado()
-    expect(estado.detalle?.estado).toBe('CANCELADO')
-    expect(estado.pedidos[0]?.estado).toBe('CANCELADO')
-    expect(estado.mensaje).toMatch(/cancelado/i)
-    expect(estado.notificacionPendiente).toBe(true)
+    expect(model.obtenerEstado().error).toEqual({ mensaje: 'La guía es demasiado larga', tipo: 'validacion' })
+    expect(model.obtenerEstado().detalle?.estado).toBe('PREPARACION')
+    expect(servicio.obtenerDetalle).toHaveBeenCalledTimes(1)
   })
 
   it('limpiarAvisos quita el error, el mensaje y la notificación pendiente', async () => {
     const servicio = crearServicio({
-      cancelarPedido: vi.fn().mockResolvedValue({ pedido: detalleCancelado, notificacionEnviada: false }),
+      actualizarEstado: vi.fn().mockResolvedValue({ pedido: detalleEntregado, notificacionEnviada: false }),
     })
     const model = new PedidosAdminModel(servicio)
-    await model.cancelarPedido('FLY-0001', 'El cliente lo solicitó')
+    await model.actualizarEstado('FLY-0001', 'ENTREGADO', null)
 
     model.limpiarAvisos()
 
@@ -284,6 +335,6 @@ describe('PedidosAdminModel · actualizar estado y cancelar (Front 4)', () => {
     expect(estado.mensaje).toBeNull()
     expect(estado.error).toBeNull()
     expect(estado.notificacionPendiente).toBe(false)
-    expect(estado.detalle?.estado).toBe('CANCELADO')
+    expect(estado.detalle?.estado).toBe('ENTREGADO')
   })
 })

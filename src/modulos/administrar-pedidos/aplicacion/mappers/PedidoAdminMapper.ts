@@ -16,7 +16,6 @@ import type { ResultadoAccionDTO } from '../dto/ResultadoAccionDTO'
 import type {
   ActualizarEstadoPeticionDTO,
   BuscarPedidosPeticionDTO,
-  CancelarPedidoPeticionDTO,
   RechazarComprobantePeticionDTO,
   RegistrarPagoEfectivoPeticionDTO,
 } from '../dto/PeticionesDTO'
@@ -110,10 +109,6 @@ export class PedidoAdminMapper {
       entrega_local: envio?.entregaLocal ?? false,
     }
   }
-
-  static aPeticionCancelacion(motivo: string): CancelarPedidoPeticionDTO {
-    return { motivo: motivo.trim() }
-  }
 }
 
 // ---------- auxiliares ----------
@@ -126,9 +121,14 @@ function aFechaOpcional(valor: string | null): Date | null {
   return valor ? new Date(valor) : null
 }
 
-/** Solo la fecha (AAAA-MM-DD) para los filtros de rango */
+/**
+ * Solo la fecha (AAAA-MM-DD) para los filtros de rango, con el día local que eligió el usuario.
+ * El backend la toma como día completo en la hora de la tienda (America/Hermosillo).
+ */
 function aFechaISO(fecha: Date): string {
-  return fecha.toISOString().slice(0, 10)
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0')
+  const dia = String(fecha.getDate()).padStart(2, '0')
+  return `${fecha.getFullYear()}-${mes}-${dia}`
 }
 
 function aEstado(valor: string): EstadoPedidoTs {

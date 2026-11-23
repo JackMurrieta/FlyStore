@@ -23,7 +23,8 @@ const detalleEnRevision: DetallePedidoAdminTs = {
   historial: [],
 }
 
-const detallePagado: DetallePedidoAdminTs = { ...detalleEnRevision, estado: 'PAGADO' }
+// Una transferencia aprobada pasa directo a «En preparación»
+const detallePagado: DetallePedidoAdminTs = { ...detalleEnRevision, estado: 'PREPARACION' }
 
 const resumenEnRevision: PedidoResumenTs = {
   folio: FOLIO,
@@ -50,10 +51,6 @@ function crearServicio(sobrescribir: Partial<IPedidosAdminService> = {}): IPedid
       pedido: { ...detallePagado, estado: 'ENVIADO' },
       notificacionEnviada: true,
     }),
-    cancelarPedido: vi.fn().mockResolvedValue({
-      pedido: { ...detalleEnRevision, estado: 'CANCELADO' },
-      notificacionEnviada: true,
-    }),
     ...sobrescribir,
   }
 }
@@ -71,9 +68,16 @@ describe('useDetallePedido', () => {
 
     expect(servicio.obtenerDetalle).toHaveBeenCalledWith(FOLIO)
     expect(result.current.siguienteEstadoPermitido()).toBe('ENVIADO')
-    expect(result.current.puedeCancelar()).toBe(true)
     expect(result.current.validarTransicion('ENVIADO', null)?.valido).toBe(false)
     expect(result.current.estadoAnterior).toBeNull()
+  })
+
+  it('en efectivo el siguiente estado después de pagado es entregado', async () => {
+    const efectivo: DetallePedidoAdminTs = { ...detalleEnRevision, estado: 'PAGADO', metodoPago: 'EFECTIVO' }
+    const { result } = await montar(crearServicio({ obtenerDetalle: vi.fn().mockResolvedValue(efectivo) }))
+
+    expect(result.current.siguienteEstadoPermitido()).toBe('ENTREGADO')
+    expect(result.current.validarTransicion('ENTREGADO', null)?.valido).toBe(true)
   })
 
   it('no rechaza el comprobante si el motivo va en blanco', async () => {
@@ -106,19 +110,6 @@ describe('useDetallePedido', () => {
     expect(result.current.mensaje).toMatch(/rechazado/i)
   })
 
-  it('no cancela el pedido si el motivo va en blanco', async () => {
-    const servicio = crearServicio()
-    const { result } = await montar(servicio)
-
-    let exitoso = true
-    await act(async () => {
-      exitoso = await result.current.cancelarPedido('')
-    })
-
-    expect(exitoso).toBe(false)
-    expect(servicio.cancelarPedido).not.toHaveBeenCalled()
-  })
-
   it('aprueba el pago y, si no se pudo notificar, arma el enlace de WhatsApp', async () => {
     const servicio = crearServicio({
       aprobarPago: vi.fn().mockResolvedValue({ pedido: detallePagado, notificacionEnviada: false }),
@@ -130,11 +121,11 @@ describe('useDetallePedido', () => {
     })
 
     expect(servicio.aprobarPago).toHaveBeenCalledWith(FOLIO)
-    expect(result.current.detalle?.estado).toBe('PAGADO')
+    expect(result.current.detalle?.estado).toBe('PREPARACION')
     expect(result.current.notificacionPendiente).toBe(true)
     const enlace = result.current.enlaceWhatsApp()
     expect(enlace).toMatch(/^https:\/\/wa\.me\/526441234567\?text=/)
-    expect(decodeURIComponent(enlace ?? '')).toContain('Confirmamos el pago de tu pedido FLY-000128')
+    expect(decodeURIComponent(enlace ?? '')).toContain('Confirmamos el pago de tu pedido FLY-000128 y ya lo estamos preparando')
   })
 
   it('no hay enlace de WhatsApp si el cliente no tiene teléfono', async () => {
@@ -154,7 +145,6 @@ describe('useDetallePedido', () => {
 
     expect(result.current.estadoAnterior).toBe('PAGO_EN_REVISION')
     expect(result.current.siguienteEstadoPermitido()).toBeNull()
-    expect(result.current.puedeCancelar()).toBe(false)
   })
 
   it('tras una acción propia la lista y el detalle coinciden y no hay aviso de cambio', async () => {
@@ -167,7 +157,7 @@ describe('useDetallePedido', () => {
       await result.current.aprobarPago()
     })
 
-    expect(result.current.detalle?.estado).toBe('PAGADO')
+    expect(result.current.detalle?.estado).toBe('PREPARACION')
     expect(result.current.estadoAnterior).toBeNull()
   })
 
@@ -193,6 +183,6 @@ describe('useDetallePedido', () => {
 
     expect(obtenerDetalle).toHaveBeenCalledTimes(2)
     expect(result.current.error).toBeNull()
-    expect(result.current.detalle?.estado).toBe('PAGADO')
+    expect(result.current.detalle?.estado).toBe('PREPARACION')
   })
 })

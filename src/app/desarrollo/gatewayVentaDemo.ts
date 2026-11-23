@@ -11,6 +11,7 @@ import type { DatosEntregaDTO } from '@modulos/gestionar-venta/aplicacion/dto/Da
 import type { NivelPrecioDTO } from '@modulos/gestionar-venta/aplicacion/dto/NivelPrecioDTO'
 import { RespuestaValidacionComprobanteException } from '@modulos/gestionar-venta/dominio/RespuestaValidacionComprobanteException'
 import { validarArchivoComprobante, HORAS_LIMITE_PAGO } from '@modulos/gestionar-venta/dominio/ReglasVenta'
+import { ErrorApi } from '@infraestructura/http/ErrorApi'
 
 type Esquema = 'BASE' | 'MAYOREO' | 'DISTRIBUIDOR'
 
@@ -236,6 +237,20 @@ export function crearGatewayVentaDemo(retardoMs = 350): IGestionarVentaGateway {
           ? { ...actual.metodoPago, comprobanteRuta: `comprobantes/${folioPedido}/${archivo.name}`, comprobanteNombre: archivo.name, fechaHoraComprobante: new Date().toISOString() }
           : null,
       }
+      registrados.splice(registrados.indexOf(actual), 1, actualizado)
+      return actualizado
+    },
+
+    async cancelarPedidoVenta(folioPedido) {
+      await esperar(retardoMs)
+      const actual = buscarRegistrado(folioPedido)
+      if (actual.estadoVenta !== 'APARTADO_PENDIENTE_PAGO' && actual.estadoVenta !== 'PENDIENTE_COMPROBANTE') {
+        throw new ErrorApi(
+          'Este pedido ya no se puede cancelar: solo se cancela mientras está apartado o esperando tu comprobante.',
+          'NEGOCIO', 'CONFLICTO_DE_DATOS', undefined, 409
+        )
+      }
+      const actualizado: PedidoVentaDTO = { ...actual, estadoVenta: 'CANCELADO', fechaLimitePago: null }
       registrados.splice(registrados.indexOf(actual), 1, actualizado)
       return actualizado
     },

@@ -1,22 +1,16 @@
 /**
- * Textos que las vistas del detalle arman a partir del pedido:
- * la advertencia de cancelación, el aviso de cambio de estado y el mensaje
- * que se manda al cliente por WhatsApp cuando el backend no pudo notificarlo.
+ * Textos que las vistas del detalle arman a partir del pedido: el aviso de cambio de estado
+ * y el mensaje que se manda al cliente por WhatsApp cuando el backend no pudo notificarlo
+ * (los mismos textos que arma PedidoVentaBO).
  */
 
 import type { DetallePedidoAdminTs } from '../dominio/DetallePedidoAdminTs'
 import type { HistorialEntradaTs } from '../dominio/HistorialEntradaTs'
 import { ETIQUETA_ESTADO } from '../dominio/EstadoPedidoTs'
-import { contarPiezas, requiereDevolucion } from '../dominio/ReglasPedido'
-import { formatearFecha, formatearMoneda } from './formato'
+import { formatearFecha } from './formato'
 
 /** Lada de México: se antepone a los teléfonos de 10 dígitos */
 const LADA_MX = '52'
-
-function textoPiezas(detalle: DetallePedidoAdminTs): string {
-  const piezas = contarPiezas(detalle.lineas)
-  return piezas === 1 ? 'La pieza' : `Las ${piezas} piezas`
-}
 
 /** Entrada más reciente del historial (sin depender del orden en que llegue) */
 export function ultimoCambio(detalle: DetallePedidoAdminTs): HistorialEntradaTs | null {
@@ -25,15 +19,6 @@ export function ultimoCambio(detalle: DetallePedidoAdminTs): HistorialEntradaTs 
       reciente === null || entrada.fechaHora.getTime() > reciente.fechaHora.getTime() ? entrada : reciente,
     null
   )
-}
-
-/** Advertencia del diálogo «Cancelar pedido»: se liberan las piezas (y devolución si ya se pagó) */
-export function advertenciaCancelacion(detalle: DetallePedidoAdminTs): string {
-  const piezas = contarPiezas(detalle.lineas)
-  const regreso = `${textoPiezas(detalle)} ${piezas === 1 ? 'regresará' : 'regresarán'} al inventario`
-  return requiereDevolucion(detalle.estado)
-    ? `${regreso} y deberás devolver ${formatearMoneda(detalle.total)} a ${detalle.cliente.nombre}.`
-    : `${regreso}.`
 }
 
 /** Quién y cuándo movió el pedido al estado que tiene ahora (para el aviso «cambió de estado») */
@@ -56,6 +41,8 @@ export function mensajeParaCliente(detalle: DetallePedidoAdminTs): string {
   switch (detalle.estado) {
     case 'PAGADO':
       return `${saludo} Confirmamos el pago de ${pedido}. ¡Gracias por tu compra!`
+    case 'PREPARACION':
+      return `${saludo} Confirmamos el pago de ${pedido} y ya lo estamos preparando. ¡Gracias por tu compra!`
     case 'PENDIENTE_COMPROBANTE':
       return (
         `${saludo} No pudimos validar el comprobante de ${pedido}` +
@@ -73,7 +60,8 @@ export function mensajeParaCliente(detalle: DetallePedidoAdminTs): string {
       return `${saludo} Registramos la entrega de ${pedido}. ¡Gracias por tu compra!`
     case 'CANCELADO':
     case 'CANCELADO_VENCIMIENTO':
-      return `${saludo} Cancelamos ${pedido}${motivo ? `: ${motivo}` : ''}.`
+      // Ninguna acción del personal cancela; se deja por si se consulta un pedido ya cancelado
+      return `${saludo} Tu pedido ${detalle.folio} está cancelado${motivo ? `: ${motivo}` : ''}.`
     case 'APARTADO_PENDIENTE_PAGO':
     case 'PAGO_EN_REVISION':
       return `${saludo} Hay novedades de ${pedido}: ${ETIQUETA_ESTADO[detalle.estado]}.`

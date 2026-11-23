@@ -69,5 +69,6 @@ export function gatewayFalso(): IGestionarVentaGateway {
       { banco: 'Mercado Pago W', titular: 'FLY Store', numeroCuenta: '1234', clabe: '722 969 0101 2345 6789', folio }
     )),
     subirComprobantePedidoVenta: vi.fn().mockImplementation(async (folio: string) => pedidoRegistrado(folio, 'PAGO_EN_REVISION')),
+    cancelarPedidoVenta: vi.fn().mockImplementation(async (folio: string) => pedidoRegistrado(folio, 'CANCELADO')),
   }
 }

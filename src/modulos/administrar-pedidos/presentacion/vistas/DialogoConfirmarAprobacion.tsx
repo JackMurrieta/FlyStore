@@ -56,7 +56,7 @@ export function DialogoConfirmarAprobacion({
     >
       <div className={estilos.contenido}>
         <Texto variante="cuerpo" tono="secundario" como="p">
-          El pedido pasará a «Pagado», se {piezas === 1 ? 'descontará' : 'descontarán'} de forma definitiva{' '}
+          El pedido pasará a «En preparación», se {piezas === 1 ? 'descontará' : 'descontarán'} de forma definitiva{' '}
           {piezas === 1 ? 'la pieza reservada' : `las ${piezas} piezas reservadas`} y avisaremos a{' '}
           {detalle.cliente.nombre} por WhatsApp.
         </Texto>

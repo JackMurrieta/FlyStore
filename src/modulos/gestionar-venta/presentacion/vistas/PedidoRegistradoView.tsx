@@ -40,7 +40,7 @@ function mensajes(estado: string, fechaLimite: string | null): { texto: string; 
     case EstadoVenta.CANCELADO_VENCIMIENTO:
       return { texto: 'Este pedido se canceló porque el plazo para pagar terminó. Para comprar, haz un nuevo pedido.', pasos: [] }
     case EstadoVenta.CANCELADO:
-      return { texto: 'Este pedido fue cancelado. Si tienes dudas, escríbenos por WhatsApp.', pasos: [] }
+      return { texto: 'Cancelaste este pedido. Si quieres los productos, haz un nuevo pedido.', pasos: [] }
     default:
       return { texto: 'Tu pago está confirmado. Te avisaremos por WhatsApp cada vez que cambie el estado de tu pedido.', pasos: [] }
   }
