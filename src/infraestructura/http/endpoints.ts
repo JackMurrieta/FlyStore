@@ -122,6 +122,8 @@ export const pedidos = {
   crear: () => `${API_BASE}/api/pedidos`,
   listar: () => `${API_BASE}/api/pedidos/yo`,
   obtener: (id: number) => `${API_BASE}/api/pedidos/${id}`,
+  /** GET /api/pedidos/por-confirmar · personal: pedidos con pago por confirmar (FIFO). */
+  porConfirmar: () => `${API_BASE}/api/pedidos/por-confirmar`,
 } as const
 
 /**

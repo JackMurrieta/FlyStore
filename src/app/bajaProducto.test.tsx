@@ -7,15 +7,8 @@ import type { EstadoSesionTs, ISesion } from '@compartido/sesion/ISesion'
 import { Rutas } from './rutas'
 
 vi.mock('./contenedor', async () => {
-  const { HttpClient } = await import('@infraestructura/http/HttpClient')
-  const { ProductoService } = await import('@modulos/administrar-catalogo/infraestructura/ProductoService')
-  const { CatalogoService } = await import('@modulos/administrar-catalogo/infraestructura/CatalogoService')
-  const { CatalogoModel } = await import('@modulos/administrar-catalogo/aplicacion/CatalogoModel')
-  const { BajaProductoModel } = await import('@modulos/administrar-catalogo/aplicacion/BajaProductoModel')
-  const http = new HttpClient()
-  const productoService = new ProductoService(http)
-  return { contenedor: { productoService, bajaProductoModel: new BajaProductoModel(productoService),
-    catalogoModel: new CatalogoModel(new CatalogoService(http), productoService) } }
+  const { crearContenedorCatalogo } = await import('./pruebas/contenedorCatalogoPrueba')
+  return { contenedor: crearContenedorCatalogo() }
 })
 const producto = { idProducto: '9223372036854775807', clave: 'BAJA-001', nombre: 'Gorra de baja', img: '',
   categoria: 'Gorras', subcategoria: 'Clásicas', marca: 'FLY', estado: 'PUBLICADO',

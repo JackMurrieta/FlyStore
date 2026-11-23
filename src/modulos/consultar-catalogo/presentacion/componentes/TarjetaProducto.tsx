@@ -1,6 +1,7 @@
 /**
  * Tarjeta de producto del catálogo (Figma B3) con sus colores abajo, como en adidas: al pasar el mouse
  * por un color la foto cambia a ese color; en el celular se toca. El color elegido se lleva a la ficha.
+ * Si se filtró por color, la tarjeta abre en ese color (`idColorDestacado`) y lo lleva a la ficha.
  */
 
 import { useState, type CSSProperties } from 'react'
@@ -24,9 +25,11 @@ export function TarjetaProducto({ producto, indice = 0 }: TarjetaProductoProps) 
   const [elegido, setElegido] = useState<ColorTarjetaTs | null>(null)
   const [vista, setVista] = useState<ColorTarjetaTs | null>(null)
 
-  const mostrado = vista ?? elegido
+  const destacado = producto.colores.find(color => color.idColor === producto.idColorDestacado) ?? null
+  const seleccionado = elegido ?? destacado
+  const mostrado = vista ?? seleccionado
   const foto = mostrado?.imagenUrl ?? producto.imagenUrl
-  const destino = rutasTienda.producto(producto.id, (vista ?? elegido)?.idColor ?? null)
+  const destino = rutasTienda.producto(producto.id, mostrado?.idColor ?? null)
   const visibles = producto.colores.slice(0, MAX_COLORES)
   const ocultos = producto.colores.length - visibles.length
   const estilo = { '--retraso': `${Math.min(indice % 30, 12) * 45}ms` } as CSSProperties
@@ -53,7 +56,7 @@ export function TarjetaProducto({ producto, indice = 0 }: TarjetaProductoProps) 
                 key={color.idColor}
                 type="button"
                 className={`${estilos.variante} ${activo ? estilos.varianteActiva : ''}`}
-                aria-pressed={elegido?.idColor === color.idColor}
+                aria-pressed={seleccionado?.idColor === color.idColor}
                 aria-label={`Ver en ${color.nombre}`}
                 title={color.nombre}
                 onMouseEnter={() => setVista(color)}

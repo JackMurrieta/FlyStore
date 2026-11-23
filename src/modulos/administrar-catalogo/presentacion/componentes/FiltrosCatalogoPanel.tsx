@@ -12,10 +12,12 @@ interface Props {
   alLimpiar?: () => Promise<void>
   cargando: boolean
   alBuscar: (filtros: FiltrosCatalogoTs) => Promise<void>
+  /** Filtros con los que se abre (al volver de editar o desde el Inicio del panel). */
+  filtrosIniciales?: FiltrosCatalogoTs
 }
 
-export function FiltrosCatalogoPanel({ filtrosDisponibles, cargando, alBuscar, alLimpiar }: Props) {
-  const [filtros, setFiltros] = useState(filtrosVacios)
+export function FiltrosCatalogoPanel({ filtrosDisponibles, cargando, alBuscar, alLimpiar, filtrosIniciales }: Props) {
+  const [filtros, setFiltros] = useState(() => filtrosIniciales ?? filtrosVacios)
   const activos = Object.values(filtros).filter(Boolean).length
   return <form className={estilos.filtros} onSubmit={e => { e.preventDefault(); void alBuscar(filtros) }}>
     <fieldset disabled={cargando} className={estilos.filaFiltros}>

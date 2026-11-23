@@ -20,9 +20,6 @@ vi.mock('@app/contenedor', () => ({
   },
 }))
 
-// El encabezado depende de la sesión y no es parte de lo que se prueba
-vi.mock('@compartido/layout/Header', () => ({ Header: () => null }))
-
 const FOLIO = 'FLY-000128'
 
 const detalleEnRevision: DetallePedidoAdminTs = {

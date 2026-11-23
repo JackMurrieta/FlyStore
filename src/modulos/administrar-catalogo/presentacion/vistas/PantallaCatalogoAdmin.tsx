@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { CatalogoModel } from '../../aplicacion/CatalogoModel'
 import type { BajaProductoModel } from '../../aplicacion/BajaProductoModel'
 import type { FiltrosCatalogoTs } from '../../dominio/FiltrosCatalogoTs'
-import { useCatalogoAdmin } from '../hooks/useCatalogoAdmin'
+import { useCatalogoAdmin, type ConsultaCatalogoTs } from '../hooks/useCatalogoAdmin'
 import { useBajaProducto } from '../hooks/useBajaProducto'
 import { FiltrosCatalogoPanel } from '../componentes/FiltrosCatalogoPanel'
 import { ConfirmarBajaPanel } from '../componentes/ConfirmarBajaPanel'
@@ -19,13 +19,19 @@ interface Props {
   catalogoModel: CatalogoModel
   bajaProductoModel?: BajaProductoModel
   alAgregar: () => void
+  /** Abre el formulario de edición; recibe la búsqueda activa para volver a ella. */
+  alEditar?: (idProducto: string, consulta: ConsultaCatalogoTs) => void
   mensaje?: string | null
   alCerrarMensaje?: () => void
+  /** Búsqueda y página con las que abre (al volver del formulario o desde el Inicio del panel). */
+  consultaInicial?: ConsultaCatalogoTs
 }
 const POR_PAGINA = 7
+/** La notificación de éxito se cierra sola; también puede cerrarse antes. */
+const DURACION_MENSAJE_MS = 6000
 
-export function PantallaCatalogoAdmin({ catalogoModel, bajaProductoModel, alAgregar, mensaje, alCerrarMensaje }: Props) {
-  const vm = useCatalogoAdmin(catalogoModel)
+export function PantallaCatalogoAdmin({ catalogoModel, bajaProductoModel, alAgregar, alEditar, mensaje, alCerrarMensaje, consultaInicial }: Props) {
+  const vm = useCatalogoAdmin(catalogoModel, consultaInicial)
   const baja = useBajaProducto(bajaProductoModel)
   const [pestana, setPestana] = useState<'productos' | 'categorias'>('productos')
   const inicio = vm.pagina * POR_PAGINA
@@ -35,7 +41,13 @@ export function PantallaCatalogoAdmin({ catalogoModel, bajaProductoModel, alAgre
     await vm.buscarProductos(filtros)
   }
 
-  return <main className={estilos.pantalla}>
+  useEffect(() => {
+    if (!mensaje || !alCerrarMensaje) return
+    const temporizador = window.setTimeout(alCerrarMensaje, DURACION_MENSAJE_MS)
+    return () => window.clearTimeout(temporizador)
+  }, [mensaje, alCerrarMensaje])
+
+  return <div className={estilos.pantalla}>
     {mensaje && <div className={estilos.toast} role="status"><Icono nombre="check-circle" tamano={20} />
       <p>{mensaje}</p><button type="button" aria-label="Cerrar notificación" onClick={alCerrarMensaje}><Icono nombre="x" tamano={16} /></button>
     </div>}
@@ -57,7 +69,8 @@ export function PantallaCatalogoAdmin({ catalogoModel, bajaProductoModel, alAgre
     {baja.resultado && <div role="status" className={estilos.mensajeExito}><Icono nombre="check-circle" tamano={18} />
       Producto {baja.resultado.tipoBaja === TipoBaja.ELIMINADO ? 'eliminado' : 'inactivado'} correctamente.</div>}
     <section id="panel-productos" role="tabpanel" aria-labelledby="tab-productos" hidden={pestana !== 'productos'}>
-      <FiltrosCatalogoPanel filtrosDisponibles={vm.filtrosDisponibles} cargando={vm.cargando} alBuscar={buscar} alLimpiar={vm.obtenerCatalogo} />
+      <FiltrosCatalogoPanel filtrosDisponibles={vm.filtrosDisponibles} cargando={vm.cargando} alBuscar={buscar} alLimpiar={vm.obtenerCatalogo}
+        filtrosIniciales={consultaInicial?.filtros} />
       {vm.cargando ? <div role="status" className={estilos.estadoVacio}>Cargando catálogo…</div>
         : !vm.productos.length ? <div className={estilos.estadoVacio}><Icono nombre="search-x" tamano={28} />
           <h2>{vm.error ? 'Catálogo no disponible' : 'No encontramos productos'}</h2><p>Revisa los filtros o intenta consultar nuevamente.</p></div>
@@ -73,8 +86,12 @@ export function PantallaCatalogoAdmin({ catalogoModel, bajaProductoModel, alAgre
                   <td className={producto.existencias === 0 ? estilos.sinStock : undefined}>{producto.existencias} pzas</td>
                   <td className={estilos.preciosCelda}>{formatearPrecios(producto.precios)}</td>
                   <td><EstadoProductoInsignia estado={producto.estado} /></td>
-                  <td><button type="button" className={estilos.botonIcono} aria-label={`Dar de baja ${producto.nombre}`} title="Dar de baja"
-                    disabled={!bajaProductoModel || baja.confirmando || producto.estado === 'INACTIVO'} onClick={() => baja.solicitarBaja(producto)}><Icono nombre="archive" tamano={16} /></button></td>
+                  <td><div className={estilos.accionesFila}>
+                    {alEditar && <button type="button" className={estilos.botonIcono} aria-label={`Editar ${producto.nombre}`} title="Editar"
+                      onClick={() => alEditar(producto.idProducto, vm.consulta())}><Icono nombre="pencil" tamano={16} /></button>}
+                    <button type="button" className={estilos.botonIcono} aria-label={`Dar de baja ${producto.nombre}`} title="Dar de baja"
+                      disabled={!bajaProductoModel || baja.confirmando || producto.estado === 'INACTIVO'} onClick={() => baja.solicitarBaja(producto)}><Icono nombre="archive" tamano={16} /></button>
+                  </div></td>
                 </tr>)}</tbody>
               </table>
             </div>
@@ -94,5 +111,5 @@ export function PantallaCatalogoAdmin({ catalogoModel, bajaProductoModel, alAgre
       alCancelar={baja.cancelarBaja} alConfirmar={() => { void baja.confirmarBaja().then(ok => {
         if (ok) void vm.recargar()
       }) }} />
-  </main>
+  </div>
 }

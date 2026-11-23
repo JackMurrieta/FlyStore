@@ -7,8 +7,8 @@
  * Buenas prácticas aplicadas: el menú de cuenta es un botón «disclosure» (aria-expanded) con
  * enlaces normales; el panel lateral es un diálogo modal con trampa de foco, se cierra con Esc,
  * con el velo o al elegir una opción, bloquea el desplazamiento de la página y devuelve el foco
- * al botón que lo abrió. «Mis pedidos» y «Mi perfil» salen del menú de cuenta; «Administrar»
- * solo aparece para admin y empleado.
+ * al botón que lo abrió. «Mis pedidos» y «Mi perfil» salen del menú de cuenta; «Administrar tienda»
+ * (el panel /admin) solo aparece para admin y empleado.
  */
 
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent as EventoTeclado } from 'react'
@@ -33,11 +33,9 @@ const ETIQUETA_ROL: Record<RolTs, string> = { CLIENTE: 'Cliente', ADMIN: 'Admini
 function enlacesDeCuenta(rol: RolTs | undefined): EnlaceCuenta[] {
   const enlaces: EnlaceCuenta[] = [{ etiqueta: 'Mi perfil', ruta: RUTAS_CUENTA.perfil, icono: 'user' }]
   if (rol === 'CLIENTE') enlaces.push({ etiqueta: 'Mis pedidos', ruta: RUTAS_CUENTA.misPedidos, icono: 'package' })
+  // El personal entra a un solo lugar con todo lo que administra (pedidos, catálogo, etc.).
   if (rol === 'ADMIN' || rol === 'EMPLEADO') {
-    enlaces.push(
-      { etiqueta: 'Administrar catálogo', ruta: '/admin/catalogo', icono: 'grid' },
-      { etiqueta: 'Administrar pedidos', ruta: '/admin/pedidos', icono: 'clipboard' }
-    )
+    enlaces.unshift({ etiqueta: 'Administrar tienda', ruta: RUTAS_CUENTA.administrarTienda, icono: 'store' })
   }
   return enlaces
 }

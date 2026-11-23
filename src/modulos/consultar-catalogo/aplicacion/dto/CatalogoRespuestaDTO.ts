@@ -29,6 +29,8 @@ export interface ProductoTarjetaDTO {
   imagenUrl: string | null
   precio: PrecioReferenciaDTO | null
   colores: ColorTarjetaDTO[] | null
+  /** Con filtro de color: el color buscado (ya va primero en `colores` e `imagenUrl` es su foto). */
+  idColorDestacado?: number | null
 }
 
 export interface OpcionFiltroDTO {

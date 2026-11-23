@@ -21,18 +21,26 @@ describe('Servicios de prueba del catálogo', () => {
     expect((await crearServiciosCatalogoDemo().productoService.obtenerProductos())[0]?.estado).toBe('PUBLICADO')
   })
 
-  it('permite registrar, completar y consultar un producto nuevo y liberar su imagen', async () => {
+  it('permite registrar, editar y consultar un producto nuevo y liberar sus fotos', async () => {
     const revocar = vi.fn()
     vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:demo'), revokeObjectURL: revocar })
     const { productoService, liberarImagenes } = crearServiciosCatalogoDemo()
     const datos = { clave: 'SKU-NUEVO', nombre: 'Producto nuevo', descripcion: 'Descripción',
       idCategoria: 'gorras', idSubcategoria: 'gorra', idMarca: 'new-era', estado: 'BORRADOR',
-      imagenes: new File(['imagen'], 'imagen.png', { type: 'image/png' }), variantes: [{talla:'Ajustable',color:'Gris',stock:5}], preciosProducto:[{tipoPrecio:'BASE',precio:100,minPiezas:1}] }
-    await productoService.crearProducto(datos)
-    expect(await productoService.buscarProductos({ ...filtrosVacios, texto: 'SKU-NUEVO' })).toMatchObject([
-      { img: 'blob:demo', variantes: [{ stock: 5 }], preciosProducto: [{ precio: 100 }] },
-    ])
-    await expect(productoService.crearProducto(datos)).rejects.toThrow('SKU ya existe')
+      imagenes: [{ archivo: 0, color: 'Gris' }], variantes: [{talla:'Ajustable',color:'Gris',stock:5}], preciosProducto:[{tipoPrecio:'BASE',precio:100,minPiezas:1}] }
+    const archivos = [new File(['imagen'], 'imagen.png', { type: 'image/png' })]
+    await productoService.crearProducto(datos, archivos)
+    const [creado] = await productoService.buscarProductos({ ...filtrosVacios, texto: 'SKU-NUEVO' })
+    expect(creado).toMatchObject({ img: 'blob:demo', variantes: [{ stock: 5 }], preciosProducto: [{ precio: 100 }] })
+    await expect(productoService.crearProducto(datos, archivos)).rejects.toThrow('SKU ya existe')
+
+    const edicion = await productoService.obtenerProductoParaEditar(creado!.idProducto)
+    expect(edicion.imagenes).toMatchObject([{ color: 'Gris', url: 'blob:demo' }])
+    const editado = await productoService.editarProducto(creado!.idProducto, { clave: 'SKU-NUEVO', nombre: 'Renombrado', descripcion: 'Otra',
+      idSubcategoria: 'gorra', idMarca: 'fly', estado: 'PUBLICADO', preciosProducto: datos.preciosProducto,
+      variantes: [{ idVariante: edicion.variantes[0]!.idVariante, stock: 9 }],
+      imagenes: [{ idImagen: edicion.imagenes[0]!.idImagen, color: 'Gris' }] }, [])
+    expect(editado).toMatchObject({ nombre: 'Renombrado', marca: 'FLY', variantes: [{ stock: 9, color: 'Gris' }] })
     liberarImagenes()
     expect(revocar).toHaveBeenCalledWith('blob:demo')
   })

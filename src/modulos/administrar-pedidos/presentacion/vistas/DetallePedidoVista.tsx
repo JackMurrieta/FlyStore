@@ -10,7 +10,6 @@
 import { useCallback, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { contenedor } from '@app/contenedor'
-import { Header } from '@compartido/layout/Header'
 import { Texto } from '@compartido/ui/Texto'
 import { Boton } from '@compartido/ui/Boton'
 import { Aviso } from '@compartido/ui/Aviso'
@@ -107,9 +106,8 @@ export default function DetallePedidoVista() {
 
   return (
     <div className={styles.pagina}>
-      <Header />
-
-      <main className={styles.main}>
+      {/* Se pinta dentro del panel «Administrar tienda», que ya aporta <main> y la barra superior */}
+      <div className={styles.main}>
         <div>
           <Boton variante="fantasma" icono={<Icono nombre="chevron-left" tamano={18} />} onClick={volverALista}>
             Pedidos
@@ -377,7 +375,7 @@ export default function DetallePedidoVista() {
             </div>
           </>
         )}
-      </main>
+      </div>
 
       {/* Abrir un diálogo es montarlo: su estado local empieza limpio en cada apertura */}
       {detalle && dialogo?.tipo === 'aprobar' && (

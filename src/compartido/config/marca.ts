@@ -62,6 +62,8 @@ export const RUTAS_CUENTA = {
   carrito: '/carrito',
   iniciarSesion: '/iniciar-sesion',
   registro: '/registro',
+  /** Panel del personal (ADMIN y EMPLEADO): pedidos, catálogo y demás secciones de la tienda. */
+  administrarTienda: '/admin',
 } as const
 
 /** Enlace wa.me con un mensaje inicial; null si la tienda aún no configura su número. */

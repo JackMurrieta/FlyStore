@@ -5,7 +5,6 @@
 
 import { useState, type FormEvent } from 'react'
 import { contenedor } from '@app/contenedor'
-import { Header } from '@compartido/layout/Header'
 import { Texto } from '@compartido/ui/Texto'
 import { Campo } from '@compartido/ui/Campo'
 import { Boton } from '@compartido/ui/Boton'
@@ -66,9 +65,8 @@ export default function PedidosAdminVista() {
 
   return (
     <div className={styles.pagina}>
-      <Header />
-
-      <main className={styles.main}>
+      {/* Se pinta dentro del panel «Administrar tienda», que ya aporta <main> y la barra superior */}
+      <div className={styles.main}>
         <header className={styles.encabezado}>
           <div>
             <Texto variante="sobretitulo" tono="secundario">
@@ -216,7 +214,7 @@ export default function PedidosAdminVista() {
             </table>
           </div>
         )}
-      </main>
+      </div>
 
       <DialogoRegistrarPagoEfectivo
         key={pedidoPago?.folio ?? 'cerrado'}

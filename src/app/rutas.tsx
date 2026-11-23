@@ -31,8 +31,14 @@ const CatalogoTienda = lazy(() => import('@modulos/consultar-catalogo').then(m =
 const PedidosAdminVista = lazy(() => import('@modulos/administrar-pedidos').then(m => ({ default: m.PedidosAdminVista })))
 const DetallePedidoVista = lazy(() => import('@modulos/administrar-pedidos').then(m => ({ default: m.DetallePedidoVista })))
 
-// Vista temporal de inicio
+// Panel «Administrar tienda» (ADMIN y EMPLEADO): layout de /admin/* con todas las secciones
+const PanelTienda = lazy(() => import('@modulos/administrar-tienda').then(m => ({ default: m.PanelTienda })))
+const InicioPanelView = lazy(() => import('@modulos/administrar-tienda').then(m => ({ default: m.InicioPanelView })))
+const ProximamenteView = lazy(() => import('@modulos/administrar-tienda').then(m => ({ default: m.ProximamenteView })))
+// CU-03 Administrar catálogo (dentro del panel)
 const CatalogoAdminVista = lazy(() => import('./vistas/CatalogoAdminVista'))
+const ProductoFormularioVista = lazy(() => import('./vistas/ProductoFormularioVista'))
+// Vista temporal de inicio
 const InicioVista = lazy(() => import('./vistas/InicioVista'))
 // El import y la ruta se eliminan de la compilación de producción.
 const AdministrarCatalogoDemo = import.meta.env.DEV
@@ -53,7 +59,6 @@ export function Rutas() {
       <Routes>
         {/* Ruta raíz */}
         <Route path="/" element={<InicioVista />} />
-        <Route path="/admin/catalogo" element={<RutaProtegida roles={['ADMIN', 'EMPLEADO']}><CatalogoAdminVista /></RutaProtegida>} />
         {AdministrarCatalogoDemo && <Route path="/dev/administrar-catalogo" element={<AdministrarCatalogoDemo />} />}
         {GestionarVentaDemo && <Route path="/dev/gestionar-venta/*" element={<GestionarVentaDemo />} />}
 
@@ -107,34 +112,32 @@ export function Rutas() {
         <Route path="/terminos" element={<TerminosVista />} />
         <Route path="/preguntas-frecuentes" element={<PreguntasFrecuentesVista />} />
 
-        {/* CU-04 Administrar Pedidos (protegido por rol) */}
+        {/* Panel «Administrar tienda» (solo personal): pedidos, catálogo y secciones «Pronto» */}
         <Route
-          path="/admin/pedidos"
+          path="/admin"
           element={
             <RutaProtegida roles={['ADMIN', 'EMPLEADO']}>
-              <PedidosAdminVista />
+              <PanelTienda modelos={contenedor.modelosPanel} />
             </RutaProtegida>
           }
-        />
-        <Route
-          path="/admin/pedidos/:folio"
-          element={
-            <RutaProtegida roles={['ADMIN', 'EMPLEADO']}>
-              <DetallePedidoVista />
-            </RutaProtegida>
-          }
-        />
-
-        {/* TODO Fase 3+: Otras rutas de módulos */}
-        {/* Admin (protegido por rol) */}
-        {/* <Route */}
-        {/*   path="/admin/*" */}
-        {/*   element={ */}
-        {/*     <RutaProtegida roles={['ADMIN', 'EMPLEADO']}> */}
-        {/*       <PanelAdminVista /> */}
-        {/*     </RutaProtegida> */}
-        {/*   } */}
-        {/* /> */}
+        >
+          <Route index element={<InicioPanelView />} />
+          {/* CU-04 Administrar pedidos */}
+          <Route path="pedidos" element={<PedidosAdminVista />} />
+          <Route path="pedidos/:folio" element={<DetallePedidoVista />} />
+          {/* CU-03 Administrar catálogo */}
+          <Route path="catalogo" element={<CatalogoAdminVista />} />
+          <Route path="catalogo/nuevo" element={<ProductoFormularioVista />} />
+          <Route path="catalogo/:idProducto/editar" element={<ProductoFormularioVista />} />
+          {/* Secciones sin backend todavía */}
+          <Route path="inventario" element={<ProximamenteView seccion="inventario" />} />
+          <Route path="codigos-descuento" element={<ProximamenteView seccion="codigos" />} />
+          <Route path="clientes" element={<ProximamenteView seccion="clientes" />} />
+          <Route path="empleados" element={<ProximamenteView seccion="empleados" />} />
+          <Route path="reportes" element={<ProximamenteView seccion="reportes" />} />
+          <Route path="configuracion" element={<ProximamenteView seccion="configuracion" />} />
+          <Route path="*" element={<Navigate to="/admin" replace />} />
+        </Route>
 
         {/* 404 */}
         <Route path="*" element={<Navigate to="/" replace />} />

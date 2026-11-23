@@ -16,7 +16,16 @@ async function leerPagina(model: CatalogoModel, pagina: number, filtros?: Filtro
   return resultado
 }
 
-export function useCatalogoAdmin(model: CatalogoModel) {
+/** Búsqueda y página activas: se guardan al salir (p. ej. a editar) para volver al mismo punto. */
+export interface ConsultaCatalogoTs {
+  filtros?: FiltrosCatalogoTs
+  pagina: number
+}
+
+const conFiltros = (filtros?: FiltrosCatalogoTs) =>
+  filtros && Object.values(filtros).some(valor => typeof valor === 'string' ? valor.trim() : valor) ? filtros : undefined
+
+export function useCatalogoAdmin(model: CatalogoModel, inicial?: ConsultaCatalogoTs) {
   const [productos, setProductos] = useState<ProductoCatalogoTs[]>([])
   const [filtrosDisponibles, setFiltros] = useState<FiltrosDisponiblesTs | null>(null)
   const [pagina, setPagina] = useState(0)
@@ -24,8 +33,9 @@ export function useCatalogoAdmin(model: CatalogoModel) {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const solicitud = useRef(0)
-  const filtrosAplicados = useRef<FiltrosCatalogoTs | undefined>(undefined)
-  const paginaActual = useRef(0)
+  const consultaInicial = useRef(inicial)
+  const filtrosAplicados = useRef<FiltrosCatalogoTs | undefined>(conFiltros(inicial?.filtros))
+  const paginaActual = useRef(inicial?.pagina ?? 0)
 
   const cargar = useCallback(async (filtros?: FiltrosCatalogoTs, numero = 0) => {
     const actual = ++solicitud.current
@@ -49,11 +59,14 @@ export function useCatalogoAdmin(model: CatalogoModel) {
   useEffect(() => {
     let vigente = true
     const actual = ++solicitud.current
-    model.obtenerPagina().then(async resultado => {
+    const filtros = conFiltros(consultaInicial.current?.filtros)
+    leerPagina(model, consultaInicial.current?.pagina ?? 0, filtros).then(async resultado => {
       if (!vigente || actual !== solicitud.current) return
       setProductos(resultado.productos)
       setPagina(resultado.pagina)
       setHayMas(resultado.hayMas)
+      filtrosAplicados.current = filtros
+      paginaActual.current = resultado.pagina
       const opciones = await model.obtenerFiltrosDisponibles()
       if (vigente && actual === solicitud.current) setFiltros(opciones)
     }).catch(e => {
@@ -67,5 +80,6 @@ export function useCatalogoAdmin(model: CatalogoModel) {
   return { productos, filtrosDisponibles, pagina, hayMas, cargando, error,
     obtenerCatalogo: () => cargar(), buscarProductos: (filtros: FiltrosCatalogoTs) => cargar(filtros),
     cambiarPagina: (numero: number) => cargar(filtrosAplicados.current, numero),
-    recargar: () => cargar(filtrosAplicados.current, paginaActual.current) }
+    recargar: () => cargar(filtrosAplicados.current, paginaActual.current),
+    consulta: (): ConsultaCatalogoTs => ({ filtros: filtrosAplicados.current, pagina: paginaActual.current }) }
 }

@@ -66,6 +66,10 @@ import {
   KeyRound,
   CircleHelp,
   EyeOff,
+  Store,
+  BadgePercent,
+  BriefcaseBusiness,
+  ExternalLink,
 } from 'lucide-react'
 
 /**
@@ -198,6 +202,10 @@ export type NombreIcono =
   | 'key'
   | 'help'
   | 'eye-off'
+  | 'store'
+  | 'percent'
+  | 'briefcase'
+  | 'external'
 
 export interface IconoProps {
   readonly nombre: NombreIcono
@@ -270,6 +278,10 @@ const ICONOS_MAP = {
   key: KeyRound,
   help: CircleHelp,
   'eye-off': EyeOff,
+  store: Store,
+  percent: BadgePercent,
+  briefcase: BriefcaseBusiness,
+  external: ExternalLink,
 } as const
 
 /**

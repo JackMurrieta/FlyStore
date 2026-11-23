@@ -1,0 +1,102 @@
+/* Formulario de producto (alta y edición) · Figma B2 160:4511 / S1 161:4824.
+   Complementa CatalogoAdmin.module.css (tarjetas, campos y columna lateral). */
+
+.seccion, .grupo { scroll-margin-top: 90px; }
+.subtitulo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; color: var(--fly-texto-2); font-size: 13px; line-height: 19px; }
+
+/* Resumen de errores: aparece arriba al intentar guardar y lleva a cada sección. */
+.resumenErrores { outline: none; }
+.resumenErrores ul { margin-top: 8px; padding-left: 18px; display: grid; gap: 4px; }
+.resumenErrores a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Línea de producto fija al editar */
+.lineaFija { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.lineaFija > span:first-child { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: var(--fly-radio-pastilla);
+  background: var(--fly-cta); color: var(--fly-sobre-cta); font-size: 12px; font-weight: 500; }
+.lineaFija small { color: var(--fly-texto-2); font-size: 12px; }
+
+/* ---- Colores (una tarjeta por color, como las variantes del Figma B2) ---- */
+.grupos { display: grid; gap: 16px; }
+.grupo { display: grid; gap: 16px; padding: 18px; border: 1px solid var(--fly-borde); border-radius: var(--fly-radio-tarjeta); background: var(--fly-superficie-hundida); }
+.grupoError { border-color: var(--fly-estado-error); }
+.grupoEncabezado { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.grupoEncabezado h3 { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; line-height: 16px; letter-spacing: 2px; text-transform: uppercase; color: var(--fly-texto-2); }
+.grupoCuerpo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+
+.muestra { width: 14px; height: 14px; flex-shrink: 0; border-radius: 50%; border: 1px solid var(--fly-borde-control); background: var(--fly-superficie-2); }
+.colorFijo { display: grid; gap: 6px; font-size: 13px; }
+.colorFijo > span { color: var(--fly-texto); }
+.colorFijo > div { display: flex; align-items: center; gap: 10px; height: 42px; padding: 0 12px; border: 1px solid var(--fly-borde); border-radius: var(--fly-radio-control); background: var(--fly-superficie); }
+.colorFijo small { color: var(--fly-texto-2); font-size: 11px; line-height: 15px; }
+
+/* Tallas del color: filas talla · existencia · quitar */
+.tallas { display: grid; gap: 8px; min-width: 0; }
+.filaTalla { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 32px; gap: 10px; align-items: center; }
+.cabeceraTallas { font-size: 13px; line-height: 18px; color: var(--fly-texto); }
+.filaTalla select, .filaTalla input { width: 100%; min-width: 0; height: 42px; border: 1px solid var(--fly-borde-fuerte); border-radius: var(--fly-radio-control);
+  background: var(--fly-superficie); color: var(--fly-texto); padding: 0 12px; font: 13px/19px 'Inter', sans-serif; }
+.filaTalla [aria-invalid="true"] { border-color: var(--fly-estado-error); }
+.tallaFija { display: grid; gap: 2px; min-width: 0; padding: 0 2px; }
+.tallaFija span { font-size: 13px; }
+.tallaFija small { color: var(--fly-texto-2); font-size: 11px; line-height: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.filaQuitada { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px dashed var(--fly-borde-control);
+  border-radius: var(--fly-radio-control); color: var(--fly-texto-2); font-size: 12px; line-height: 17px; }
+.filaQuitada s { color: var(--fly-texto); }
+.botonTexto { display: inline-flex; align-items: center; gap: 6px; justify-self: start; padding: 6px 2px; color: var(--fly-texto); font-size: 12px; font-weight: 500;
+  letter-spacing: .4px; text-transform: uppercase; white-space: nowrap; }
+.botonTexto:hover:not(:disabled) { text-decoration: underline; text-underline-offset: 3px; }
+.botonTexto:disabled { opacity: .4; cursor: not-allowed; }
+
+.colorQuitado { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; color: var(--fly-texto-2); font-size: 13px; line-height: 19px; }
+
+/* ---- Fotos del color ---- */
+.fotos { display: grid; gap: 10px; }
+.fotosTitulo { font-size: 13px; line-height: 18px; color: var(--fly-texto-2); }
+.fotosTitulo strong { color: var(--fly-texto); font-weight: 500; margin-right: 6px; }
+.listaFotos { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; padding: 0; margin: 0; }
+.foto { position: relative; width: 96px; height: 96px; border: 1px solid var(--fly-borde); border-radius: var(--fly-radio-control); overflow: hidden; background: var(--fly-superficie-2); }
+.fotoPrincipal { border-color: var(--fly-texto); }
+.foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.etiquetaFoto { position: absolute; top: 4px; left: 4px; display: inline-flex; align-items: center; gap: 4px; padding: 1px 6px; border-radius: var(--fly-radio-pastilla);
+  background: var(--fly-superficie); color: var(--fly-texto); font-size: 10px; line-height: 15px; }
+.etiquetaNueva { left: auto; right: 4px; background: var(--fly-cta); color: var(--fly-sobre-cta); }
+.accionesFoto { position: absolute; inset: auto 0 0 0; display: flex; justify-content: center; gap: 2px; padding: 4px; background: var(--fly-alfa-velo-75);
+  opacity: 0; transition: opacity 150ms ease; }
+.foto:hover .accionesFoto, .foto:focus-within .accionesFoto { opacity: 1; }
+.accionesFoto button { width: 22px; height: 22px; display: inline-grid; place-items: center; border-radius: 4px; color: var(--fly-texto); }
+.accionesFoto button:hover:not(:disabled) { background: var(--fly-superficie-2); }
+.accionesFoto button:disabled { opacity: .35; cursor: not-allowed; }
+.agregarFoto { width: 96px; height: 96px; }
+.agregarFoto > label { width: 100%; height: 100%; }
+@media (hover: none) { .accionesFoto { opacity: 1; } }
+
+/* Fotos guardadas sin color de variante (edición) */
+.sinColor { display: grid; gap: 12px; }
+.listaSinColor { display: grid; gap: 10px; list-style: none; padding: 0; margin: 0; }
+.listaSinColor li { display: grid; grid-template-columns: 56px minmax(0, 1fr) 32px; gap: 12px; align-items: center; }
+.listaSinColor img { width: 56px; height: 56px; object-fit: cover; border-radius: var(--fly-radio-control); background: var(--fly-superficie-2); }
+.listaSinColor select { width: 100%; height: 42px; border: 1px solid var(--fly-borde-fuerte); border-radius: var(--fly-radio-control); background: var(--fly-superficie-hundida);
+  color: var(--fly-texto); padding: 0 12px; font: 13px/19px 'Inter', sans-serif; }
+
+.pieVariantes { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.contadorFotos { color: var(--fly-texto-2); font-size: 12px; }
+
+/* ---- Precios: cinco esquemas ---- */
+.precios { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 12px; }
+
+/* ---- Columna lateral ---- */
+.estadoActual { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--fly-texto-2); font-size: 12px; }
+.cargaFormulario { display: grid; gap: 20px; }
+
+@media (max-width: 1200px) {
+  .grupoCuerpo { grid-template-columns: minmax(0, 1fr); }
+  .precios { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .grupo { padding: 14px; }
+  .filaTalla { grid-template-columns: minmax(0, 1fr) 96px 32px; gap: 8px; }
+  .filaTalla select, .filaTalla input, .listaSinColor select { font-size: 16px; }
+  .precios { grid-template-columns: minmax(0, 1fr); }
+  .foto, .agregarFoto { width: 84px; height: 84px; }
+}
+@media (prefers-reduced-motion: reduce) { .accionesFoto { transition: none; } }

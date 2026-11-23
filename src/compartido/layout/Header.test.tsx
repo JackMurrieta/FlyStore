@@ -53,8 +53,8 @@ describe('Header', () => {
   it('el personal ve Administrar y no Mis pedidos en su menú', async () => {
     abrir('ADMIN')
     await userEvent.click(screen.getByRole('button', { name: /abrir menú de tu cuenta/ }))
-    expect(screen.getByRole('link', { name: /Administrar catálogo/ })).toHaveAttribute('href', '/admin/catalogo')
-    expect(screen.getByRole('link', { name: /Administrar pedidos/ })).toHaveAttribute('href', '/admin/pedidos')
+    expect(screen.getByRole('link', { name: /Administrar tienda/ })).toHaveAttribute('href', '/admin')
+    expect(screen.queryByRole('link', { name: /Administrar catálogo|Administrar pedidos/ })).not.toBeInTheDocument()
   })
 
   it('cerrar sesión desde el menú', async () => {

@@ -10,9 +10,8 @@ export default function AdministrarCatalogoDemo() {
   return <>
     <div className={estilos.aviso} role="note">
       <strong>Modo de prueba · Administrar catálogo</strong>
-      <span>Datos en memoria, sin backend. Puedes filtrar, crear productos y dar de baja. Recarga para reiniciar.</span>
+      <span>Datos en memoria, sin backend. Puedes filtrar, crear y editar productos (con fotos por color) y dar de baja. Recarga para reiniciar.</span>
     </div>
-    <AdministrarCatalogo catalogoService={servicios.catalogoService} productoService={servicios.productoService}
-      usuario={{ nombre: 'Usuario de prueba', rol: 'Demostración', iniciales: 'DP' }} />
+    <AdministrarCatalogo catalogoService={servicios.catalogoService} productoService={servicios.productoService} />
   </>
 }

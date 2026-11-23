@@ -42,6 +42,8 @@ export interface ProductoTarjetaTs {
   readonly imagenUrl: string | null
   readonly precio: PrecioReferenciaTs | null
   readonly colores: readonly ColorTarjetaTs[]
+  /** Color con el que abre la tarjeta (y la ficha) cuando se filtró por color; null sin filtro. */
+  readonly idColorDestacado: number | null
 }
 
 export interface OpcionFiltroTs {

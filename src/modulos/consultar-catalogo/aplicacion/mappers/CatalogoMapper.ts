@@ -50,6 +50,7 @@ export class CatalogoMapper {
       imagenUrl: dto.imagenUrl || null,
       precio: CatalogoMapper.aPrecioReferenciaTs(dto.precio),
       colores: (dto.colores ?? []).map(c => ({ idColor: c.idColor, nombre: c.nombre ?? '', hex: c.hex || null, imagenUrl: c.imagenUrl || null })),
+      idColorDestacado: dto.idColorDestacado ?? null,
     }
   }
 

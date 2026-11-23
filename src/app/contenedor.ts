@@ -9,6 +9,7 @@
 import { CatalogoService } from '@modulos/administrar-catalogo/infraestructura/CatalogoService'
 import { ProductoService } from '@modulos/administrar-catalogo/infraestructura/ProductoService'
 import { BajaProductoModel } from '@modulos/administrar-catalogo/aplicacion/BajaProductoModel'
+import { ProductoModel } from '@modulos/administrar-catalogo/aplicacion/ProductoModel'
 import { CatalogoModel } from '@modulos/administrar-catalogo/aplicacion/CatalogoModel'
 import type { ISesion } from '@compartido/sesion'
 import { httpClient } from '@infraestructura/http/HttpClient'
@@ -21,6 +22,9 @@ import { PerfilHttpGateway } from '@modulos/editar-perfil/infraestructura/Perfil
 import { crearModelosPerfil, reiniciarModelosPerfil, type ModelosPerfil } from '@modulos/editar-perfil/aplicacion/ModelosPerfil'
 import { PedidosAdminHttpService } from '@modulos/administrar-pedidos/infraestructura/PedidosAdminHttpService'
 import { PedidosAdminModel } from '@modulos/administrar-pedidos/aplicacion/PedidosAdminModel'
+import { ResumenTiendaModel } from '@modulos/administrar-tienda/aplicacion/ResumenTiendaModel'
+import { ResumenTiendaHttpGateway } from '@modulos/administrar-tienda/infraestructura/ResumenTiendaHttpGateway'
+import type { ModelosPanel } from '@modulos/administrar-tienda/presentacion/PanelTiendaContext'
 import { CatalogoHttpGateway } from '@modulos/consultar-catalogo/infraestructura/CatalogoHttpGateway'
 import { AgregadoPendienteStorage } from '@modulos/consultar-catalogo/infraestructura/AgregadoPendienteStorage'
 import {
@@ -40,6 +44,8 @@ class Contenedor {
   public readonly catalogoService = new CatalogoService(this.http)
   public readonly productoService = new ProductoService(this.http)
   public readonly bajaProductoModel = new BajaProductoModel(this.productoService)
+  /** Alta y edición de productos (sin estado: lo guarda el formulario). */
+  public readonly productoModel = new ProductoModel(this.productoService)
   public readonly catalogoModel = new CatalogoModel(this.catalogoService, this.productoService)
   public readonly gestionarVentaGateway = new GestionarVentaHttpGateway(this.http)
   public readonly perfilGateway = new PerfilHttpGateway(this.http)
@@ -61,6 +67,9 @@ class Contenedor {
   )
 
   public readonly pedidosAdminService = new PedidosAdminHttpService(this.http)
+
+  /** Panel «Administrar tienda»: pendientes del Inicio y contador de la barra lateral. */
+  public readonly modelosPanel: ModelosPanel = { resumen: new ResumenTiendaModel(new ResumenTiendaHttpGateway(this.http)) }
 
   // Modelos
   public readonly pedidosAdminModel: PedidosAdminModel
@@ -91,6 +100,7 @@ class Contenedor {
       if (this.sesionModel.obtenerEstado().estado === 'anonimo') {
         reiniciarModelosVenta(this.modelosVenta)
         reiniciarModelosPerfil(this.modelosPerfil)
+        this.modelosPanel.resumen.reiniciar()
       }
     })
 

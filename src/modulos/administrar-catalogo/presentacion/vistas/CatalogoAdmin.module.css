@@ -1,24 +1,4 @@
-.panelAdmin { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100dvh; background: var(--fly-fondo); color: var(--fly-texto); font: 13px/19px 'Inter', sans-serif; }
-.barraLateral { display: flex; flex-direction: column; gap: 4px; min-height: 100dvh; padding: 24px 16px; border-right: 1px solid var(--fly-borde); background: var(--fly-superficie-hundida); position: sticky; top: 0; height: 100dvh; }
-.marcaPanel { display: flex; align-items: center; gap: 12px; padding: 0 8px 24px; }
-.marcaPanel img { width: 64px; height: 36px; object-fit: contain; }
-.marcaPanel span, .sobretitulo { font-size: 11px; font-weight: 600; line-height: 16px; letter-spacing: 2px; text-transform: uppercase; color: var(--fly-texto-2); }
-.barraLateral nav { display: grid; gap: 4px; }
-.navItem, .navActivo { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--fly-radio-control); text-align: left; font-size: 13px; line-height: 20px; color: var(--fly-texto-2); }
-.navActivo { background: var(--fly-superficie-2); color: var(--fly-texto); }
-.navItem:disabled { cursor: default; }
-.usuarioPanel { margin-top: auto; display: flex; gap: 10px; align-items: center; padding: 12px; border-radius: var(--fly-radio-tarjeta); background: var(--fly-superficie); }
-.avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--fly-superficie-2); font-size: 11px; flex-shrink: 0; }
-.usuarioPanel > div { min-width: 0; flex: 1; }
-.usuarioPanel p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.usuarioPanel small { color: var(--fly-texto-2); font-size: 11px; }
-.usuarioPanel button { color: var(--fly-texto-2); }
-.areaPrincipal { min-width: 0; }
-.barraSuperior { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 14px 40px; border-bottom: 1px solid var(--fly-borde); color: var(--fly-texto-2); }
-.accionesSuperiores { display: flex; align-items: center; gap: 20px; }
-.accionesSuperiores time { white-space: nowrap; font-size: 13px; }
-.contextoPanel { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid var(--fly-borde-fuerte); background: var(--fly-superficie); border-radius: var(--fly-radio-pastilla); min-width: 260px; }
-.menuMovil { display: none; }
+.sobretitulo { font-size: 11px; font-weight: 600; line-height: 16px; letter-spacing: 2px; text-transform: uppercase; color: var(--fly-texto-2); }
 .pantalla { position: relative; padding: 32px 40px 48px; display: flex; flex-direction: column; gap: 24px; min-width: 0; }
 .encabezadoPagina { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
 .encabezadoPagina > div:first-child { display: grid; gap: 6px; }
@@ -58,6 +38,7 @@
 .productoCelda small, .resumenBaja small { display: block; color: var(--fly-texto-2); font-size: 11px; line-height: 14px; letter-spacing: .2px; }
 .miniatura { width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; background: var(--fly-superficie-2); border-radius: var(--fly-radio-control); overflow: hidden; color: var(--fly-texto-2); }
 .miniatura img { width: 44px; height: 44px; object-fit: cover; }
+.accionesFila { display: inline-flex; gap: 6px; justify-content: flex-end; }
 .sinStock { color: var(--fly-estado-error); }
 .estadoProducto > span { gap: 6px; }
 .botonIcono { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--fly-borde); border-radius: var(--fly-radio-control); color: var(--fly-texto-2); flex-shrink: 0; }
@@ -114,7 +95,7 @@
 .esquemaPrecio { display: grid; gap: 12px; align-content: start; }
 .esquemaPrecio > div:nth-child(2) label { font-size: 11px; color: var(--fly-texto-2); }
 .accionesFormulario { display: flex; gap: 12px; }
-.lateralFormulario { display: grid; gap: 16px; position: sticky; top: 24px; }
+.lateralFormulario { display: grid; gap: 16px; position: sticky; top: 94px; }
 .lateralFormulario .tarjeta { padding: 20px; gap: 14px; }
 .lateralFormulario label span { font-size: 12px; font-weight: 400; }
 .accionesLateral { display: flex; flex-direction: column-reverse; gap: 10px; }
@@ -133,25 +114,15 @@
 .resumenBaja p { color: var(--fly-texto); font-size: 13px; font-weight: 500; margin-bottom: 3px; }
 .resumenBaja > span:last-child { flex-shrink: 0; }
 .accionesBaja { display: flex; justify-content: flex-end; gap: 12px; }
-.soloLectores, .saltarContenido { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-.saltarContenido:focus { position: fixed; top: 12px; left: 12px; width: auto; height: auto; padding: 12px; margin: 0; clip-path: none; background: var(--fly-cta); color: var(--fly-sobre-cta); z-index: 1100; }
+.soloLectores { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 @media (min-width: 1600px) { .pantalla { max-width: 1400px; margin: 0 auto; } }
 @media (max-width: 1200px) {
-  .panelAdmin { grid-template-columns: 210px minmax(0, 1fr); }
   .pantalla { padding: 28px 24px 40px; }
-  .barraSuperior { padding-inline: 24px; }
-  .contextoPanel { display: none; }
   .formularioColumnas { grid-template-columns: minmax(0, 1fr) 260px; gap: 18px; }
   .tarjeta { padding: 20px; }
   .tresColumnas { grid-template-columns: minmax(0, 1fr); }
 }
-@media (max-width: 900px) {
-  .panelAdmin { grid-template-columns: 76px minmax(0, 1fr); }
-  .barraLateral { padding: 24px 8px; }
-  .marcaPanel { padding-inline: 0; justify-content: center; }
-  .marcaPanel img { width: 52px; height: 30px; }
-  .marcaPanel span, .navItem span, .navActivo span, .usuarioPanel { display: none; }
-  .navItem, .navActivo { justify-content: center; padding-inline: 0; }
+@media (max-width: 1100px) { /* con la barra del panel (248px) el contenido ya es angosto */
   .formularioColumnas { grid-template-columns: minmax(0, 1fr); }
   .lateralFormulario { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
   .lateralFormulario > section { grid-column: 2; grid-row: 1 / span 2; }
@@ -161,16 +132,6 @@
   .opcionesCatalogo { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 600px) {
-  .panelAdmin { display: block; }
-  .barraLateral { display: none; position: fixed; top: 64px; left: 0; width: 240px; height: calc(100dvh - 64px); min-height: 0; z-index: 150; box-shadow: var(--fly-sombra-dialogo); }
-  .menuAbierto { display: flex; }
-  .menuAbierto .marcaPanel span, .menuAbierto .navItem span, .menuAbierto .navActivo span { display: inline; }
-  .menuAbierto .navItem, .menuAbierto .navActivo { justify-content: flex-start; padding-inline: 12px; }
-  .menuAbierto .usuarioPanel { display: flex; }
-  .menuMovil { display: inline-flex; padding: 6px; }
-  .barraSuperior { min-height: 64px; padding: 12px 16px; gap: 12px; justify-content: flex-start; }
-  .barraSuperior > p { font-size: 11px; flex: 1; }
-  .accionesSuperiores { display: none; }
   .pantalla { padding: 24px 16px 32px; gap: 22px; }
   .encabezadoPagina { flex-wrap: wrap; gap: 18px; align-items: flex-start; }
   .pantalla h1 { font-size: 30px; line-height: 38px; }
