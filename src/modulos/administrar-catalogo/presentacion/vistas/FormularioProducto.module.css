@@ -38,6 +38,7 @@
 .filaTalla [aria-invalid="true"] { border-color: var(--fly-estado-error); }
 .tallaFija { display: grid; gap: 2px; min-width: 0; padding: 0 2px; }
 .tallaFija span { font-size: 13px; }
+.tallaFija .sinTalla { color: var(--fly-texto-2); font-style: italic; }
 .tallaFija small { color: var(--fly-texto-2); font-size: 11px; line-height: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .filaQuitada { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px dashed var(--fly-borde-control);
   border-radius: var(--fly-radio-control); color: var(--fly-texto-2); font-size: 12px; line-height: 17px; }

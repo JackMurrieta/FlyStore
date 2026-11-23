@@ -112,6 +112,7 @@ export class ProductoModel {
       const error = this.validarVariante(variante)
       if (error) return error
       const talla = normalizar(variante.talla)
+      if (!talla) continue // variante guardada sin talla: no se compara (no se puede repetir ni cambiar)
       // Una talla nueva no puede repetir otra del color, aunque esa se esté quitando (se usa «Deshacer»).
       if (tallas.has(talla) && (!variante.quitada || !variante.idVariante)) return `La talla ${variante.talla} está repetida en ${grupo.color}`
       tallas.add(talla)
@@ -120,9 +121,10 @@ export class ProductoModel {
     return null
   }
 
-  validarVariante(variante: Pick<VarianteFormularioTs, 'talla' | 'stock' | 'quitada'>): string | null {
+  /** La talla solo se exige a las variantes nuevas: en una guardada no se cambia (puede venir sin talla). */
+  validarVariante(variante: Pick<VarianteFormularioTs, 'talla' | 'stock' | 'quitada'> & { idVariante?: string | null }): string | null {
     if (variante.quitada) return null
-    if (!variante.talla.trim()) return 'Selecciona la talla'
+    if (!variante.idVariante && !variante.talla.trim()) return 'Selecciona la talla'
     return !Number.isInteger(variante.stock) || variante.stock < 0 ? 'La existencia debe ser un número entero, 0 o mayor' : null
   }
 
@@ -191,7 +193,7 @@ export class ProductoModel {
         grupos.push(grupo)
       }
       grupo.variantes.push({ clave: nuevaClave('variante'), idVariante: variante.idVariante, sku: variante.sku ?? null,
-        talla: variante.talla, stock: variante.stock, conPedidos: variante.conPedidos, quitada: false })
+        talla: variante.talla ?? '', stock: variante.stock, conPedidos: variante.conPedidos, quitada: false })
     }
     const fotosSinColor: ProductoEdicionTs['datos']['fotosSinColor'] = []
     const imagenes = [...dto.imagenes].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))

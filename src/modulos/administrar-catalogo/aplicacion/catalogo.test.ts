@@ -167,6 +167,26 @@ describe('ProductoModel · contrato con el backend', () => {
   })
 })
 
+describe('ProductoModel · borradores importados', () => {
+  it('abre y guarda un producto cuya variante guardada no tiene talla (p. ej. NE-0102)', async () => {
+    const { producto } = servicios()
+    const dto: ProductoEdicionDTO = { ...edicionDTO(), estado: 'BORRADOR', preciosProducto: [], imagenes: [edicionDTO().imagenes[1]!],
+      variantes: [{ ...edicionDTO().variantes[0]!, idTalla: null, talla: null, conPedidos: false }] }
+    vi.mocked(producto.editarProducto).mockResolvedValue(dto)
+    const model = new ProductoModel(producto)
+    const { datos: formulario, estadoOriginal } = model.aProductoEdicion(dto)
+    expect(formulario.grupos[0]!.variantes[0]).toMatchObject({ idVariante: '40', talla: '' })
+    // Sin precios: solo falta el precio base; la talla vacía de la variante guardada no es error.
+    expect(Object.keys(model.validarDatosCompletos(formulario, 'EDICION', estadoOriginal))).toEqual(['precios'])
+    formulario.precios = [{ tipoPrecio: 'BASE', precio: 450, minPiezas: 1 }]
+    await model.guardarCambios('9', formulario, estadoOriginal)
+    expect(vi.mocked(producto.editarProducto).mock.calls[0]![1].variantes).toEqual([{ idVariante: '40', stock: 7 }])
+    // Una talla nueva en ese color sí se exige.
+    formulario.grupos[0]!.variantes.push({ clave: 'n', idVariante: null, sku: null, talla: '', stock: 1, conPedidos: false, quitada: false })
+    expect(model.validarGrupo(formulario.grupos[0]!)).toBe('Selecciona la talla')
+  })
+})
+
 describe('Modelos del catálogo', () => {
   it('mapea imagen, estado, precios y existencias desde los DTO', async () => {
     const { producto, catalogo } = servicios()

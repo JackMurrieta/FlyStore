@@ -80,7 +80,7 @@ export function VarianteProductoPanel({ grupo, numero, coloresDisponibles, talla
         {grupo.variantes.map((variante, indice) => {
           if (variante.quitada) {
             return <div key={variante.clave} className={f.filaQuitada}>
-              <p><s>{variante.talla}</s> se quitará al guardar.{variante.conPedidos && ' Está en pedidos o carritos: se conservará con existencia 0.'}</p>
+              <p><s>{variante.talla || 'Sin talla'}</s> se quitará al guardar.{variante.conPedidos && ' Está en pedidos o carritos: se conservará con existencia 0.'}</p>
               <button type="button" className={f.botonTexto} disabled={bloqueado}
                 onClick={() => acciones.restaurarVariante(grupo.clave, variante.clave)}><Icono nombre="undo" tamano={14} />Deshacer</button>
             </div>
@@ -90,7 +90,8 @@ export function VarianteProductoPanel({ grupo, numero, coloresDisponibles, talla
           const unica = activas.length === 1 && !guardado
           return <div key={variante.clave} className={f.filaTalla}>
             {variante.idVariante
-              ? <div className={f.tallaFija}><span>{variante.talla}</span>{variante.sku && <small title={variante.sku}>SKU {variante.sku}</small>}</div>
+              ? <div className={f.tallaFija}><span className={variante.talla ? undefined : f.sinTalla}>{variante.talla || 'Sin talla'}</span>
+                  {variante.sku && <small title={variante.sku}>SKU {variante.sku}</small>}</div>
               : <select value={variante.talla} aria-label={`Talla ${indice + 1} de ${nombre}`} aria-busy={cargandoTallas}
                   aria-invalid={Boolean(error && !variante.talla)} disabled={bloqueado || !tallas.length || cargandoTallas || Boolean(errorTallas)}
                   onChange={e => acciones.cambiarTalla(grupo.clave, variante.clave, e.target.value)}>

@@ -4,7 +4,8 @@ export interface VarianteAdminDTO {
   idVariante: string
   sku: string | null
   idTalla: string | null
-  talla: string
+  /** null en variantes cargadas sin talla (p. ej. borradores importados). */
+  talla: string | null
   idColor: string | null
   color: string
   hex: string | null
