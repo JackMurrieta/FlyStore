@@ -5,6 +5,7 @@ import type { OpcionesCatalogoDTO } from '@modulos/administrar-catalogo/aplicaci
 const opciones: OpcionesCatalogoDTO = {
   categorias: [{ id: 'gorras', nombre: 'FlyCaps' }, { id: 'ropa', nombre: 'FlyClothes' }, { id: 'tenis', nombre: 'FlyShoes' }],
   subcategorias: [{ id: 'gorra', nombre: 'Gorra' }, { id: 'playera', nombre: 'Playera' }, { id: 'deportivo', nombre: 'Deportivo' }],
+  colores: ['Rojo', 'Negro', 'Gris', 'Verde', 'Azul'],
   marcas: [{ id: 'new-era', nombre: 'New Era' }, { id: 'fly', nombre: 'FLY' }, { id: 'nike', nombre: 'Nike' }],
 }
 
@@ -35,7 +36,7 @@ export function crearServiciosCatalogoDemo() {
     if (!producto) throw new Error('El producto no existe en esta prueba')
     return producto
   }
-  const nombreOpcion = (grupo: keyof OpcionesCatalogoDTO, id: string) => {
+  const nombreOpcion = (grupo: 'categorias' | 'subcategorias' | 'marcas', id: string) => {
     const opcion = opciones[grupo].find(item => item.id === id)
     if (!opcion) throw new Error('Selecciona una opción válida')
     return opcion.nombre
@@ -53,12 +54,13 @@ export function crearServiciosCatalogoDemo() {
     async obtenerProductos() { return structuredClone(productos) },
     async buscarProductos(filtros) {
       const texto = filtros.texto.trim().toLocaleLowerCase('es-MX')
-      return structuredClone(productos.filter(producto =>
+      const filtrados = productos.filter(producto =>
         (!texto || `${producto.nombre} ${producto.clave} ${producto.marca}`.toLocaleLowerCase('es-MX').includes(texto)) &&
         (!filtros.idCategoria || producto.categoria === nombreOpcion('categorias', filtros.idCategoria)) &&
         (!filtros.idSubcategoria || producto.subcategoria === nombreOpcion('subcategorias', filtros.idSubcategoria)) &&
         (!filtros.idMarca || producto.marca === nombreOpcion('marcas', filtros.idMarca)) &&
-        (!filtros.estado || producto.estado === filtros.estado)))
+        (!filtros.estado || producto.estado === filtros.estado))
+      return structuredClone(filtrados)
     },
     async crearProducto(datos) {
       if (productos.some(producto => producto.clave.toLocaleLowerCase('es-MX') === datos.clave.toLocaleLowerCase('es-MX'))) {
@@ -71,14 +73,8 @@ export function crearServiciosCatalogoDemo() {
       const img = URL.createObjectURL(datos.imagenes)
       imagenes.add(img)
       productos.push({ idProducto, clave: datos.clave, nombre: datos.nombre, img, categoria, subcategoria, marca,
-        estado: datos.estado, variantes: [], preciosProducto: [] })
-      return { idProducto, clave: datos.clave }
-    },
-    async agregarVariante(idProducto, variante) {
-      obtenerProducto(idProducto).variantes.push(structuredClone(variante))
-    },
-    async crearPrecios(idProducto, datos) {
-      obtenerProducto(idProducto).preciosProducto = structuredClone(datos.preciosProducto)
+        estado: datos.estado, variantes: structuredClone(datos.variantes), preciosProducto: structuredClone(datos.preciosProducto) })
+
     },
     async darDeBajaProducto(idProducto) {
       obtenerProducto(idProducto).estado = 'INACTIVO'

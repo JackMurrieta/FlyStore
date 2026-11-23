@@ -1,0 +1,5 @@
+export { Esqueleto, EsqueletoTexto, CargaContenido } from './Esqueleto'
+export type { EsqueletoProps, FormaEsqueleto } from './Esqueleto'
+export { BarraCarga } from './BarraCarga'
+export { CargaPagina, CuerpoCarga } from './CargaPagina'
+export type { CargaPaginaProps, DisenoCarga } from './CargaPagina'

@@ -6,6 +6,7 @@
 import { Header } from '@compartido/layout/Header'
 import { Footer } from '@compartido/layout/Footer'
 import { HeroSection } from './inicio/HeroSection'
+import { CategoryGrid } from './inicio/CategoryGrid'
 import { ProductGrid } from './inicio/ProductGrid'
 import { PromoBanners } from './inicio/PromoBanners'
 import styles from './InicioVista.module.css'
@@ -19,6 +20,11 @@ export default function InicioVista() {
         {/* Sección Hero */}
         <div className={styles.seccion}>
           <HeroSection />
+        </div>
+
+        {/* Grid de líneas de producto (categorías) */}
+        <div className={styles.seccion}>
+          <CategoryGrid />
         </div>
 
         {/* Grid de productos destacados */}

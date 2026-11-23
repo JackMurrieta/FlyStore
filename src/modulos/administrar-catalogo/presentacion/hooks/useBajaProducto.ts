@@ -4,7 +4,7 @@ import type { ProductoCatalogoTs } from '../../dominio/ProductoCatalogoTs'
 import type { ResultadoBajaTs } from '../../dominio/ResultadoBajaTs'
 import { mensajeError } from './useCatalogoAdmin'
 
-export function useBajaProducto(model: BajaProductoModel) {
+export function useBajaProducto(model?: BajaProductoModel) {
   const [producto, setProducto] = useState<ProductoCatalogoTs | null>(null)
   const [confirmando, setConfirmando] = useState(false)
   const [resultado, setResultado] = useState<ResultadoBajaTs | null>(null)
@@ -17,7 +17,7 @@ export function useBajaProducto(model: BajaProductoModel) {
   }
   const cancelarBaja = () => { if (!ocupado.current) { setProducto(null); setError(null) } }
   const confirmarBaja = async () => {
-    if (!producto || ocupado.current) return false
+    if (!model || !producto || ocupado.current) return false
     ocupado.current = true; setConfirmando(true); setError(null)
     try {
       setResultado(await model.darDeBaja(producto.idProducto))

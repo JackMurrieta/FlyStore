@@ -1,0 +1,91 @@
+/*
+ * Componentes de carga FLY: esqueletos con brillo y barra superior.
+ * El brillo es un degradado mate que recorre la superficie (identidad negro/gris con «glow»).
+ * Con «reducir movimiento» los esqueletos quedan quietos y la barra solo pulsa la opacidad.
+ */
+
+/* ───────────── Esqueleto ───────────── */
+.esqueleto {
+  display: block;
+  flex-shrink: 0;
+  max-width: 100%;
+  border-radius: var(--fly-radio-control);
+  background:
+    linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.06) 45%, rgb(255 255 255 / 0.1) 50%, rgb(255 255 255 / 0.06) 55%, transparent 80%)
+    var(--fly-superficie-2);
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: brillo 1.6s ease-in-out infinite;
+}
+.esqueleto[data-forma='texto'] { height: 12px; border-radius: 4px; }
+.esqueleto[data-forma='titulo'] { height: 32px; border-radius: 6px; }
+.esqueleto[data-forma='circulo'] { border-radius: 50%; }
+.esqueleto[data-forma='pastilla'] { height: 24px; border-radius: var(--fly-radio-pastilla); }
+
+@keyframes brillo {
+  from { background-position: 120% 0; }
+  to { background-position: -120% 0; }
+}
+
+.lineas { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+
+.region { display: contents; }
+.textoOculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Superficies de los presets (mismas medidas que las tarjetas reales) */
+.tarjeta { background: var(--fly-superficie); border: 1px solid var(--fly-borde); border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.fila { display: flex; align-items: center; gap: 14px; }
+.fila > .lineas { flex: 1; }
+.columnas { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 32px; align-items: start; }
+.rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+.pila { display: flex; flex-direction: column; gap: 16px; }
+
+/* ───────────── Barra superior ───────────── */
+.barra {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: 1000;
+  overflow: hidden;
+  pointer-events: none;
+  /* No aparece si la carga dura menos de 150 ms (evita parpadeos). */
+  opacity: 0;
+  animation: aparecer 0.2s ease-out 0.15s forwards;
+}
+.barra::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, var(--fly-texto), transparent);
+  box-shadow: 0 0 10px rgb(245 245 244 / 0.6), 0 0 4px rgb(245 245 244 / 0.8);
+  animation: avanzar 1.1s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes aparecer { to { opacity: 1; } }
+@keyframes avanzar {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(260%); }
+}
+
+/* ───────────── Página en carga (rutas) ───────────── */
+.pagina { min-height: 100dvh; background: var(--fly-fondo); display: flex; flex-direction: column; }
+.encabezado { height: 73px; border-bottom: 1px solid var(--fly-borde); display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 0 48px; }
+.encabezado > div { display: flex; gap: 20px; align-items: center; }
+.contenido { width: 100%; max-width: 1440px; margin: 0 auto; padding: 40px 80px 64px; display: flex; flex-direction: column; gap: 28px; }
+
+@media (max-width: 1100px) {
+  .contenido { padding: 32px 40px 56px; }
+  .columnas { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  .encabezado { padding: 0 16px; height: 60px; }
+  .encabezado .soloEscritorio { display: none; }
+  .contenido { padding: 20px 16px 40px; gap: 20px; }
+  .tarjeta { padding: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .esqueleto { animation: none; background: var(--fly-superficie-2); }
+  .barra::before { animation: pulso 1.4s ease-in-out infinite; width: 100%; transform: none; }
+  @keyframes pulso { 50% { opacity: 0.35; } }
+}

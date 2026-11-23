@@ -92,3 +92,21 @@
     height: 50px;
   }
 }
+
+/* Enlaces con aspecto de botón (pantallas de cuenta por correo) */
+.botonEnlace, .botonEnlaceSecundario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  border-radius: var(--fly-radio-control);
+  font: 600 13px/16px 'Inter', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.botonEnlace { background: var(--fly-cta); color: var(--fly-sobre-cta); }
+.botonEnlace:hover { opacity: 0.9; }
+.botonEnlaceSecundario { border: 1px solid var(--fly-texto); color: var(--fly-texto); }
+.botonEnlaceSecundario:hover { background: var(--fly-superficie-2); }
+.olvido { align-self: flex-end; color: var(--fly-texto-2); font: 500 13px/18px 'Inter', sans-serif; }
+.olvido:hover { color: var(--fly-texto); text-decoration: underline; }

@@ -10,8 +10,6 @@ function servicios() {
   const producto: IProductoService = {
     obtenerProductos: vi.fn(), buscarProductos: vi.fn(),
     crearProducto: vi.fn().mockResolvedValue({ idProducto: 'p1', clave: 'TEN-01' }),
-    agregarVariante: vi.fn().mockResolvedValue(undefined),
-    crearPrecios: vi.fn().mockResolvedValue(undefined),
     darDeBajaProducto: vi.fn().mockResolvedValue({ idProducto: 'p1', tipoBaja: 'INACTIVADO' }),
   }
   const catalogo: ICatalogoService = {
@@ -38,17 +36,14 @@ describe('Modelos de administrar catálogo', () => {
     })
   })
 
-  it('reanuda el alta después de un fallo sin repetir operaciones confirmadas', async () => {
+  it('envía el agregado en un solo paso y permite corregir tras un rechazo', async () => {
     const { producto } = servicios()
-    vi.mocked(producto.agregarVariante).mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('Sin conexión'))
+    vi.mocked(producto.crearProducto).mockRejectedValueOnce(new Error('Sin conexión')).mockResolvedValue(undefined)
     const model = new ProductoModel(producto)
-    const formulario = datos()
-    await expect(model.registrarProducto(formulario)).rejects.toThrow('Sin conexión')
-    expect(producto.crearPrecios).not.toHaveBeenCalled()
-    await model.registrarProducto(formulario)
-    expect(producto.crearProducto).toHaveBeenCalledTimes(1)
-    expect(producto.agregarVariante).toHaveBeenCalledTimes(3)
-    expect(producto.crearPrecios).toHaveBeenCalledWith('p1', { preciosProducto: formulario.precios })
+    await expect(model.registrarProducto(datos())).rejects.toThrow('Sin conexión')
+    await model.registrarProducto(datos())
+    expect(producto.crearProducto).toHaveBeenCalledTimes(2)
+    expect(producto.crearProducto).toHaveBeenLastCalledWith(expect.objectContaining({variantes: datos().variantes, preciosProducto: datos().precios}))
   })
 
   it('mapea imagen, estado, precios y existencias desde los DTO', async () => {
@@ -68,5 +63,31 @@ describe('Modelos de administrar catálogo', () => {
     expect(await model.darDeBaja('p1')).toEqual({ idProducto: 'p1', tipoBaja: 'INACTIVADO' })
     vi.mocked(producto.darDeBajaProducto).mockResolvedValue({ idProducto: 'p1', tipoBaja: 'ELIMINADO' })
     expect(await model.darDeBaja('p1')).toEqual({ idProducto: 'p1', tipoBaja: 'ELIMINADO' })
+  })
+
+  it('conserva los cinco esquemas del diagrama tanto al listar como al buscar', async () => {
+    const { producto, catalogo } = servicios()
+    const precios = ['BASE', 'EMPRENDEDOR', 'MAYOREO', 'DISTRIBUIDOR', 'SOCIO_COMERCIAL'].map((tipoPrecio, i) => ({tipoPrecio, precio: 100-i*10, minPiezas: i+1}))
+    const dto = {idProducto:'1',clave:'CINCO',nombre:'Gorra',img:'',categoria:'Gorras',subcategoria:'Clásicas',marca:'FLY',estado:'PUBLICADO',variantes:datos().variantes,preciosProducto:precios}
+    vi.mocked(producto.obtenerProductos).mockResolvedValue([dto])
+    vi.mocked(producto.buscarProductos).mockResolvedValue([dto])
+    const modelo = new CatalogoModel(catalogo,producto)
+    expect((await modelo.obtenerCatalogo())[0]?.precios).toEqual(precios)
+    expect((await modelo.buscarProductos({texto:'Gorra',idCategoria:'',idSubcategoria:'',idMarca:'',estado:null}))[0]?.precios).toEqual(precios)
+  })
+
+  it.each(['PUBLICADO', 'STOCK_BAJO', 'INACTIVO', 'BORRADOR'])('preserva el estado %s del backend al listar y buscar', async estado => {
+    const { producto, catalogo } = servicios()
+    const dto = {idProducto:'7',clave:'ESTADO',nombre:'Gorra',img:'',categoria:'Gorras',subcategoria:'Clásicas',marca:'FLY',estado,variantes:datos().variantes,preciosProducto:datos().precios}
+    vi.mocked(producto.obtenerProductos).mockResolvedValue([dto])
+    vi.mocked(producto.buscarProductos).mockResolvedValue([dto])
+    const modelo = new CatalogoModel(catalogo,producto)
+    expect((await modelo.obtenerCatalogo())[0]?.estado).toBe(estado)
+    expect((await modelo.buscarProductos({texto:'Gorra',idCategoria:'',idSubcategoria:'',idMarca:'',estado:null}))[0]?.estado).toBe(estado)
+  })
+
+  it('no permite crear un producto con el estado histórico STOCK_BAJO', () => {
+    const model = new ProductoModel(servicios().producto)
+    expect(model.validarDatosCompletos({...datos(), estado:'STOCK_BAJO'})).toHaveProperty('estado')
   })
 })

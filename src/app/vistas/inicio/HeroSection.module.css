@@ -1,5 +1,5 @@
 /**
- * Estilos de HeroSection
+ * Estilos de HeroSection con carrusel
  */
 
 .hero {
@@ -15,13 +15,24 @@
   justify-content: flex-end;
 }
 
-/* Imagen de fondo (placeholder) */
-.imagenFondo {
+/* Contenedor del carrusel */
+.carruselContainer {
   position: absolute;
   inset: 0;
-  background-color: var(--fly-superficie);
+}
+
+/* Slides del carrusel */
+.slide {
+  position: absolute;
+  inset: 0;
   background-size: cover;
   background-position: center;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+
+.slideActivo {
+  opacity: 1;
 }
 
 /* Overlay con gradiente */
@@ -33,12 +44,13 @@
     rgba(5, 5, 5, 0.92) 0%,
     rgba(5, 5, 5, 0.1) 100%
   );
+  z-index: 1;
 }
 
 /* Contenido */
 .contenido {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   padding: var(--fly-espacio-8);
   display: flex;
   flex-direction: column;
@@ -60,6 +72,38 @@
   margin-top: var(--fly-espacio-4);
 }
 
+/* Botones de navegación */
+.navBoton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  font-size: 48px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  border-radius: 4px;
+}
+
+.navBoton:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.navAnterior {
+  left: var(--fly-espacio-4);
+}
+
+.navSiguiente {
+  right: var(--fly-espacio-4);
+}
+
 /* Indicadores de navegación */
 .indicadores {
   position: absolute;
@@ -73,10 +117,12 @@
 
 .dot {
   height: 4px;
-  background-color: var(--fly-borde-control);
+  background-color: rgba(255, 255, 255, 0.4);
   border-radius: 2px;
   transition: all 0.3s ease;
   cursor: pointer;
+  border: none;
+  padding: 0;
 }
 
 .dot:not(.activo) {
@@ -89,7 +135,7 @@
 }
 
 .dot:hover:not(.activo) {
-  background-color: var(--fly-texto-2);
+  background-color: rgba(255, 255, 255, 0.6);
 }
 
 /* Responsive */
@@ -104,6 +150,20 @@
 
   .titulo {
     font-size: 32px;
+  }
+
+  .navBoton {
+    width: 40px;
+    height: 40px;
+    font-size: 36px;
+  }
+
+  .navAnterior {
+    left: var(--fly-espacio-3);
+  }
+
+  .navSiguiente {
+    right: var(--fly-espacio-3);
   }
 
   .indicadores {
@@ -123,6 +183,20 @@
 
   .titulo {
     font-size: 28px;
+  }
+
+  .navBoton {
+    width: 36px;
+    height: 36px;
+    font-size: 32px;
+  }
+
+  .navAnterior {
+    left: var(--fly-espacio-2);
+  }
+
+  .navSiguiente {
+    right: var(--fly-espacio-2);
   }
 
   .indicadores {

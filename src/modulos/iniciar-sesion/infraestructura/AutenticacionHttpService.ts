@@ -9,6 +9,8 @@ import type { RegistroTs } from '../dominio/RegistroTs'
 import type { AccesoTs } from '../dominio/AccesoTs'
 import type { HttpClient } from '@infraestructura/http/HttpClient'
 import type { AccesoDTO } from '../aplicacion/dto/AccesoDTO'
+import type { ConfirmacionCuentaDTO } from '../aplicacion/dto/ConfirmacionCuentaDTO'
+import type { ConfirmacionCuentaTs } from '../dominio/ConfirmacionCuentaTs'
 import { AccesoMapper } from '../aplicacion/mappers/AccesoMapper'
 import { LoginMapper } from '../aplicacion/mappers/LoginMapper'
 import { RegistroMapper } from '../aplicacion/mappers/RegistroMapper'
@@ -35,5 +37,23 @@ export class AutenticacionHttpService implements IAutenticacionService {
 
   async logout(): Promise<void> {
     await this.http.post(endpoints.auth.logout())
+  }
+
+  async recuperarContrasena(correo: string): Promise<string> {
+    const respuesta = await this.http.post<{ mensaje: string }>(endpoints.auth.recuperarContrasena(), { correo: correo.trim() })
+    return respuesta.mensaje
+  }
+
+  async confirmarCuenta(tokenHash: string, tipo: string): Promise<ConfirmacionCuentaTs> {
+    const respuesta = await this.http.post<ConfirmacionCuentaDTO>(endpoints.auth.confirmar(), { tokenHash, tipo })
+    return {
+      tipo: respuesta.tipo,
+      mensaje: respuesta.mensaje,
+      acceso: respuesta.usuario ? AccesoMapper.aTs(respuesta.usuario) : null,
+    }
+  }
+
+  async restablecerContrasena(nueva: string): Promise<void> {
+    await this.http.post(endpoints.perfil.restablecerContrasena(), { nueva })
   }
 }

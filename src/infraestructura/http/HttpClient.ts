@@ -21,7 +21,7 @@ interface OpcionesHTTP extends Omit<RequestInit, 'method' | 'body'> {
 
 export class HttpClient {
   private readonly timeout: number = 120000 // 2 minutos por defecto
-  private refreshEnProceso: Promise<void> | null = null
+  private refreshEnProceso: Promise<boolean> | null = null
   private alExpirarSesion: (() => void) | null = null
 
   /**
@@ -88,7 +88,8 @@ export class HttpClient {
     metodo: MetodoHTTP,
     url: string,
     body?: unknown,
-    opciones?: OpcionesHTTP
+    opciones?: OpcionesHTTP,
+    reintentada = false
   ): Promise<T> {
     const timeoutMs = opciones?.timeout || this.timeout
 
@@ -116,11 +117,11 @@ export class HttpClient {
 
       // Si es 401 y NO es una ruta de auth, intentar refresh
       if (respuesta.status === 401 && !url.includes('/api/auth/')) {
-        const refrescoExitoso = await this.intentarRefresh()
+        const refrescoExitoso = !reintentada && await this.intentarRefresh()
 
         if (refrescoExitoso) {
           // Reintentar la petición original
-          return this.peticion<T>(metodo, url, body, opciones)
+          return this.peticion<T>(metodo, url, body, opciones, true)
         } else {
           // Refresh falló, sesión expirada
           this.notificarExpiracion()
@@ -176,37 +177,13 @@ export class HttpClient {
    * Usa un candado para evitar múltiples refreshes simultáneos
    */
   private async intentarRefresh(): Promise<boolean> {
-    // Si ya hay un refresh en proceso, esperar a que termine
-    if (this.refreshEnProceso) {
-      await this.refreshEnProceso
-      return true // Asumimos que fue exitoso si no lanzó error
+    if (!this.refreshEnProceso) {
+      this.refreshEnProceso = (async () => {
+        try { return (await fetch(endpoints.auth.refresh(), {method:'POST', credentials:'include'})).ok }
+        catch { return false }
+      })().finally(() => { this.refreshEnProceso = null })
     }
-
-    this.refreshEnProceso = (async () => {
-      try {
-        const respuesta = await fetch(endpoints.auth.refresh(), {
-          method: 'POST',
-          credentials: 'include',
-        })
-
-        if (!respuesta.ok) {
-          this.refreshEnProceso = null
-          throw new Error('Refresh falló')
-        }
-
-        this.refreshEnProceso = null
-      } catch {
-        this.refreshEnProceso = null
-        throw new Error('Refresh falló')
-      }
-    })()
-
-    try {
-      await this.refreshEnProceso
-      return true
-    } catch {
-      return false
-    }
+    return this.refreshEnProceso
   }
 
   /**
@@ -218,6 +195,8 @@ export class HttpClient {
     try {
       const texto = await respuesta.text()
       errorDTO = texto ? JSON.parse(texto) : null
+      const spring = errorDTO as unknown as {message?:string; error?:string; fields?:Record<string,string>} | null
+      if (spring?.message && !errorDTO?.mensaje) errorDTO = {mensaje:spring.message, codigo:spring.error, tipo:respuesta.status===400?'VALIDACION':'NEGOCIO', detalles:spring.fields}
     } catch {
       // El backend no devolvió un JSON válido
       errorDTO = {

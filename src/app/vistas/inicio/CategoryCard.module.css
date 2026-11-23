@@ -1,0 +1,83 @@
+/**
+ * Estilos de CategoryCard
+ */
+
+.card {
+  position: relative;
+  width: 100%;
+  height: 380px;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Fondo de categoría (placeholder) */
+.imagenCategoria {
+  position: absolute;
+  inset: 0;
+  background-color: var(--fly-superficie);
+  background-size: cover;
+  background-position: center;
+}
+
+/* Overlay con gradiente */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 5, 5, 0) 0%,
+    rgba(5, 5, 5, 0.95) 100%
+  );
+}
+
+/* Información de la categoría */
+.info {
+  position: relative;
+  z-index: 1;
+  padding: var(--fly-espacio-6);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.nombre {
+  font-family: 'Oswald', sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--fly-texto);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nombre {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    height: 320px;
+  }
+
+  .info {
+    padding: var(--fly-espacio-5);
+  }
+
+  .nombre {
+    font-size: 24px;
+  }
+}

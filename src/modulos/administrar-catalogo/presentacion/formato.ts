@@ -6,7 +6,7 @@ export const formatoMoneda = new Intl.NumberFormat('es-MX', {
 })
 
 export function formatearPrecios(precios: PrecioProductoTs[]) {
-  return Object.values(TipoPrecio).map(tipo => {
+  return [TipoPrecio.BASE, TipoPrecio.MAYOREO, TipoPrecio.DISTRIBUIDOR].map(tipo => {
     const precio = precios.find(item => item.tipoPrecio === tipo)
     return precio ? formatoMoneda.format(precio.precio) : '—'
   }).join(' / ')

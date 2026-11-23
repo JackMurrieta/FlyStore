@@ -61,6 +61,9 @@ export default function IniciarSesionVista() {
         </header>
 
         {error && <Aviso tono="error">{error.mensaje}</Aviso>}
+        {!error && searchParams.get('error') === 'google' && (
+          <Aviso tono="error">No pudimos iniciar sesión con Google. Inténtalo de nuevo o entra con tu correo.</Aviso>
+        )}
 
         {/* Botón de Google primero */}
         <Boton
@@ -102,6 +105,8 @@ export default function IniciarSesionVista() {
             autoComplete="current-password"
           />
 
+          <Link to="/recuperar-contrasena" className={styles.olvido}>¿Olvidaste tu contraseña?</Link>
+
           <Boton type="submit" variante="primario" anchoCompleto cargando={cargando}>
             INICIAR SESIÓN
           </Boton>
@@ -111,7 +116,7 @@ export default function IniciarSesionVista() {
         <footer className={styles.pie}>
           <Texto variante="cuerpo-s" tono="secundario">
             ¿No tienes cuenta?{' '}
-            <Link to="/registro" className={styles.enlace}>
+            <Link to={searchParams.get('redirigir') ? `/registro?redirigir=${encodeURIComponent(searchParams.get('redirigir') ?? '')}` : '/registro'} className={styles.enlace}>
               Regístrate
             </Link>
           </Texto>

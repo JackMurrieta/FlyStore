@@ -257,15 +257,22 @@ export default function DetallePedidoVista() {
                       {formatearFecha(detalle.comprobante.fecha)}
                       {detalle.comprobante.concepto && ` · ${detalle.comprobante.concepto}`}
                     </Texto>
-                    <a
-                      className={styles.enlace}
-                      href={detalle.comprobante.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Icono nombre="file" tamano={16} />
-                      {detalle.comprobante.nombreArchivo}
-                    </a>
+                    {detalle.comprobante.url ? (
+                      <a
+                        className={styles.enlace}
+                        href={detalle.comprobante.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Icono nombre="file" tamano={16} />
+                        {detalle.comprobante.nombreArchivo}
+                      </a>
+                    ) : (
+                      // El backend manda el enlace vacío cuando no pudo generarlo (dura 5 minutos).
+                      <Texto variante="cuerpo-s" tono="secundario" como="p">
+                        No se pudo cargar el archivo. Recarga el pedido para intentarlo de nuevo.
+                      </Texto>
+                    )}
                   </section>
                 )}
 

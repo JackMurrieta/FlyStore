@@ -29,3 +29,6 @@ export type { RadioProps } from './Radio'
 
 export { Icono } from './iconos/Icono'
 export type { IconoProps, NombreIcono } from './iconos/Icono'
+
+export { Esqueleto, EsqueletoTexto, CargaContenido, BarraCarga, CargaPagina, CuerpoCarga } from './carga'
+export type { EsqueletoProps, FormaEsqueleto, CargaPaginaProps, DisenoCarga } from './carga'

@@ -4,7 +4,8 @@
  */
 
 import { useState, type FormEvent } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { esRutaInterna, guardarRutaPendiente } from '@compartido/sesion'
 import { contenedor } from '@app/contenedor'
 import { useRegistro } from '../hooks/useRegistro'
 import { Texto } from '@compartido/ui/Texto'
@@ -18,6 +19,10 @@ import styles from './RegistroVista.module.css'
 
 export default function RegistroVista() {
   const navigate = useNavigate()
+  const [parametros] = useSearchParams()
+  // A dónde volver: la ficha del producto si venía de «Agregar al carrito» (CU-01 → CU-02).
+  const redirigirParam = parametros.get('redirigir')
+  const redirigir = esRutaInterna(redirigirParam) ? redirigirParam : null
 
   const [nombreCompleto, setNombreCompleto] = useState('')
   const [telefono, setTelefono] = useState('')
@@ -38,6 +43,9 @@ export default function RegistroVista() {
     const nombre = partes[0] || ''
     const apellidos = partes.slice(1).join(' ') || ''
 
+    // Si la cuenta pide confirmar el correo, el enlace del correo regresa aquí después (ConfirmarCuentaVista).
+    guardarRutaPendiente(redirigir)
+
     const resultado = await registrar({
       nombre,
       apellidos,
@@ -48,12 +56,12 @@ export default function RegistroVista() {
     })
 
     if (resultado && exitoso) {
-      navigate('/')
+      navigate(redirigir ?? '/')
     }
   }
 
   const handleGoogleRegistro = () => {
-    registrarConGoogle()
+    registrarConGoogle(redirigir ?? undefined)
   }
 
   return (

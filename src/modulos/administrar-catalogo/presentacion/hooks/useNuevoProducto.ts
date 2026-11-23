@@ -23,12 +23,10 @@ export function useNuevoProducto(catalogo: CatalogoModel, model: ProductoModel) 
   const [erroresPorCampo, setErrores] = useState<Record<string, string>>({})
   const [paso, setPaso] = useState<PasoAlta>(PasoAlta.DATOS)
   const [guardando, setGuardando] = useState(false)
-  const [registroPendiente, setRegistroPendiente] = useState(false)
   const [cargando, setCargando] = useState(true)
   const [exitoso, setExitoso] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const ocupado = useRef(false)
-  const pendiente = useRef<DatosProductoTs | null>(null)
 
   useEffect(() => {
     let vigente = true
@@ -51,7 +49,7 @@ export function useNuevoProducto(catalogo: CatalogoModel, model: ProductoModel) 
   }, [catalogo, datosProducto.idCategoria])
 
   const actualizarCampo = <K extends keyof DatosProductoTs>(campo: K, valor: DatosProductoTs[K]) => {
-    if (ocupado.current || pendiente.current) return
+    if (ocupado.current) return
     // Pulsar el chip activo no cambia de categoría ni debe vaciar sus datos.
     if (campo === 'idCategoria' && valor === datosProducto.idCategoria) return
     setDatos(anterior => campo === 'idCategoria'
@@ -70,6 +68,10 @@ export function useNuevoProducto(catalogo: CatalogoModel, model: ProductoModel) 
     setError(null); setExitoso(false)
   }
   const agregarVariante = (variante: VarianteProductoTs) => {
+    if (ocupado.current) return false
+    if (!filtrosDisponibles?.colores?.includes(variante.color)) {
+      setErrores({ variantes: 'Selecciona un color disponible' }); return false
+    }
     if (!datosProducto.idCategoria || cargandoTallas || errorTallas || !tallasCategoria.length) {
       setErrores(anterior => ({ ...anterior, variantes: !datosProducto.idCategoria
         ? 'Selecciona primero la categoría del producto en la sección 1'
@@ -99,23 +101,19 @@ export function useNuevoProducto(catalogo: CatalogoModel, model: ProductoModel) 
     const errores = model.validarDatosCompletos(datosProducto)
     setErrores(errores)
     if (Object.keys(errores).length) return false
-    ocupado.current = true; pendiente.current = datosProducto
-    setRegistroPendiente(true)
+    ocupado.current = true
     setGuardando(true); setError(null)
     try {
       await model.registrarProducto(datosProducto)
-      pendiente.current = null; setRegistroPendiente(false); setExitoso(true)
+      setExitoso(true)
       return true
     } catch (e) {
-      if (!model.tieneRegistroPendiente()) {
-        pendiente.current = null
-        setRegistroPendiente(false)
-      }
+
       setError(mensajeError(e)); return false
     }
     finally { ocupado.current = false; setGuardando(false) }
   }
   return { datosProducto, filtrosDisponibles, tallasCategoria, cargandoTallas, errorTallas, erroresPorCampo, paso,
-    guardando, cargando, exitoso, error, bloqueado: guardando || registroPendiente,
+    guardando, cargando, exitoso, error, bloqueado: guardando,
     actualizarCampo, agregarVariante, actualizarPrecios, guardarProducto, setPaso }
 }
