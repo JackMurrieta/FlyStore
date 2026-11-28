@@ -5,15 +5,16 @@
  * cuenta y, al volver, se agrega solo lo que había elegido.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Icono, Esqueleto, EsqueletoTexto } from '@compartido/ui'
+import { Icono, Esqueleto, EsqueletoTexto, FlechasCarrusel } from '@compartido/ui'
 import { DialogoSesionRequerida } from '@compartido/sesion'
 import { RUTAS_CUENTA, categoriaPorClave } from '@compartido/config/marca'
 import { CRITERIOS_VACIOS } from '../../dominio/ReglasCatalogo'
 import type { ImagenProductoTs } from '../../dominio/DetalleProductoTs'
 import { useDetalleProducto } from '../hooks/useDetalleProducto'
 import { PaginaTienda } from '../componentes/PaginaTienda'
+import { BotonAgregarCarrito } from '../componentes/BotonAgregarCarrito'
 import { ErrorCatalogo, EstadoCatalogo } from '../componentes/EstadosCatalogo'
 import { rutasTienda } from '../rutasTienda'
 import { formatearPrecio, nombreLinea, piezas } from '../formato'
@@ -97,7 +98,7 @@ export default function DetalleProductoView() {
         <div className={estilos.ficha}>
           <Galeria imagenes={derivados.galeria} nombre={detalle.nombre} clave={`${ficha.idColor ?? 'general'}`} />
 
-          <section className={estilos.info} aria-labelledby="nombre-producto">
+          <section data-fly-reveal className={estilos.info} aria-labelledby="nombre-producto">
             <span className={estilos.sobretitulo}>{detalle.marca.nombre} · FLY{detalle.linea.nombre}</span>
             <h1 id="nombre-producto" className={estilos.nombre}>{detalle.nombre}</h1>
             <div className={estilos.estadoFila}>
@@ -157,7 +158,7 @@ export default function DetalleProductoView() {
                   {detalle.precios.map(nivel => {
                     const aplica = derivados.nivel?.tipoPrecio === nivel.tipoPrecio
                     return (
-                      <tr key={nivel.tipoPrecio} className={aplica ? estilos.filaAplicada : undefined} aria-current={aplica ? 'true' : undefined}>
+                      <tr key={nivel.tipoPrecio} className={aplica ? estilos.filaAplicada : undefined} aria-current={aplica ? 'true' : undefined} data-fly-scheme={aplica ? 'active' : undefined}>
                         <th scope="row">
                           {nivel.etiqueta}
                           {nivel.referencia && <span className={estilos.referencia}>Referencia</span>}
@@ -189,18 +190,19 @@ export default function DetalleProductoView() {
                   <Icono nombre="plus" tamano={16} />
                 </button>
               </div>
-              <button type="button" className={estilos.agregar} onClick={() => void ficha.agregar()}
-                disabled={!derivados.variante?.disponible || ficha.agregando || ficha.comprador === 'verificando'}
-                aria-busy={ficha.agregando}>
-                <Icono nombre={ficha.agregando ? 'refresh' : 'cart'} tamano={18} />
-                {ficha.agregando ? 'Agregando…' : derivados.variante?.disponible ? 'Agregar al carrito' : 'Agotado'}
-              </button>
+              <BotonAgregarCarrito
+                disponible={Boolean(derivados.variante?.disponible)}
+                deshabilitado={ficha.comprador === 'verificando'}
+                agregando={ficha.agregando}
+                agregado={ficha.agregado !== null}
+                alAgregar={() => void ficha.agregar()}
+              />
             </div>
 
             <p className={estilos.subtotal} aria-live="polite">
               {derivados.nivel && (
                 <>
-                  {formatearPrecio(derivados.nivel.precio)} por pieza · {derivados.nivel.etiqueta} · Subtotal <strong>{formatearPrecio(derivados.subtotal)}</strong>
+                  {formatearPrecio(derivados.nivel.precio)} por pieza · {derivados.nivel.etiqueta} · Subtotal <strong data-fly-counter>{formatearPrecio(derivados.subtotal)}</strong>
                 </>
               )}
               {derivados.siguiente && (
@@ -225,7 +227,7 @@ export default function DetalleProductoView() {
       )}
 
       {ficha.agregado && (
-        <div className={estilos.toast} role="status">
+        <div data-fly-cart-confirm className={estilos.toast} role="status">
           <Icono nombre="check-circle" tamano={20} />
           <div>
             <strong>Agregado al carrito</strong>
@@ -247,29 +249,52 @@ export default function DetalleProductoView() {
   )
 }
 
-/** Galería del color elegido: foto grande y miniaturas; cambia con un fundido al cambiar de color. */
+/** Desplazamiento mínimo (px) para tomar un gesto horizontal como «deslizar». */
+const UMBRAL_GESTO = 45
+
+/**
+ * Galería del color elegido: foto grande y, a su lado, todas sus fotos en miniatura.
+ * La miniatura de la foto que se ve queda encendida; las demás se apagan (gris, tenues) y se
+ * colorean con el hover, para mantener el foco en la foto actual. Clic en una miniatura, las
+ * flechas de la foto (aparecen con el hover) o deslizar con el dedo cambian la foto.
+ */
 function Galeria({ imagenes, nombre, clave }: { readonly imagenes: readonly ImagenProductoTs[]; readonly nombre: string; readonly clave: string }) {
   const [elegida, setElegida] = useState({ clave, indice: 0 })
+  const gesto = useRef<{ x: number; y: number } | null>(null)
   const indice = elegida.clave === clave ? elegida.indice : 0
   const actual = imagenes[indice] ?? imagenes[0]
+  const varias = imagenes.length > 1
+  const mostrar = (i: number) => setElegida({ clave, indice: (i + imagenes.length) % imagenes.length })
 
   return (
     <div className={estilos.galeria}>
-      {imagenes.length > 1 && (
+      {varias && (
         <div className={estilos.miniaturas} role="group" aria-label="Fotos del producto">
           {imagenes.map((imagen, i) => (
             <button key={`${imagen.url}-${i}`} type="button" className={estilos.miniatura}
-              aria-pressed={i === indice} aria-label={`Foto ${i + 1}`}
-              onMouseEnter={() => setElegida({ clave, indice: i })} onClick={() => setElegida({ clave, indice: i })}>
+              aria-pressed={i === indice} aria-label={`Foto ${i + 1}`} onClick={() => mostrar(i)}>
               <img src={imagen.url} alt="" loading="lazy" />
             </button>
           ))}
         </div>
       )}
-      <div className={estilos.fotoPrincipal}>
+      <div data-fly-product-stage className={estilos.fotoPrincipal}
+        onPointerDown={e => { if (e.pointerType === 'touch') gesto.current = { x: e.clientX, y: e.clientY } }}
+        onPointerCancel={() => { gesto.current = null }}
+        onPointerUp={e => {
+          const inicio = gesto.current
+          gesto.current = null
+          if (!inicio || !varias) return
+          const dx = e.clientX - inicio.x
+          if (Math.abs(dx) > UMBRAL_GESTO && Math.abs(dx) > Math.abs(e.clientY - inicio.y) * 1.5) mostrar(indice + (dx < 0 ? 1 : -1))
+        }}>
         {actual
           ? <img key={actual.url} src={actual.url} alt={nombre} className={estilos.imagenPrincipal} />
           : <span className={estilos.sinFoto}><Icono nombre="image" tamano={40} /></span>}
+        {varias && (
+          <FlechasCarrusel tamano="mediano" alAnterior={() => mostrar(indice - 1)} alSiguiente={() => mostrar(indice + 1)}
+            etiquetaAnterior="Foto anterior" etiquetaSiguiente="Foto siguiente" />
+        )}
       </div>
     </div>
   )

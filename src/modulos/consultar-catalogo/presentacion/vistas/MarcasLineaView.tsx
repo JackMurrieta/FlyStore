@@ -60,7 +60,7 @@ export default function MarcasLineaView({ ruta }: { readonly ruta: string }) {
             <div className={estilos.mosaico}>
               {marcas.map((marca, indice) => (
                 <Link key={marca.id} to={rutasTienda.productosLinea(ruta, { ...CRITERIOS_VACIOS, marcas: [marca.id] })}
-                  className={estilos.marca} style={{ '--retraso': `${indice * 50}ms` } as CSSProperties}>
+                  data-fly-card data-fly-reveal className={estilos.marca} style={{ '--retraso': `${indice * 50}ms` } as CSSProperties}>
                   <span className={estilos.marcaTexto}>
                     <span className={estilos.sobretitulo}>Marca</span>
                     <span className={estilos.marcaNombre}>{marca.nombre}</span>

@@ -2,7 +2,7 @@
  * usePedidoRegistrado · ViewModel de PedidoRegistradoView (B7).
  * Si el pedido de ese folio no está en memoria (la página se abrió por URL o se recargó),
  * lo pide al backend (generarComprobantePedidoVenta) en lugar de regresar al carrito.
- * El ticket se arma con esos datos y se imprime o guarda como PDF con window.print().
+ * El recibo (TicketPedido) se arma con esos datos y se descarga como PNG (useDescargarRecibo).
  */
 
 import { useEffect, useSyncExternalStore } from 'react'
@@ -31,6 +31,5 @@ export function usePedidoRegistrado(folio: string) {
     cargando: !coincide && pedido.generandoComprobantePedido,
     error: coincide ? null : pedido.errorComprobantePedido,
     reintentar: () => modelo.generarComprobantePedidoVenta(folio),
-    imprimirTicket: () => window.print(),
   }
 }

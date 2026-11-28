@@ -278,7 +278,7 @@ export class PedidoEnCursoModel extends ModeloObservable<EstadoPedidoEnCurso> {
 
   /**
    * Básico, mensaje 64. Pide al backend el pedido registrado con ese folio; con esos datos
-   * TicketPedido arma el ticket y el cliente lo imprime o lo guarda como PDF (window.print).
+   * TicketPedido arma el recibo y el cliente lo descarga como imagen PNG.
    * También sirve cuando B7 se abre por URL o se recarga: no depende de lo que haya en memoria.
    */
   public generarComprobantePedidoVenta = async (folio: string): Promise<InformacionPedidoTs | null> => {

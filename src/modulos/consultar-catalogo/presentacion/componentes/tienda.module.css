@@ -221,8 +221,49 @@
   to { transform: none; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .titulos, .heroeImagen, .marca, .quitar, .grupoCuerpo, .estado, .velo, .filtros { animation: none; }
-  .marca, .flecha, .chip, .pastilla, .color, .progreso span, .grupo summary svg { transition: none; }
-  .marca:hover, .marca:focus-visible { transform: none; }
+/* FLY Motion — estados de interacción (siempre activos; sin encogimiento al presionar) */
+.mosaico > *, .cuadricula > * { animation: fly-rise 420ms var(--fly-motion-ease) backwards; }
+.mosaico > :nth-child(3n/**/+2), .cuadricula > :nth-child(3n/**/+2) { animation-delay: 45ms; }
+.mosaico > :nth-child(3n/**/+3), .cuadricula > :nth-child(3n/**/+3) { animation-delay: 90ms; }
+.heroeImagen img { animation: fly-image 650ms var(--fly-motion-ease) backwards; }
+.activos > * { animation: fly-pop 220ms var(--fly-motion-ease) backwards; }
+.progreso span { transition: width 450ms var(--fly-motion-ease); }
+.chip, .pastilla, .quitar { transition: background 180ms, border-color 180ms, scale 150ms; }
+.velo { animation: fly-fade 220ms ease backwards; }
+@keyframes fly-rise { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }
+@keyframes fly-pop { from { opacity: 0; scale: .96; } to { opacity: 1; scale: 1; } }
+@keyframes fly-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fly-image { from { opacity: .65; scale: 1.035; } to { opacity: 1; scale: 1; } }
+.migas { translate: 4px 0; }
+.ordenar:focus-within { box-shadow: 0 0 0 3px #8885; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.chipActivo { animation: fly-u-spring 420ms var(--fly-motion-ease); }
+@media (hover: hover) and (pointer: fine) {
+  .quitar:hover { rotate: 12deg; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+}
+.pastilla[aria-pressed="true"] { animation: fly-u-spring 420ms var(--fly-motion-ease); }
+.color[aria-pressed="true"] { animation: fly-u-spring 420ms var(--fly-motion-ease); }
+.grupo[open] .grupoCuerpo { animation: fly-u-rise 420ms var(--fly-motion-ease) both; }
+.casilla:has(input:checked) { scale: 1.035; }
+.errorCampo { animation: fly-u-shake 340ms ease-out; }
+.estadoIcono { animation: fly-u-spring 420ms var(--fly-motion-ease); }
+@media (hover: hover) and (pointer: fine) {
+  .marcaLogo:hover { scale: 1.045; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .marcaInicial:hover { scale: 1.035; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .verTodo:hover { translate: 4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+}
+@keyframes fly-u-rise { from { opacity:.45; translate:0 9px } to { opacity:1; translate:0 0 } }
+@keyframes fly-u-spring { 0% { scale:.94 } 55% { scale:1.035 } 80% { scale:.99 } 100% { scale:1 } }
+@keyframes fly-u-shake { 0%,100% { translate:0 0 } 25% { translate:-3px 0 } 65% { translate:3px 0 } }
+.marcaLogo { transition-property: transform, translate, scale, rotate, box-shadow, filter, opacity, background-color, text-decoration-color; transition-duration: 260ms; transition-timing-function: var(--fly-motion-ease); }
+.marcaInicial { transition-property: transform, translate, scale, rotate, box-shadow, filter, opacity, background-color, text-decoration-color; transition-duration: 260ms; transition-timing-function: var(--fly-motion-ease); }
+.verTodo { transition-property: transform, translate, scale, rotate, box-shadow, filter, opacity, background-color, text-decoration-color; transition-duration: 260ms; transition-timing-function: var(--fly-motion-ease); }
+.quitar:focus-visible { rotate: 12deg; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.marcaLogo:focus-visible { scale: 1.045; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.marcaInicial:focus-visible { scale: 1.035; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.verTodo:focus-visible { translate: 4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+@media (hover: none), (pointer: coarse) {
+  .quitar:active { rotate: 12deg; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .marcaLogo:active { scale: 1.045; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .marcaInicial:active { scale: 1.035; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .verTodo:active { translate: 4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
 }

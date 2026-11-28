@@ -18,22 +18,22 @@ export default function InicioVista() {
 
       <main className={styles.main}>
         {/* Sección Hero */}
-        <div className={styles.seccion}>
+        <div data-fly-section className={styles.seccion}>
           <HeroSection />
         </div>
 
         {/* Grid de líneas de producto (categorías) */}
-        <div className={styles.seccion}>
+        <div data-fly-section className={styles.seccion}>
           <CategoryGrid />
         </div>
 
         {/* Grid de productos destacados */}
-        <div className={styles.seccion}>
+        <div data-fly-section className={styles.seccion}>
           <ProductGrid />
         </div>
 
         {/* Banners promocionales */}
-        <div className={styles.seccion}>
+        <div data-fly-section className={styles.seccion}>
           <PromoBanners />
         </div>
       </main>

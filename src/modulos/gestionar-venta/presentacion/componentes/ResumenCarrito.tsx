@@ -28,7 +28,7 @@ export function ResumenCarrito(props: Props) {
         <div className={estilos.fila}>
           <Texto variante="cuerpo-s" tono="secundario">Esquema aplicado</Texto>
           <Insignia tono="neutro">
-            <span className={`${estilos.contenidoInsignia} ${estilos.insigniaEsquema}`}>
+            <span data-fly-scheme className={`${estilos.contenidoInsignia} ${estilos.insigniaEsquema}`}>
               <span className={estilos.punto} aria-hidden="true" />{esquema.etiqueta} · {esquema.rango}
             </span>
           </Insignia>

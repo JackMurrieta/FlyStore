@@ -27,6 +27,9 @@ export type { ChipProps } from './Chip'
 export { Radio } from './Radio'
 export type { RadioProps } from './Radio'
 
+export { FlechasCarrusel } from './FlechasCarrusel'
+export type { FlechasCarruselProps, TamanoFlechas } from './FlechasCarrusel'
+
 export { Icono } from './iconos/Icono'
 export type { IconoProps, NombreIcono } from './iconos/Icono'
 

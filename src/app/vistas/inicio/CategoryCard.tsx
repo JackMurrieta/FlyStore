@@ -15,7 +15,7 @@ interface CategoryCardProps {
 
 export function CategoryCard({ nombre, ruta, imagen }: CategoryCardProps) {
   return (
-    <Link to={ruta} className={styles.card}>
+    <Link viewTransition data-fly-card data-fly-reveal to={ruta} className={styles.card}>
       {/* Imagen de fondo de categoría */}
       <div
         className={styles.imagenCategoria}

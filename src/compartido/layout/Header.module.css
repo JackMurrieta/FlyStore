@@ -97,6 +97,22 @@
 .iconoBtn:hover { background: var(--fly-superficie-2); }
 .iconoBtn:focus-visible { outline: none; box-shadow: var(--fly-foco); }
 
+/* Contador del carrito: productos distintos (oculto en 0) */
+.carrito { position: relative; }
+.contadorCarrito {
+  position: absolute; top: 1px; right: 0; min-width: 18px; height: 18px; padding: 0 5px;
+  display: grid; place-items: center; border-radius: 9px; border: 2px solid var(--fly-fondo);
+  background: var(--fly-cta); color: var(--fly-sobre-cta);
+  font: 700 10px/1 'Inter', sans-serif; font-variant-numeric: tabular-nums; pointer-events: none;
+  animation: contadorEntrada 420ms cubic-bezier(.2, 1.4, .4, 1) backwards;
+}
+.contadorPanel {
+  margin-left: auto; min-width: 22px; height: 22px; padding: 0 7px; display: grid; place-items: center;
+  border-radius: 11px; background: var(--fly-cta); color: var(--fly-sobre-cta);
+  font: 700 11px/1 'Inter', sans-serif; font-variant-numeric: tabular-nums;
+}
+@keyframes contadorEntrada { from { opacity: 0; scale: .4; } 60% { opacity: 1; scale: 1.15; } to { scale: 1; } }
+
 .botonEntrar, .botonSecundario {
   display: inline-flex;
   align-items: center;
@@ -266,7 +282,42 @@
   .logoImagen { height: 36px; width: 62px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .menuCuenta, .velo, .panel { animation: none; }
-  .enlace::after, .flecha { transition: none; }
+/* FLY Motion — estados de interacción (siempre activos; sin encogimiento al presionar) */
+.logoImagen { transition: scale 250ms var(--fly-motion-ease); }
+.logo:hover .logoImagen { scale: 1.045; }
+.iconoBtn svg { transition: scale 200ms var(--fly-motion-ease), rotate 200ms; }
+.buscador { transition: border-color 200ms, box-shadow 200ms; }
+.menuCuenta { animation: fly-pop 240ms var(--fly-motion-ease) backwards; transform-origin: top right; }
+.panelSeccion > * { animation: fly-rise 300ms 100ms var(--fly-motion-ease) backwards; }
+.opcionCuenta { transition: background 180ms, padding-inline-start 200ms; }
+.velo { animation: fly-fade 220ms ease backwards; }
+@keyframes fly-rise { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }
+@keyframes fly-pop { from { opacity: 0; scale: .96; } to { opacity: 1; scale: 1; } }
+@keyframes fly-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (hover: hover) and (pointer: fine) {
+  .logoImagen:hover { translate: 0 -3px; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .enlace:hover { text-underline-offset: 5px; text-decoration: underline; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+}
+.buscador:focus-within { box-shadow: 0 0 0 3px #8885; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.campoBuscar:focus { box-shadow: 0 0 0 3px #8885; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.botonCuenta[aria-expanded="true"] .flecha { transform: rotate(180deg); transition: transform 320ms var(--fly-motion-ease); }
+.menuCuenta { animation: fly-u-drop 480ms var(--fly-motion-ease) both; }
+@media (hover: hover) and (pointer: fine) {
+  .opcionCuenta:hover { translate: 4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .panelCategoria:hover { translate: 4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+}
+.panelLogo { animation: fly-u-soft 420ms ease-out both; }
+@keyframes fly-u-soft { from { opacity:.45 } to { opacity:1 } }
+@keyframes fly-u-drop { from { opacity:0; translate:0 -9px; scale:.985 } to { opacity:1; translate:0 0; scale:1 } }
+.enlace { transition-property: transform, translate, scale, rotate, box-shadow, filter, opacity, background-color, text-decoration-color; transition-duration: 260ms; transition-timing-function: var(--fly-motion-ease); }
+.panelCategoria { transition-property: transform, translate, scale, rotate, box-shadow, filter, opacity, background-color, text-decoration-color; transition-duration: 260ms; transition-timing-function: var(--fly-motion-ease); }
+.logoImagen:focus-visible { translate: 0 -3px; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.enlace:focus-visible { text-underline-offset: 5px; text-decoration: underline; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.opcionCuenta:focus-visible { translate: 4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.panelCategoria:focus-visible { translate: 4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+@media (hover: none), (pointer: coarse) {
+  .logoImagen:active { translate: 0 -3px; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .enlace:active { text-underline-offset: 5px; text-decoration: underline; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .opcionCuenta:active { translate: 4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .panelCategoria:active { translate: 4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
 }

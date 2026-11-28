@@ -17,10 +17,6 @@
   text-transform: uppercase;
 }
 
-.boton:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
 .boton:disabled {
   cursor: not-allowed;
   opacity: 0.5;

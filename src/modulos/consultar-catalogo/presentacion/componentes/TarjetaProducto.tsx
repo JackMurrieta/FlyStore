@@ -35,8 +35,8 @@ export function TarjetaProducto({ producto, indice = 0 }: TarjetaProductoProps) 
   const estilo = { '--retraso': `${Math.min(indice % 30, 12) * 45}ms` } as CSSProperties
 
   return (
-    <article className={estilos.tarjeta} style={estilo} aria-label={producto.nombre}>
-      <Link to={destino} className={estilos.foto} tabIndex={-1} aria-hidden="true">
+    <article data-fly-card data-fly-reveal className={estilos.tarjeta} style={estilo} aria-label={producto.nombre}>
+      <Link viewTransition to={destino} className={estilos.foto} tabIndex={-1} aria-hidden="true">
         {foto ? (
           <img key={foto} src={foto} alt="" loading="lazy" decoding="async" className={estilos.imagen} />
         ) : (
@@ -71,14 +71,14 @@ export function TarjetaProducto({ producto, indice = 0 }: TarjetaProductoProps) 
             )
           })}
           {ocultos > 0 && (
-            <Link to={destino} className={estilos.masColores} aria-label={`Ver los ${producto.colores.length} colores`}>
+            <Link viewTransition to={destino} className={estilos.masColores} aria-label={`Ver los ${producto.colores.length} colores`}>
               +{ocultos}
             </Link>
           )}
         </div>
       )}
 
-      <Link to={destino} className={estilos.info}>
+      <Link viewTransition to={destino} className={estilos.info}>
         <span className={estilos.marca}>{producto.marca}</span>
         <span className={estilos.nombre}>{producto.nombre}</span>
         {producto.precio && (

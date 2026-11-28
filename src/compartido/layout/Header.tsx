@@ -9,12 +9,15 @@
  * con el velo o al elegir una opción, bloquea el desplazamiento de la página y devuelve el foco
  * al botón que lo abrió. «Mis pedidos» y «Mi perfil» salen del menú de cuenta; «Administrar tienda»
  * (el panel /admin) solo aparece para admin y empleado.
+ *
+ * El ícono del carrito muestra cuántos productos distintos tiene el carrito del cliente (oculto en 0).
  */
 
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent as EventoTeclado } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useSesion } from '@compartido/sesion/SesionContext'
+import { useContadorCarrito } from '@compartido/carrito'
 import type { RolTs, UsuarioSesionTs } from '@compartido/sesion/ISesion'
 import { Texto } from '@compartido/ui/Texto'
 import { Icono, type NombreIcono } from '@compartido/ui/iconos/Icono'
@@ -42,6 +45,19 @@ function enlacesDeCuenta(rol: RolTs | undefined): EnlaceCuenta[] {
 
 const primerNombre = (usuario: UsuarioSesionTs) => usuario.nombre.trim().split(/\s+/)[0] ?? usuario.nombre
 
+/** «1 producto» / «3 productos». */
+const textoProductos = (productos: number) => `${productos} ${productos === 1 ? 'producto' : 'productos'}`
+
+/** Burbuja con el número de productos del carrito; no se pinta en 0. Rebota cada vez que cambia (key). */
+function ContadorCarrito({ productos }: { readonly productos: number | null }) {
+  if (!productos) return null
+  return (
+    <span key={productos} className={styles.contadorCarrito} aria-hidden="true">
+      {productos > 99 ? '99+' : productos}
+    </span>
+  )
+}
+
 export function Header() {
   const { estado, usuario, cerrarSesion } = useSesion()
   const navegar = useNavigate()
@@ -49,6 +65,7 @@ export function Header() {
   const botonMenuRef = useRef<HTMLButtonElement>(null)
   const panelId = useId()
   const conSesion = estado === 'autenticado' && usuario ? usuario : null
+  const productosCarrito = useContadorCarrito()
 
   const salir = async () => {
     setPanelAbierto(false)
@@ -62,7 +79,7 @@ export function Header() {
   }
 
   return (
-    <header className={styles.header}>
+    <header data-fly-glass className={styles.header}>
       <div className={styles.contenedor}>
         <button ref={botonMenuRef} type="button" className={`${styles.iconoBtn} ${styles.soloMovil}`}
           aria-label="Abrir menú" aria-expanded={panelAbierto} aria-controls={panelId} onClick={() => setPanelAbierto(true)}>
@@ -83,8 +100,10 @@ export function Header() {
 
         <div className={styles.acciones}>
           <Buscador className={styles.soloEscritorio} />
-          <Link to={RUTAS_CUENTA.carrito} className={styles.iconoBtn} aria-label="Ver carrito">
+          <Link to={RUTAS_CUENTA.carrito} className={`${styles.iconoBtn} ${styles.carrito}`}
+            aria-label={productosCarrito ? `Ver carrito, ${textoProductos(productosCarrito)}` : 'Ver carrito'}>
             <Icono nombre="cart" />
+            <ContadorCarrito productos={productosCarrito} />
           </Link>
           <div className={styles.soloEscritorio}>
             {conSesion ? (
@@ -99,7 +118,8 @@ export function Header() {
       </div>
 
       {panelAbierto && (
-        <PanelNavegacion id={panelId} usuario={conSesion} alCerrar={cerrarPanel} alSalir={() => void salir()} />
+        <PanelNavegacion id={panelId} usuario={conSesion} productosCarrito={productosCarrito}
+          alCerrar={cerrarPanel} alSalir={() => void salir()} />
       )}
     </header>
   )
@@ -201,9 +221,10 @@ function MenuCuenta({ usuario, alSalir }: { readonly usuario: UsuarioSesionTs; r
 }
 
 /** Panel lateral (móvil): diálogo modal con buscador, categorías, cuenta y ayuda. */
-function PanelNavegacion({ id, usuario, alCerrar, alSalir }: {
+function PanelNavegacion({ id, usuario, productosCarrito, alCerrar, alSalir }: {
   readonly id: string
   readonly usuario: UsuarioSesionTs | null
+  readonly productosCarrito: number | null
   readonly alCerrar: () => void
   readonly alSalir: () => void
 }) {
@@ -292,6 +313,12 @@ function PanelNavegacion({ id, usuario, alCerrar, alSalir }: {
                 <li>
                   <Link to={RUTAS_CUENTA.carrito} className={styles.opcionCuenta} onClick={alCerrar}>
                     <Icono nombre="cart" tamano={18} /> Carrito
+                    {productosCarrito ? (
+                      <span className={styles.contadorPanel}>
+                        {productosCarrito > 99 ? '99+' : productosCarrito}
+                        <span className={styles.oculto}> {productosCarrito === 1 ? 'producto' : 'productos'}</span>
+                      </span>
+                    ) : null}
                   </Link>
                 </li>
               </ul>

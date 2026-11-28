@@ -16,8 +16,8 @@
   "dependencies": {
     "@fontsource/inter": "^5.1.0",
     "@fontsource/oswald": "^5.1.0",
+    "html-to-image": "^1.11.13",
     "lucide-react": "^1.70.0",
-    "pyserial": "^0.0.1-security",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.1.1"

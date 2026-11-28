@@ -12,6 +12,19 @@ import { ModelosVentaContext } from '../ModelosVentaContext'
 import { useCarrito } from './useCarrito'
 import { useNavegacionVenta } from './useNavegacionVenta'
 import { useMetodoPago } from './useMetodoPago'
+import { toPng } from 'html-to-image'
+
+// La descarga del recibo usa html-to-image (jsdom no pinta): se simula la imagen.
+vi.mock('html-to-image', () => ({ toPng: vi.fn(async () => 'data:image/png;base64,UkVDSUJP') }))
+
+/** Atrapa el enlace de descarga del recibo sin navegar. */
+function espiarDescarga() {
+  const descargas: string[] = []
+  const espia = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+    descargas.push(this.download)
+  })
+  return { descargas, restaurar: () => espia.mockRestore() }
+}
 
 const ESTADO_SESION: EstadoSesionTs = {
   estado: 'autenticado',
@@ -151,9 +164,9 @@ describe('Vistas de gestionar venta', () => {
     await waitFor(() => expect(screen.getByTestId('ruta').textContent).toBe('/carrito'))
   })
 
-  it('B7 se puede recargar: pide el pedido por su folio e imprime solo el ticket', async () => {
+  it('B7 se puede recargar: pide el pedido por su folio y descarga el recibo como PNG', async () => {
     const gateway = gatewayFalso()
-    const imprimir = vi.spyOn(window, 'print').mockImplementation(() => {})
+    const descarga = espiarDescarga()
     render(
       <MemoryRouter initialEntries={['/carrito/pedido/FLY-000131']}>
         <SesionProvider sesion={sesion}>
@@ -165,10 +178,13 @@ describe('Vistas de gestionar venta', () => {
     expect(await screen.findByRole('heading', { name: 'Folio FLY-000131' })).toBeInTheDocument()
     expect(gateway.generarComprobantePedidoVenta).toHaveBeenCalledTimes(1)
     expect(screen.getByTestId('ruta').textContent).toBe('/carrito/pedido/FLY-000131')
-    expect(screen.getByText('Comprobante de pedido')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /Ver \/ Imprimir ticket/ }))
-    expect(imprimir).toHaveBeenCalled()
-    imprimir.mockRestore()
+    const recibo = within(screen.getByRole('article', { name: 'Resumen de pedido' }))
+    expect(recibo.getByText('FLY-000131')).toBeInTheDocument()
+    expect(recibo.getByText('Subtotal a precio base')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /Descargar recibo/ }))
+    await waitFor(() => expect(descarga.descargas).toEqual(['FLY-000131.png']))
+    expect(toPng).toHaveBeenCalledWith(screen.getByRole('article', { name: 'Resumen de pedido' }), expect.objectContaining({ cacheBust: true }))
+    descarga.restaurar()
   })
 
   it('B7 sin acceso al pedido muestra el error y permite ir a Mis pedidos', async () => {
@@ -252,6 +268,24 @@ describe('Mis pedidos (S6, A10)', () => {
     expect(screen.getByText('Cancelaste tu pedido')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Cancelar pedido' })).not.toBeInTheDocument()
     expect(screen.queryByText('Sube tu comprobante antes de')).not.toBeInTheDocument()
+  })
+
+  it('«Ver recibo» abre el recibo del pedido elegido y lo descarga como PNG', async () => {
+    const descarga = espiarDescarga()
+    renderizarMisPedidos(crearModelosVenta(gatewayFalso(), () => AHORA), '/mis-pedidos?folio=FLY-000131')
+    await screen.findByRole('heading', { name: 'FLY-000131' })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ver recibo' }))
+    const dialogo = within(screen.getByRole('dialog', { name: 'Recibo del pedido' }))
+    const recibo = within(dialogo.getByRole('article', { name: 'Resumen de pedido' }))
+    expect(recibo.getByText('FLY-000131')).toBeInTheDocument()
+    expect(recibo.getByText('Método de pago')).toBeInTheDocument()
+    await userEvent.click(dialogo.getByRole('button', { name: /Descargar recibo/ }))
+    await waitFor(() => expect(descarga.descargas).toEqual(['FLY-000131.png']))
+
+    await userEvent.click(dialogo.getByRole('button', { name: 'Cerrar' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    descarga.restaurar()
   })
 
   it('«Volver» cierra el diálogo sin cancelar y un pedido en revisión ya no se cancela', async () => {

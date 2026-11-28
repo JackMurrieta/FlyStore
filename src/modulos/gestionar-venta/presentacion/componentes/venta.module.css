@@ -168,16 +168,11 @@
 .enlaceTicket { color: var(--fly-texto); padding: 14px 6px; }
 .enlaceWhatsapp:hover { opacity: 0.9; }
 .enlaceTicket:hover { background: var(--fly-superficie-2); }
-.ticket { display: flex; flex-direction: column; gap: 0; }
-.ticketEncabezado { display: flex; align-items: center; justify-content: space-between; padding: 0 0 16px; }
-.ticketEncabezado img { width: 56px; height: 32px; object-fit: contain; }
+/* Columna del recibo (TicketPedido, estilos en ticket.module.css) y diálogo «Ver recibo» */
+.ticket { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.dialogoRecibo { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.dialogoRecibo > .acciones { align-self: stretch; justify-content: center; }
 .ticketPapel { background: var(--fly-cta); color: var(--fly-sobre-cta); border-radius: 4px; padding: 20px 18px; display: flex; flex-direction: column; gap: 10px; }
-.ticketPapel .fila > span:first-child { white-space: normal; }
-/* Las clases tipográficas fijan --fly-texto; sobre el papel claro heredan el color oscuro. */
-.ticketPapel :global([class*='fly-']) { color: inherit; }
-.ticketPapel hr { border: 0; border-top: 1px solid var(--fly-sobre-cta); opacity: 0.6; margin: 4px 0; }
-.ticketSecundario { opacity: 0.8; }
-.ticketGracias { text-align: center; padding-top: 4px; }
 .esqueletoFilas { border: 1px solid var(--fly-borde); border-radius: var(--fly-radio-tarjeta); }
 .esqueletoFilas > div { display: flex; align-items: center; gap: 40px; padding: 18px; border-bottom: 1px solid var(--fly-borde); }
 .esqueletoFilas > div:last-child { border-bottom: 0; }
@@ -234,9 +229,8 @@
   .lineaControles { display: contents; }
 }
 
-/* ───────────── Impresión del ticket (B7 «Ver / Imprimir ticket») ─────────────
- * Solo se imprime el ticket: se ocultan encabezado, pie, pasos, mensajes y botones.
- * El papel se imprime en blanco con texto negro (el logo blanco se invierte). */
+/* ───────────── Impresión del recibo (B7, Ctrl + P) ─────────────
+ * Solo se imprime el recibo: se ocultan encabezado, pie, pasos, mensajes y botones. */
 @media print {
   @page { margin: 12mm; }
   .pagina { min-height: 0; background: #fff; }
@@ -244,9 +238,54 @@
   .contenido { padding: 0; max-width: none; gap: 0; }
   .registrado { display: block; }
   .registrado > :not(.ticket) { display: none !important; }
-  .ticket { max-width: 380px; margin: 0 auto; color: #000; }
-  .ticket :global([class*='fly-']) { color: #000; }
-  .ticketEncabezado img { filter: invert(1); }
-  .ticketPapel { background: #fff; color: #000; border: 1px solid #000; }
-  .ticketPapel hr { border-top-color: #000; }
+  .ticket { margin: 0 auto; }
+  .ticket > :not(article) { display: none !important; }
+}
+
+/* FLY Motion — estados de interacción (siempre activos; sin encogimiento al presionar) */
+.encabezadoPaso, .tarjeta, .tarjetaResumen { animation: fly-rise 380ms var(--fly-motion-ease) backwards; }
+.linea:nth-child(2) { animation-delay: 55ms; }
+.linea:nth-child(3) { animation-delay: 110ms; }
+.progreso > span { transition: width 450ms var(--fly-motion-ease); }
+.circuloPaso { transition: background 220ms, color 220ms, border-color 220ms; }
+.opcion { transition: background 220ms, border-color 220ms, scale 150ms; }
+.opcion:has(input:checked) .radio::after { animation: fly-pop 220ms var(--fly-motion-ease); }
+.codigoAplicado, .iconoCirculo { animation: fly-pop 360ms var(--fly-motion-ease) backwards; }
+@keyframes fly-rise { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }
+@keyframes fly-pop { from { opacity: 0; scale: .96; } to { opacity: 1; scale: 1; } }
+.opcion:has(input:checked) .radio { animation: fly-payment-select 420ms cubic-bezier(.2,1.4,.4,1); }
+@keyframes fly-payment-select { 45% { scale:1.25; } 100% { scale:1; } }
+.linea { animation: fly-u-rise 420ms var(--fly-motion-ease) both; }
+@media (hover: hover) and (pointer: fine) {
+  .foto:hover { scale: 1.045; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+}
+.codigoAplicado { animation: fly-u-spring 420ms var(--fly-motion-ease); }
+.ayudaError { animation: fly-u-shake 340ms ease-out; }
+.filaDescuento { animation: fly-u-highlight 650ms ease-out; }
+.filaTotal { animation: fly-u-rise 420ms var(--fly-motion-ease) backwards; }
+.checkGrande { animation: fly-u-spring 420ms var(--fly-motion-ease); }
+.paso[aria-current="step"] .circuloPaso { animation: fly-u-spring 420ms var(--fly-motion-ease); }
+.opcion:has(input:checked) { animation: fly-u-highlight 650ms ease-out; }
+.archivo:focus-within { box-shadow: 0 0 0 3px #8885; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.miniaturaArchivo { animation: fly-u-soft 420ms ease-out both; }
+@media (hover: hover) and (pointer: fine) {
+  .enlaceWhatsapp:hover { translate: 0 -3px; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  [data-fly-ticket-button]:hover { translate: 4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+}
+.notaSegura { animation: fly-u-soft 420ms ease-out both; }
+@keyframes fly-u-soft { from { opacity:.45 } to { opacity:1 } }
+@keyframes fly-u-rise { from { opacity:.45; translate:0 9px } to { opacity:1; translate:0 0 } }
+@keyframes fly-u-spring { 0% { scale:.94 } 55% { scale:1.035 } 80% { scale:.99 } 100% { scale:1 } }
+@keyframes fly-u-shake { 0%,100% { translate:0 0 } 25% { translate:-3px 0 } 65% { translate:3px 0 } }
+@keyframes fly-u-highlight { from { box-shadow:inset 0 0 0 2px #8889 } to { box-shadow:inset 0 0 0 2px #8880 } }
+.foto { transition-property: transform, translate, scale, rotate, box-shadow, filter, opacity, background-color, text-decoration-color; transition-duration: 260ms; transition-timing-function: var(--fly-motion-ease); }
+.enlaceWhatsapp { transition-property: transform, translate, scale, rotate, box-shadow, filter, opacity, background-color, text-decoration-color; transition-duration: 260ms; transition-timing-function: var(--fly-motion-ease); }
+[data-fly-ticket-button] { transition-property: transform, translate, scale, rotate, box-shadow, filter, opacity, background-color, text-decoration-color; transition-duration: 260ms; transition-timing-function: var(--fly-motion-ease); }
+.foto:focus-visible { scale: 1.045; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.enlaceWhatsapp:focus-visible { translate: 0 -3px; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+[data-fly-ticket-button]:focus-visible { translate: 4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+@media (hover: none), (pointer: coarse) {
+  .foto:active { scale: 1.045; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .enlaceWhatsapp:active { translate: 0 -3px; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  [data-fly-ticket-button]:active { translate: 4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
 }

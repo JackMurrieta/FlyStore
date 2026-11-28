@@ -183,8 +183,3 @@
   .pronta { padding: 22px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .pagina, .esqueleto { animation: none; }
-  .barraLateral, .pendiente, .seccion { transition: none; }
-  .pendiente:has(a:hover) { transform: none; }
-}

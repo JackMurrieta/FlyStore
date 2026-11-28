@@ -25,7 +25,7 @@ export interface IGestionarVentaGateway {
   registrarPedidoVenta(dto: PedidoVentaDTO): Promise<PedidoVentaDTO>
   /**
    * Básico, mensaje 65. Datos del ticket: el pedido registrado tal como lo guarda el backend.
-   * El front lo pinta con TicketPedido y el cliente lo imprime o guarda como PDF (window.print).
+   * El front lo pinta con TicketPedido (recibo) y el cliente lo descarga como imagen PNG.
    */
   generarComprobantePedidoVenta(folio: string): Promise<PedidoVentaDTO>
   /**

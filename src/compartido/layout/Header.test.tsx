@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { SesionProvider, type EstadoSesionTs, type ISesion, type RolTs } from '@compartido/sesion'
+import { ContadorCarritoProvider, type IContadorCarrito } from '@compartido/carrito'
 import { Header } from './Header'
 import { Footer } from './Footer'
 
@@ -93,5 +94,73 @@ describe('Footer', () => {
     expect(within(pie).getByRole('link', { name: 'Aviso de privacidad' })).toHaveAttribute('href', '/privacidad')
     expect(within(pie).getByRole('link', { name: /flycontact555@gmail.com/ })).toHaveAttribute('href', 'mailto:flycontact555@gmail.com')
     expect(within(pie).getByText(/Todos los precios en MXN/)).toBeInTheDocument()
+  })
+})
+
+/** Contador falso: empieza sin conocer el carrito y se fija a mano. */
+function contadorFalso(inicial: number | null = null) {
+  let productos = inicial
+  const oyentes = new Set<() => void>()
+  const contador: IContadorCarrito & { fijar(n: number): void } = {
+    suscribir: (oyente) => { oyentes.add(oyente); return () => oyentes.delete(oyente) },
+    obtenerProductos: () => productos,
+    cargar: vi.fn(),
+    fijar: (n) => { productos = n; oyentes.forEach((o) => o()) },
+  }
+  return contador
+}
+
+describe('Header · contador del carrito', () => {
+  function abrirConContador(rol: RolTs | null, contador: IContadorCarrito) {
+    render(
+      <MemoryRouter>
+        <SesionProvider sesion={sesionCon(rol)}>
+          <ContadorCarritoProvider contador={contador}><Header /></ContadorCarritoProvider>
+        </SesionProvider>
+      </MemoryRouter>
+    )
+  }
+
+  it('el cliente ve cuántos productos distintos tiene; se oculta en 0', () => {
+    const contador = contadorFalso()
+    abrirConContador('CLIENTE', contador)
+    expect(contador.cargar).toHaveBeenCalledWith('1')
+    expect(screen.getByRole('link', { name: 'Ver carrito' })).toBeInTheDocument()
+
+    act(() => contador.fijar(3))
+    const carrito = screen.getByRole('link', { name: 'Ver carrito, 3 productos' })
+    expect(carrito).toHaveTextContent('3')
+
+    act(() => contador.fijar(1))
+    expect(screen.getByRole('link', { name: 'Ver carrito, 1 producto' })).toHaveTextContent('1')
+
+    act(() => contador.fijar(0))
+    expect(screen.getByRole('link', { name: 'Ver carrito' })).toHaveTextContent('')
+  })
+
+  it('más de 99 productos se muestra como 99+', () => {
+    abrirConContador('CLIENTE', contadorFalso(120))
+    expect(screen.getByRole('link', { name: 'Ver carrito, 120 productos' })).toHaveTextContent('99+')
+  })
+
+  it('sin sesión no consulta ni muestra contador', () => {
+    const anonimo = contadorFalso(5)
+    abrirConContador(null, anonimo)
+    expect(anonimo.cargar).not.toHaveBeenCalled()
+    expect(screen.getByRole('link', { name: 'Ver carrito' })).toHaveTextContent('')
+  })
+
+  it('las cuentas del personal no tienen carrito: sin contador', () => {
+    const personal = contadorFalso(5)
+    abrirConContador('EMPLEADO', personal)
+    expect(personal.cargar).not.toHaveBeenCalled()
+    expect(screen.getByRole('link', { name: 'Ver carrito' })).toHaveTextContent('')
+  })
+
+  it('el panel móvil también muestra el número junto a «Carrito»', async () => {
+    abrirConContador('CLIENTE', contadorFalso(2))
+    await userEvent.click(screen.getByRole('button', { name: 'Abrir menú' }))
+    const panel = within(screen.getByRole('dialog', { name: 'Menú' }))
+    expect(panel.getByRole('link', { name: /Carrito.*2 productos/ })).toHaveAttribute('href', '/carrito')
   })
 })

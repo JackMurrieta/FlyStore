@@ -84,8 +84,3 @@
   .tarjeta { padding: 16px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .esqueleto { animation: none; background: var(--fly-superficie-2); }
-  .barra::before { animation: pulso 1.4s ease-in-out infinite; width: 100%; transform: none; }
-  @keyframes pulso { 50% { opacity: 0.35; } }
-}

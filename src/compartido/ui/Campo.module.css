@@ -107,3 +107,17 @@
   flex-shrink: 0;
   margin-top: 1px;
 }
+
+/* FLY Motion — estados de interacción (siempre activos; sin encogimiento al presionar) */
+.entrada:focus { box-shadow: 0 0 0 3px #8885; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.entradaError { animation: fly-u-shake 340ms ease-out; }
+.ayudaError { animation: fly-u-shake 340ms ease-out; }
+@media (hover: hover) and (pointer: fine) {
+  .iconoAyuda:hover { scale: 1.035; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+}
+@keyframes fly-u-shake { 0%,100% { translate:0 0 } 25% { translate:-3px 0 } 65% { translate:3px 0 } }
+.iconoAyuda { transition-property: transform, translate, scale, rotate, box-shadow, filter, opacity, background-color, text-decoration-color; transition-duration: 260ms; transition-timing-function: var(--fly-motion-ease); }
+.iconoAyuda:focus-visible { scale: 1.035; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+@media (hover: none), (pointer: coarse) {
+  .iconoAyuda:active { scale: 1.035; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+}

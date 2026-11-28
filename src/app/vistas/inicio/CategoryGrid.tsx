@@ -16,7 +16,7 @@ export function CategoryGrid() {
   return (
     <section className={styles.section}>
       {/* Título de sección */}
-      <div className={styles.header}>
+      <div data-fly-editorial className={styles.header}>
         <Texto variante="h2">Nuestras líneas de producto</Texto>
         <Texto variante="cuerpo" tono="secundario">
           Explora nuestras categorías

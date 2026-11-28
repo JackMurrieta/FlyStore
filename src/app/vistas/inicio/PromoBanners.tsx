@@ -19,7 +19,7 @@ export function PromoBanners() {
     <section className={styles.section}>
       <div className={styles.grid}>
         {banners.map((banner) => (
-          <Link key={banner.id} to={banner.enlace} className={styles.banner}>
+          <Link viewTransition data-fly-card data-fly-reveal key={banner.id} to={banner.enlace} className={styles.banner}>
             <Texto variante="etiqueta-fuerte" className={styles.titulo}>
               {banner.titulo}
             </Texto>

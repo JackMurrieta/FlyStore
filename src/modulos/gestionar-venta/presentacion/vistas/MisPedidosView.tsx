@@ -4,8 +4,10 @@
  * Lista los pedidos registrados del cliente; el detalle del elegido muestra artículos y, si espera
  * comprobante, la fecha límite, los datos para transferir y la carga del comprobante. Mientras no
  * ha pagado (apartado o esperando comprobante) el cliente puede cancelar su pedido.
+ * «Ver recibo» abre el recibo del pedido (el mismo de B7) para descargarlo como imagen.
  */
 
+import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Aviso, Boton, Icono, Texto } from '@compartido/ui'
 import type { DatosBancariosTs } from '../../dominio/DatosBancariosTs'
@@ -18,6 +20,7 @@ import { useCopiar } from '../hooks/useCopiar'
 import { EstadoCarga, PaginaVenta } from '../componentes/PaginaVenta'
 import { ComprobantePago } from '../componentes/ComprobantePago'
 import { DialogoCancelarPedido } from '../componentes/DialogoCancelarPedido'
+import { DialogoRecibo } from '../componentes/DialogoRecibo'
 import { Divisor, FilaResumen, FotoProducto, InsigniaEstado } from '../componentes/Elementos'
 import {
   formatearFechaCorta, formatearFechaLimite, formatearMonto, formatearMontoExacto, formatearTotal, piezas, productos,
@@ -103,6 +106,8 @@ function DetallePedido({ vm, pedido }: { readonly vm: VistaModelo; readonly pedi
   const fechaLimite = pedido.fechaLimitePago ? formatearFechaLimite(pedido.fechaLimitePago) : null
   const vencido = vm.vencido
   const estadoVisible = vm.estadoMostrado(pedido)
+  const [reciboAbierto, setReciboAbierto] = useState(false)
+  const cerrarRecibo = useCallback(() => setReciboAbierto(false), [])
 
   return (
     <section className={estilos.tarjeta} aria-labelledby="titulo-detalle-pedido">
@@ -141,6 +146,13 @@ function DetallePedido({ vm, pedido }: { readonly vm: VistaModelo; readonly pedi
           </li>
         ))}
       </ul>
+
+      <div className={estilos.acciones}>
+        <Boton data-fly-ticket-button variante="fantasma" icono={<Icono nombre="file" tamano={18} />}
+          onClick={() => setReciboAbierto(true)}>
+          Ver recibo
+        </Boton>
+      </div>
 
       {vm.puedeSubir ? (
         <>
@@ -198,6 +210,8 @@ function DetallePedido({ vm, pedido }: { readonly vm: VistaModelo; readonly pedi
           </Boton>
         </div>
       )}
+
+      {reciboAbierto && <DialogoRecibo pedido={pedido} alCerrar={cerrarRecibo} />}
 
       {vm.dialogoCancelarAbierto && pedido.folio && (
         <DialogoCancelarPedido folio={pedido.folio} esperaEfectivo={estado === EstadoVenta.APARTADO_PENDIENTE_PAGO}

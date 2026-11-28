@@ -1,15 +1,15 @@
 /**
  * PedidoRegistradoView «ViewComponent» · B7 Pedido registrado · Folio.
- * Muestra el pedido registrado y su ticket (TicketPedido, armado con los datos del backend).
- * «Ver / Imprimir ticket» abre la impresión del navegador: solo se imprime el ticket y el
- * cliente puede imprimirlo o guardarlo como PDF. Si la página se abre por URL o se recarga,
- * el pedido se pide al backend por su folio.
+ * Muestra el pedido registrado y su recibo (TicketPedido, armado con los datos del backend).
+ * «Descargar recibo» lo guarda como imagen PNG (también se descarga desde «Mis pedidos»).
+ * Si la página se abre por URL o se recarga, el pedido se pide al backend por su folio.
  */
 
 import { useNavigate, useParams } from 'react-router-dom'
 import { Aviso, Boton, Icono, Texto } from '@compartido/ui'
 import { EstadoVenta } from '../../dominio/EstadoVenta'
 import { usePedidoRegistrado } from '../hooks/usePedidoRegistrado'
+import { useDescargarRecibo } from '../hooks/useDescargarRecibo'
 import { useModelosVenta } from '../ModelosVentaContext'
 import { EstadoCarga, PaginaVenta } from '../componentes/PaginaVenta'
 import { PasosCompra } from '../componentes/PasosCompra'
@@ -51,6 +51,7 @@ export default function PedidoRegistradoView() {
   const { rutaBase, rutaMisPedidos } = useModelosVenta()
   const navegar = useNavigate()
   const registro = usePedidoRegistrado(folio)
+  const { referencia: reciboRef, descargar: descargarRecibo, descargando, error: errorRecibo } = useDescargarRecibo()
   const pedido = registro.pedidoRegistrado
 
   if (!pedido) {
@@ -117,12 +118,16 @@ export default function PedidoRegistradoView() {
                 <Icono nombre="whatsapp" tamano={18} /> Enviar resumen por WhatsApp
               </a>
             )}
-            <Boton variante="fantasma" icono={<Icono nombre="file" tamano={18} />} onClick={registro.imprimirTicket}>
-              Ver / Imprimir ticket
+            <Boton data-fly-ticket-button variante="fantasma" icono={<Icono nombre="download" tamano={18} />}
+              cargando={descargando} onClick={() => void descargarRecibo(folioPedido)}>
+              Descargar recibo
             </Boton>
           </div>
+          {errorRecibo && <Aviso tono="error" titulo="Descarga fallida">{errorRecibo}</Aviso>}
         </div>
-        <TicketPedido pedido={pedido} cliente={registro.cliente} />
+        <div className={estilos.ticket}>
+          <TicketPedido ref={reciboRef} pedido={pedido} cliente={registro.cliente} />
+        </div>
       </div>
     </PaginaVenta>
   )

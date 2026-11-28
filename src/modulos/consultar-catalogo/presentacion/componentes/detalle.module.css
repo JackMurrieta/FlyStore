@@ -98,10 +98,8 @@
   transition: transform 160ms ease, background 160ms ease;
 }
 .agregar:hover:not(:disabled) { background: #ffffff; transform: translateY(-1px); }
-.agregar:active:not(:disabled) { transform: translateY(0) scale(0.99); }
 .agregar:disabled { background: var(--fly-superficie-2); border-color: var(--fly-borde-fuerte); color: var(--fly-texto-2); cursor: not-allowed; }
 .agregar:focus-visible { outline: none; box-shadow: var(--fly-foco); }
-.agregar[aria-busy='true'] svg { animation: girar 900ms linear infinite; }
 .subtotal { display: flex; flex-direction: column; gap: 4px; margin: 0; color: var(--fly-texto-2); font: 400 13px/18px 'Inter', sans-serif; }
 .subtotal strong { color: var(--fly-texto); font-size: 15px; }
 .siguiente { color: var(--fly-estado-info); }
@@ -111,6 +109,31 @@
 .datos div { display: flex; justify-content: space-between; gap: 16px; font: 400 13px/18px 'Inter', sans-serif; }
 .datos dt { color: var(--fly-texto-2); }
 .datos dd { margin: 0; text-align: right; }
+
+/* ───── «Agregar al carrito»: producto que cae al carrito y sale a la derecha (BotonAgregarCarrito) ───── */
+.agregar { position: relative; overflow: hidden; }
+.agregar[aria-disabled='true'] { cursor: progress; }
+.agregarTexto { display: inline-flex; align-items: center; gap: 8px; }
+.agregarEscena { position: relative; display: inline-block; flex-shrink: 0; width: 18px; height: 18px; }
+.agregarEscena svg { display: block; }
+.agregarProducto { position: absolute; left: 7px; top: 2px; width: 7px; height: 7px; border-radius: 2px; background: currentColor; opacity: 0; }
+.agregar[data-fase='cargando'] .agregarEscena {
+  animation: carritoEntra 340ms var(--fly-motion-ease, ease-out) both, carritoRecibe 260ms 660ms ease-out, carritoEspera 900ms 980ms ease-in-out infinite;
+}
+.agregar[data-fase='cargando'] .agregarProducto { animation: productoCae 420ms 300ms cubic-bezier(.3, 0, .5, 1.4) both; }
+.agregar[data-fase='saliendo'] .agregarEscena { animation: carritoSale 560ms cubic-bezier(.55, 0, .75, .3) both; }
+.agregar[data-fase='saliendo'] .agregarProducto { opacity: 1; }
+.agregar[data-fase='saliendo'] .agregarTexto { animation: textoSale 260ms ease both; }
+.agregar[data-fase='fallo'] .agregarEscena { animation: carritoSale 480ms cubic-bezier(.55, 0, .75, .3) both; }
+.agregar[data-fase='fallo'] .agregarTexto { animation: textoSale 260ms ease both; }
+.agregar[data-fase='agregado'] .agregarTexto { animation: agregadoEntra 420ms cubic-bezier(.2, 1.4, .4, 1) both; }
+@keyframes carritoEntra { from { translate: -48px 0; opacity: 0; } to { translate: 0 0; opacity: 1; } }
+@keyframes productoCae { 0% { translate: 0 -18px; opacity: 0; } 50% { opacity: 1; } 100% { translate: 0 0; opacity: 1; } }
+@keyframes carritoRecibe { 0%, 100% { scale: 1 1; } 45% { scale: 1.12 .88; } }
+@keyframes carritoEspera { 0%, 100% { rotate: 0deg; } 30% { rotate: -7deg; } 65% { rotate: 5deg; } }
+@keyframes carritoSale { 0% { translate: 0 0; } 20% { translate: -6px 0; } 100% { translate: 640px 0; } }
+@keyframes textoSale { to { opacity: 0; } }
+@keyframes agregadoEntra { from { opacity: 0; scale: .85; } to { opacity: 1; scale: 1; } }
 
 /* ───── Toast «Agregado al carrito» ───── */
 .toast {
@@ -128,7 +151,6 @@
 @keyframes aparecer { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes fundido { from { opacity: 0; } to { opacity: 1; } }
 @keyframes subir { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
-@keyframes girar { to { transform: rotate(360deg); } }
 
 @media (max-width: 960px) {
   .ficha { grid-template-columns: 1fr; gap: 24px; }
@@ -146,9 +168,59 @@
   .toast { left: 16px; right: 16px; bottom: 16px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ficha, .imagenPrincipal, .toast { animation: none; }
-  .imagenPrincipal, .color, .agregar, .tabla tbody tr { transition: none; }
-  .fotoPrincipal:hover .imagenPrincipal { transform: none; }
-  .agregar[aria-busy='true'] svg { animation: none; }
+/* FLY Motion — estados de interacción (siempre activos; sin encogimiento al presionar) */
+.info > * { animation: fly-rise 420ms var(--fly-motion-ease) backwards; }
+.info > :nth-child(2) { animation-delay: 45ms; }
+.info > :nth-child(3) { animation-delay: 90ms; }
+.info > :nth-child(4) { animation-delay: 135ms; }
+/* Miniaturas: la foto que se ve queda «encendida»; las demás, apagadas hasta el hover (foco en la actual) */
+.miniatura img { filter: grayscale(1); opacity: .45; transition: filter 320ms ease, opacity 320ms ease, scale 350ms var(--fly-motion-ease); }
+.miniatura:hover img, .miniatura:focus-visible img, .miniatura[aria-pressed='true'] img { filter: none; opacity: 1; }
+.miniatura:hover img { scale: 1.06; }
+.talla, .color { transition: scale 180ms, background 180ms, border-color 180ms; }
+.filaAplicada { animation: fly-fade 280ms ease backwards; }
+@keyframes fly-rise { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }
+@keyframes fly-fade { from { opacity: 0; } to { opacity: 1; } }
+.fotoPrincipal img { animation: fly-gallery-shutter 650ms cubic-bezier(.16,1,.3,1) both; }
+.miniatura { transition: scale 220ms, border-color 220ms; }
+.talla[aria-pressed="true"],.color[aria-pressed="true"] { animation: fly-selection 380ms ease-out; }
+.agregar { transition: scale 220ms,box-shadow 300ms; }
+.agregar:hover:not(:disabled) { box-shadow: 0 0 24px #9995; }
+@keyframes fly-gallery-shutter { from { clip-path:inset(0 0 10% 0); opacity:.45; scale:1.04; } to { clip-path:inset(0); opacity:1; scale:1; } }
+@keyframes fly-selection { 40% { scale:1.09; } 100% { scale:1; } }
+@media (hover: hover) and (pointer: fine) {
+  .regresar:hover { translate: -4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+}
+.sobretitulo { translate: 4px 0; }
+.estadoFila { animation: fly-u-soft 420ms ease-out both; }
+.disponible { animation: fly-u-spring 420ms var(--fly-motion-ease); }
+.agotado { animation: fly-u-soft 420ms ease-out both; }
+.sku { animation: fly-u-soft 420ms ease-out both; }
+.descripcion { animation: fly-u-rise 420ms var(--fly-motion-ease) both; }
+.color[aria-pressed="true"] { animation: fly-u-spring 420ms var(--fly-motion-ease); }
+.talla[aria-pressed="true"] { animation: fly-u-spring 420ms var(--fly-motion-ease); }
+.miniatura[aria-pressed="true"] { animation: fly-u-spring 420ms var(--fly-motion-ease); }
+.filaAplicada[aria-current="true"] { animation: fly-u-highlight 650ms ease-out; }
+.siguiente { animation: fly-u-rise 420ms var(--fly-motion-ease) both; }
+@media (hover: hover) and (pointer: fine) {
+  .toastAccion:hover { translate: 4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .toastCerrar:hover { rotate: 12deg; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+}
+@keyframes fly-u-soft { from { opacity:.45 } to { opacity:1 } }
+@keyframes fly-u-rise { from { opacity:.45; translate:0 9px } to { opacity:1; translate:0 0 } }
+@keyframes fly-u-spring { 0% { scale:.94 } 55% { scale:1.035 } 80% { scale:.99 } 100% { scale:1 } }
+@keyframes fly-u-highlight { from { box-shadow:inset 0 0 0 2px #8889 } to { box-shadow:inset 0 0 0 2px #8880 } }
+.regresar { transition-property: transform, translate, scale, rotate, box-shadow, filter, opacity, background-color, text-decoration-color; transition-duration: 260ms; transition-timing-function: var(--fly-motion-ease); }
+.toastAccion { transition-property: transform, translate, scale, rotate, box-shadow, filter, opacity, background-color, text-decoration-color; transition-duration: 260ms; transition-timing-function: var(--fly-motion-ease); }
+.toastCerrar { transition-property: transform, translate, scale, rotate, box-shadow, filter, opacity, background-color, text-decoration-color; transition-duration: 260ms; transition-timing-function: var(--fly-motion-ease); }
+.toast[data-fly-cart-confirm] { animation: fly-confirm-pill .64s cubic-bezier(.18,.9,.25,1.15) backwards; }
+@keyframes fly-confirm-pill { 0% { opacity:0; transform:translateY(26px) scale(.82); clip-path:inset(12% 32% round 30px); } 70% { opacity:1; transform:translateY(-3px) scale(1.015); clip-path:inset(0 round 12px); } 100% { opacity:1;transform:none;clip-path:inset(0 round 12px); } }
+.filaAplicada { transition: background .38s var(--fly-motion-ease),box-shadow .38s var(--fly-motion-ease); }
+.regresar:focus-visible { translate: -4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.toastAccion:focus-visible { translate: 4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.toastCerrar:focus-visible { rotate: 12deg; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+@media (hover: none), (pointer: coarse) {
+  .regresar:active { translate: -4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .toastAccion:active { translate: 4px 0; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .toastCerrar:active { rotate: 12deg; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
 }

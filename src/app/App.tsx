@@ -5,7 +5,9 @@
 
 import { BrowserRouter } from 'react-router-dom'
 import { SesionProvider } from '@compartido/sesion'
+import { ContadorCarritoProvider } from '@compartido/carrito'
 import { contenedor } from './contenedor'
+import { MotionRaiz } from './motion'
 import { Rutas } from './rutas'
 import { ErrorBoundary } from './ErrorBoundary'
 
@@ -14,7 +16,10 @@ export function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <SesionProvider sesion={contenedor.sesion}>
-          <Rutas />
+          <ContadorCarritoProvider contador={contenedor.modelosVenta.contadorCarrito}>
+            <MotionRaiz />
+            <Rutas />
+          </ContadorCarritoProvider>
         </SesionProvider>
       </BrowserRouter>
     </ErrorBoundary>

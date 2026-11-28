@@ -81,3 +81,29 @@
     font-size: 24px;
   }
 }
+
+/* FLY Motion — estados de interacción (siempre activos; sin encogimiento al presionar) */
+.imagenCategoria { transition: scale 650ms var(--fly-motion-ease); }
+.info { transition: translate 350ms var(--fly-motion-ease); }
+.card { transition: transform 350ms var(--fly-motion-ease), box-shadow 350ms; }
+@media (hover: hover) and (pointer: fine) {
+  .card:hover { translate: 0 -3px; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .card:hover .imagenCategoria { scale: 1.045; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .card:hover .info { translate: 0 -5px; transition: translate 420ms var(--fly-motion-ease); }
+  .card:hover .nombre { text-underline-offset: 5px; text-decoration: underline; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .card:hover .overlay { filter: brightness(1.15); transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+}
+.nombre { transition-property: transform, translate, scale, rotate, box-shadow, filter, opacity, background-color, text-decoration-color; transition-duration: 260ms; transition-timing-function: var(--fly-motion-ease); }
+.overlay { transition-property: transform, translate, scale, rotate, box-shadow, filter, opacity, background-color, text-decoration-color; transition-duration: 260ms; transition-timing-function: var(--fly-motion-ease); }
+.card:focus-visible { translate: 0 -3px; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.card:focus-visible .imagenCategoria { scale: 1.045; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.card:focus-visible .info { translate: 0 -5px; transition: translate 420ms var(--fly-motion-ease); }
+.card:focus-visible .nombre { text-underline-offset: 5px; text-decoration: underline; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+.card:focus-visible .overlay { filter: brightness(1.15); transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+@media (hover: none), (pointer: coarse) {
+  .card:active { translate: 0 -3px; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .card:active .imagenCategoria { scale: 1.045; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .card:active .info { translate: 0 -5px; transition: translate 420ms var(--fly-motion-ease); }
+  .card:active .nombre { text-underline-offset: 5px; text-decoration: underline; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+  .card:active .overlay { filter: brightness(1.15); transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+}

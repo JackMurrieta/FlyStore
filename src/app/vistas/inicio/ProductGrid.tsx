@@ -19,7 +19,7 @@ export function ProductGrid() {
   return (
     <section className={styles.section}>
       {/* Título de sección */}
-      <div className={styles.header}>
+      <div data-fly-editorial className={styles.header}>
         <Texto variante="h2">Productos destacados</Texto>
         <Texto variante="cuerpo" tono="secundario">
           Descubre nuestra selección especial

@@ -25,6 +25,7 @@ import {
   Trash2,
   Copy,
   Upload,
+  Download,
   Check,
   CheckCircle,
   AlertTriangle,
@@ -158,6 +159,7 @@ export type NombreIcono =
   | 'trash'
   | 'copy'
   | 'upload'
+  | 'download'
   | 'check'
   | 'check-circle'
   | 'alert-triangle'
@@ -234,6 +236,7 @@ const ICONOS_MAP = {
   trash: Trash2,
   copy: Copy,
   upload: Upload,
+  download: Download,
   check: Check,
   'check-circle': CheckCircle,
   'alert-triangle': AlertTriangle,

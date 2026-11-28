@@ -73,37 +73,6 @@
 }
 
 /* Botones de navegación */
-.navBoton {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2;
-  background: rgba(0, 0, 0, 0.5);
-  border: none;
-  color: white;
-  font-size: 48px;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.3s ease;
-  border-radius: 4px;
-}
-
-.navBoton:hover {
-  background: rgba(0, 0, 0, 0.7);
-}
-
-.navAnterior {
-  left: var(--fly-espacio-4);
-}
-
-.navSiguiente {
-  right: var(--fly-espacio-4);
-}
-
 /* Indicadores de navegación */
 .indicadores {
   position: absolute;
@@ -152,20 +121,6 @@
     font-size: 32px;
   }
 
-  .navBoton {
-    width: 40px;
-    height: 40px;
-    font-size: 36px;
-  }
-
-  .navAnterior {
-    left: var(--fly-espacio-3);
-  }
-
-  .navSiguiente {
-    right: var(--fly-espacio-3);
-  }
-
   .indicadores {
     right: var(--fly-espacio-6);
   }
@@ -185,22 +140,41 @@
     font-size: 28px;
   }
 
-  .navBoton {
-    width: 36px;
-    height: 36px;
-    font-size: 32px;
-  }
-
-  .navAnterior {
-    left: var(--fly-espacio-2);
-  }
-
-  .navSiguiente {
-    right: var(--fly-espacio-2);
-  }
-
   .indicadores {
     bottom: var(--fly-espacio-4);
     right: var(--fly-espacio-5);
   }
+}
+
+/* FLY Motion — estados de interacción (siempre activos; sin encogimiento al presionar) */
+.dot { position: relative; overflow: hidden; }
+.dot.activo { background: rgba(255,255,255,.35); }
+.dot.activo::after { content: ""; position: absolute; inset: 0; background: white; transform-origin: left; animation: fly-progress 5s linear both; }
+@keyframes fly-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes fly-rise { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }
+.slideActivo { animation: fly-cinema 5s cubic-bezier(.18,.7,.3,1) both; }
+.cta { animation: fly-rise 750ms 230ms var(--fly-motion-ease) both; }
+.hero::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(112deg, transparent 38%,#ffffff12 50%,transparent 62%); background-size: 250% 100%; animation: fly-light-pass 5s ease-in-out infinite; }
+@keyframes fly-cinema { from { scale:1.12; translate:1% 0; } to { scale:1.015; translate:0 0; } }
+@keyframes fly-title-reveal { from { clip-path: inset(0 0 100% 0); translate:0 22px; opacity:.3; } to { clip-path: inset(0); translate:0 0; opacity:1; } }
+@keyframes fly-light-pass { 0%,20% { background-position:100% 0; } 70%,100% { background-position:0 0; } }
+.pausa:focus-visible { outline: 2px solid white; outline-offset: 3px; }
+.hero[data-paused="true"] .slideActivo, .hero[data-paused="true"] .dot.activo::after, .hero[data-paused="true"]::after { animation-play-state: paused; }
+.pausa { width: 30px; height: 30px; display: grid; place-items: center; background: #1119; color: white; border: 1px solid #ffffff40; border-radius: 50%; cursor: pointer; backdrop-filter: blur(12px); font-size: 12px; transition: background .3s, scale .4s cubic-bezier(.2,1.5,.5,1); }
+.pausa:hover { background: #ffffff30; }
+.slide { transition: opacity 1.15s cubic-bezier(.4,0,.2,1); }
+.dot { transition: width .55s cubic-bezier(.2,1,.3,1), background .35s; }
+@media (hover: hover) and (pointer: fine) {
+  .cta:hover { translate: 0 -3px; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+}
+.contenido { animation: fly-u-soft 420ms ease-out both; }
+.titulo { animation: fly-title-reveal 850ms var(--fly-motion-ease) both; }
+.subtitulo { animation: fly-rise 750ms 120ms var(--fly-motion-ease) backwards; }
+.indicadores { animation: fly-u-drop 480ms var(--fly-motion-ease) both; }
+@keyframes fly-u-soft { from { opacity:.45 } to { opacity:1 } }
+@keyframes fly-u-drop { from { opacity:0; translate:0 -9px; scale:.985 } to { opacity:1; translate:0 0; scale:1 } }
+.cta { transition-property: transform, translate, scale, rotate, box-shadow, filter, opacity, background-color, text-decoration-color; transition-duration: 260ms; transition-timing-function: var(--fly-motion-ease); }
+.cta:focus-visible { translate: 0 -3px; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
+@media (hover: none), (pointer: coarse) {
+  .cta:active { translate: 0 -3px; transition: translate 220ms var(--fly-motion-ease),scale 220ms var(--fly-motion-ease),rotate 220ms var(--fly-motion-ease),box-shadow 220ms,filter 220ms,text-underline-offset 220ms; }
 }

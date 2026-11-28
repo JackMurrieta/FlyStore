@@ -1,0 +1,73 @@
+/*
+ * Flechas del carrusel. Mismo aspecto que las del hero original: cuadro negro translúcido,
+ * ícono blanco. --separacion es la distancia al borde del contenedor.
+ */
+
+.flecha {
+  --separacion: var(--fly-espacio-4);
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  cursor: pointer;
+  transform: translateY(-50%);
+  /* Oculta: fuera del contenedor, del lado de su borde */
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    translate 460ms var(--fly-motion-ease, cubic-bezier(.22, 1, .36, 1)),
+    opacity 320ms ease,
+    background 300ms ease;
+}
+.anterior { left: var(--separacion); translate: calc(-100% - var(--separacion)) 0; }
+.siguiente { right: var(--separacion); translate: calc(100% + var(--separacion)) 0; }
+
+.grande { width: 50px; height: 50px; }
+.mediano { --separacion: 12px; width: 40px; height: 40px; }
+
+/* Entran con el hover del contenedor (su padre directo) */
+:hover > .flecha {
+  opacity: 1;
+  translate: 0 0;
+  pointer-events: auto;
+}
+
+/* Con teclado aparece la flecha enfocada */
+.flecha:focus-visible {
+  opacity: 1;
+  translate: 0 0;
+  pointer-events: auto;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.flecha:hover { background: rgba(0, 0, 0, 0.7); }
+
+/* Pequeño empuje hacia afuera al pasar sobre la flecha (FLY Motion) */
+@media (hover: hover) and (pointer: fine) {
+  :hover > .anterior:hover { translate: -4px 0; }
+  :hover > .siguiente:hover { translate: 4px 0; }
+}
+
+/* Pantallas táctiles: siempre visibles */
+@media (hover: none), (pointer: coarse) {
+  .flecha {
+    opacity: 1;
+    translate: 0 0;
+    pointer-events: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .grande { --separacion: var(--fly-espacio-3); width: 40px; height: 40px; }
+}
+
+@media (max-width: 480px) {
+  .grande { --separacion: var(--fly-espacio-2); width: 36px; height: 36px; }
+}

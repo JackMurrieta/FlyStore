@@ -162,11 +162,11 @@ const PEDIDOS: readonly Pregunta[] = [
     ),
   },
   {
-    pregunta: '¿Dónde veo mi ticket?',
+    pregunta: '¿Dónde veo mi recibo?',
     respuesta: (
       <p>
-        Al confirmar tu pedido verás tu ticket con el botón «Ver / Imprimir ticket»: puedes imprimirlo o guardarlo como PDF desde
-        la ventana de impresión de tu navegador.
+        Al confirmar tu pedido verás tu recibo y el botón «Descargar recibo», que lo guarda como imagen. También puedes
+        descargarlo cuando quieras desde «Mis pedidos» con «Ver recibo».
       </p>
     ),
   },

@@ -42,14 +42,14 @@ export function FilaResumen({ etiqueta, valor, tipo = 'normal' }: { readonly eti
     return (
       <div className={estilos.filaTotal}>
         <Texto variante="h3">{etiqueta}</Texto>
-        <Texto variante="precio-l">{valor}</Texto>
+        <Texto variante="precio-l" data-fly-counter>{valor}</Texto>
       </div>
     )
   }
   return (
     <div className={estilos.fila}>
       <Texto variante="cuerpo-s" tono="secundario">{etiqueta}</Texto>
-      <Texto variante="etiqueta-fuerte" className={tipo === 'descuento' ? estilos.filaDescuento : undefined}>{valor}</Texto>
+      <Texto variante="etiqueta-fuerte" data-fly-counter className={tipo === 'descuento' ? estilos.filaDescuento : undefined}>{valor}</Texto>
     </div>
   )
 }

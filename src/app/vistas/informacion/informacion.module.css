@@ -61,6 +61,3 @@
   .contenido { padding: 24px 16px 48px; gap: 28px; }
   .texto { font-size: 14px; line-height: 22px; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .pregunta summary::after { transition: none; }
-}

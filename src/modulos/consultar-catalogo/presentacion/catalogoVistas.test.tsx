@@ -5,7 +5,8 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { SesionProvider, type EstadoSesionTs, type ISesion, type RolTs } from '@compartido/sesion'
 import { crearModelosCatalogo } from '../aplicacion/ModelosCatalogo'
 import { CatalogoTienda } from './CatalogoTienda'
-import { carritoFalso, gatewayFalso, pendientesEnMemoria } from '../pruebas/fixturesCatalogo'
+import { carritoFalso, detalleDodgers, gatewayFalso, pendientesEnMemoria } from '../pruebas/fixturesCatalogo'
+import type { ProductoDetalleRespuestaDTO } from '../aplicacion/dto/ProductoDetalleRespuestaDTO'
 import type { AgregadoPendienteTs } from '../dominio/puertos/IAgregadoPendiente'
 
 function sesionCon(rol: RolTs | null): ISesion {
@@ -20,8 +21,9 @@ function Ubicacion() {
   return <output data-testid="ubicacion">{pathname + search}</output>
 }
 
-function abrir(ruta: string, { rol = null as RolTs | null, pendiente = null as AgregadoPendienteTs | null } = {}) {
+function abrir(ruta: string, { rol = null as RolTs | null, pendiente = null as AgregadoPendienteTs | null, detalle = null as ProductoDetalleRespuestaDTO | null } = {}) {
   const gateway = gatewayFalso()
+  if (detalle) vi.mocked(gateway.obtenerProducto).mockResolvedValue(detalle)
   const carrito = carritoFalso()
   const pendientes = pendientesEnMemoria(pendiente)
   const modelos = crearModelosCatalogo(gateway, carrito, pendientes)
@@ -154,6 +156,29 @@ describe('S2 · Ficha y «Agregar al carrito»', () => {
     await waitFor(() => expect(carrito.agregar).toHaveBeenCalledWith(101, 6))
     await waitFor(() => expect(ubicacion()).toBe('/producto/10?color=1'))
     expect(await screen.findByText('Agregado al carrito')).toBeInTheDocument()
+  })
+
+  it('galería: la foto actual queda encendida; el hover no cambia la foto; el clic y las flechas sí', async () => {
+    const imagenes = [1, 2, 3].map((n) => ({ url: `https://img.test/10-negro-${n}.webp`, idColor: 1, orden: n }))
+    abrir('/producto/10?color=1', { detalle: detalleDodgers({ imagenes }) })
+    await screen.findByRole('heading', { level: 1, name: '9FORTY LA Dodgers' })
+    const fotos = within(screen.getByRole('group', { name: 'Fotos del producto' }))
+    const principal = () => screen.getByRole('img', { name: '9FORTY LA Dodgers' })
+    expect(principal()).toHaveAttribute('src', imagenes[0]!.url)
+    expect(fotos.getByRole('button', { name: 'Foto 1' })).toHaveAttribute('aria-pressed', 'true')
+
+    await userEvent.hover(fotos.getByRole('button', { name: 'Foto 3' }))
+    expect(principal()).toHaveAttribute('src', imagenes[0]!.url)
+
+    await userEvent.click(fotos.getByRole('button', { name: 'Foto 3' }))
+    expect(principal()).toHaveAttribute('src', imagenes[2]!.url)
+    expect(fotos.getByRole('button', { name: 'Foto 3' })).toHaveAttribute('aria-pressed', 'true')
+    expect(fotos.getByRole('button', { name: 'Foto 1' })).toHaveAttribute('aria-pressed', 'false')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Foto siguiente' }))
+    expect(principal()).toHaveAttribute('src', imagenes[0]!.url)
+    await userEvent.click(screen.getByRole('button', { name: 'Foto anterior' }))
+    expect(principal()).toHaveAttribute('src', imagenes[2]!.url)
   })
 
   it('A5 · variante agotada: el botón queda deshabilitado', async () => {

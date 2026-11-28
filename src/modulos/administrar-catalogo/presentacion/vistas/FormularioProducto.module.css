@@ -100,4 +100,3 @@
   .precios { grid-template-columns: minmax(0, 1fr); }
   .foto, .agregarFoto { width: 84px; height: 84px; }
 }
-@media (prefers-reduced-motion: reduce) { .accionesFoto { transition: none; } }

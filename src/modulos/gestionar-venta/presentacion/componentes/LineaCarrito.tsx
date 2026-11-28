@@ -17,7 +17,7 @@ export function LineaCarrito({ linea, deshabilitado, cambiarCantidad, solicitarE
   const sinExistencia = linea.existencia !== null && linea.cantidad > linea.existencia
   const tope = linea.existencia !== null && linea.cantidad >= linea.existencia
   return (
-    <li className={estilos.linea} data-con-codigo={Boolean(codigo)} data-alerta={sinExistencia}>
+    <li data-fly-reveal className={estilos.linea} data-con-codigo={Boolean(codigo)} data-alerta={sinExistencia}>
       <FotoProducto url={linea.imagenUrl} alt={linea.nombre} tamano={88} />
       <div className={estilos.infoLinea}>
         <Texto variante="sobretitulo" tono="secundario">{linea.marca}</Texto>

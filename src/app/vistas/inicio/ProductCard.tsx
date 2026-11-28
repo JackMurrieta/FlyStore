@@ -21,7 +21,7 @@ export function ProductCard({ nombre, precio, slug }: ProductCardProps) {
   }).format(precio)
 
   return (
-    <Link to={`/productos/${slug}`} className={styles.card}>
+    <Link viewTransition data-fly-card data-fly-reveal to={`/productos/${slug}`} className={styles.card}>
       {/* Placeholder para imagen de producto */}
       <div className={styles.imagenProducto} />
 
